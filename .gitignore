@@ -1,0 +1,9 @@
+# Claude Code internal
+.claude/
+
+# Carpeta git anidada (creada por error)
+Sandra Envia/
+
+# Sistema Windows
+Thumbs.db
+desktop.ini
