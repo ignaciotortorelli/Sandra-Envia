@@ -1,13 +1,9 @@
 // ══════════════════════════════════════════
-//  Google Photos → Drive integration
+//  Google Drive integration
 //  admin-panel/google-drive.js
 // ══════════════════════════════════════════
 
-const SCOPES = [
-  'https://www.googleapis.com/auth/photoslibrary.readonly',
-  'https://www.googleapis.com/auth/drive.file',
-].join(' ');
-
+const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const DRIVE_FOLDER_NAME = 'Sandra Envía – Productos';
 
 let tokenClient  = null;
@@ -18,7 +14,7 @@ let driveFolderId = null;
 export function initGoogleAuth(clientId) {
   tokenClient = window.google.accounts.oauth2.initTokenClient({
     client_id: clientId,
-    scope: SCOPES,
+    scope: SCOPE,
     callback: () => {},
   });
 }
@@ -26,16 +22,12 @@ export function initGoogleAuth(clientId) {
 // ── Request / refresh token ────────────────────────────────
 export function requestToken() {
   return new Promise((resolve, reject) => {
-    tokenClient.callback = async resp => {
+    tokenClient.callback = resp => {
       if (resp.error) { reject(new Error(resp.error)); return; }
       accessToken = resp.access_token;
-      // DEBUG: verificar scopes del token
-      const info = await fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`).then(r => r.json());
-      console.log('[TOKEN SCOPES]', info.scope);
       resolve(accessToken);
     };
-    // Skip consent screen if we already have a token
-    tokenClient.requestAccessToken({ prompt: 'consent' });
+    tokenClient.requestAccessToken({ prompt: accessToken ? '' : 'consent' });
   });
 }
 
@@ -57,23 +49,6 @@ async function gFetch(url, options = {}) {
   return res.json();
 }
 
-// ── List Google Photos ─────────────────────────────────────
-export async function listPhotos(pageToken = null) {
-  const params = new URLSearchParams({ pageSize: '24' });
-  if (pageToken) params.set('pageToken', pageToken);
-
-  const res = await fetch(
-    `https://photoslibrary.googleapis.com/v1/mediaItems?${params}`,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
-  );
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    console.error('[PHOTOS 403 DETAIL]', JSON.stringify(body));
-    throw new Error(`Error al listar fotos: ${res.status}`);
-  }
-  return res.json();
-}
-
 // ── Get or create Drive folder ─────────────────────────────
 async function getOrCreateFolder() {
   if (driveFolderId) return driveFolderId;
@@ -90,7 +65,6 @@ async function getOrCreateFolder() {
     return driveFolderId;
   }
 
-  // Create folder
   const folder = await gFetch('https://www.googleapis.com/drive/v3/files', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -100,7 +74,6 @@ async function getOrCreateFolder() {
     }),
   });
 
-  // Make folder publicly readable
   await gFetch(`https://www.googleapis.com/drive/v3/files/${folder.id}/permissions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -111,47 +84,33 @@ async function getOrCreateFolder() {
   return driveFolderId;
 }
 
-// ── Copy photo from Google Photos to Drive ─────────────────
-// Returns the permanent public URL of the Drive file
-export async function copyPhotoToDrive(mediaItem, onProgress) {
+// ── Upload a local File to Drive, return public URL ────────
+export async function uploadFileToDrive(file, onProgress) {
+  await requestToken();
   const folderId = await getOrCreateFolder();
 
-  // Download original from Google Photos
-  onProgress?.('Descargando foto de Google Photos…');
-  const downloadUrl = `${mediaItem.baseUrl}=d`;
-  const imgRes = await fetch(downloadUrl, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!imgRes.ok) throw new Error('No se pudo descargar la foto de Google Photos');
-  const blob = await imgRes.blob();
-
-  // Upload to Google Drive (multipart)
-  onProgress?.('Subiendo a Google Drive…');
-  const filename = mediaItem.filename || `foto_${Date.now()}.jpg`;
-  const metadata = JSON.stringify({ name: filename, parents: [folderId] });
+  onProgress?.('Subiendo imagen a Google Drive…');
 
   const form = new FormData();
-  form.append('metadata', new Blob([metadata], { type: 'application/json' }));
-  form.append('file', blob, filename);
+  form.append('metadata', new Blob(
+    [JSON.stringify({ name: file.name, parents: [folderId] })],
+    { type: 'application/json' }
+  ));
+  form.append('file', file, file.name);
 
-  const uploadRes = await fetch(
-    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',
-    {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${accessToken}` },
-      body: form,
-    }
+  const res = await fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+    { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form }
   );
-  if (!uploadRes.ok) throw new Error('Error al subir la foto a Drive');
-  const file = await uploadRes.json();
+  if (!res.ok) throw new Error('Error al subir la imagen a Drive');
+  const uploaded = await res.json();
 
-  // Set file as publicly readable
   onProgress?.('Configurando acceso público…');
-  await gFetch(`https://www.googleapis.com/drive/v3/files/${file.id}/permissions`, {
+  await gFetch(`https://www.googleapis.com/drive/v3/files/${uploaded.id}/permissions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ role: 'reader', type: 'anyone' }),
   });
 
-  return `https://drive.google.com/uc?export=view&id=${file.id}`;
+  return `https://drive.google.com/uc?export=view&id=${uploaded.id}`;
 }
