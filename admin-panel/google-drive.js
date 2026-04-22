@@ -112,5 +112,5 @@ export async function uploadFileToDrive(file, onProgress) {
     body: JSON.stringify({ role: 'reader', type: 'anyone' }),
   });
 
-  return `https://drive.google.com/uc?export=view&id=${uploaded.id}`;
+  return `https://drive.google.com/thumbnail?id=${uploaded.id}&sz=w800`;
 }

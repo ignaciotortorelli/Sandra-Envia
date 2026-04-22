@@ -10,6 +10,13 @@ import { firebaseConfig }                         from './firebase.config.js';
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
+// Convert any Drive URL to the embeddable thumbnail format
+function driveImgUrl(url) {
+  if (!url) return null;
+  const m = url.match(/[?&]id=([^&]+)/);
+  return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800` : url;
+}
+
 const WA_NUM  = '5491121802212';
 const WA_BASE = `https://wa.me/${WA_NUM}?text=Hola!%20Quiero%20consultar%20por%20`;
 
@@ -68,7 +75,7 @@ function buildCategoryCard(cat, catProducts, index) {
   const emoji   = cat.emoji ?? '👗';
 
   // Show first product image if available, else gradient + emoji
-  const firstImg = catProducts[0]?.images?.[0];
+  const firstImg = driveImgUrl(catProducts[0]?.images?.[0]);
   const imgHtml  = firstImg
     ? `<img src="${firstImg}" alt="${cat.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">`
     : `<span class="card-emoji">${emoji}</span><span class="card-label">Ver productos</span>`;
@@ -127,7 +134,7 @@ function renderAllProducts(products, categories) {
   grid.innerHTML = '';
   sorted.forEach((prod, i) => {
     const cat   = categories.find(c => c.id === prod.categoryId);
-    const img   = prod.images?.[0];
+    const img   = driveImgUrl(prod.images?.[0]);
     const grad  = cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)';
     const name  = encodeURIComponent(prod.name ?? '');
     const href  = `${WA_BASE}${name}%20de%20Sandra%20Envia`;
