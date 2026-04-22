@@ -22,6 +22,11 @@ let categories = [];
 let products   = [];
 let pendingImages = []; // { file, url } during product form
 
+let productSort  = { field: 'name', dir: 1 };
+let categorySort = { field: 'order', dir: 1 };
+let selectedProds = new Set();
+let selectedCats  = new Set();
+
 // ── Firebase status indicator ──────────────────────────────
 function setStatus(state) {
   const dot  = document.getElementById('firebaseStatus')?.querySelector('.status-dot');
@@ -117,6 +122,34 @@ function renderDashboard() {
     </div>`;
 }
 
+// ── Sort helper ───────────────────────────
+function sortItems(items, field, dir, type) {
+  return items.sort((a, b) => {
+    let va, vb;
+    if (type === 'product') {
+      if (field === 'category') {
+        va = (categories.find(c => c.id === a.categoryId)?.name ?? '').toLowerCase();
+        vb = (categories.find(c => c.id === b.categoryId)?.name ?? '').toLowerCase();
+      } else if (field === 'inStock') {
+        va = a.inStock ? 1 : 0; vb = b.inStock ? 1 : 0;
+      } else {
+        va = a[field] ?? ''; vb = b[field] ?? '';
+      }
+    } else {
+      if (field === 'prodCount') {
+        va = products.filter(p => p.categoryId === a.id).length;
+        vb = products.filter(p => p.categoryId === b.id).length;
+      } else if (field === 'active') {
+        va = a.active !== false ? 1 : 0; vb = b.active !== false ? 1 : 0;
+      } else {
+        va = a[field] ?? ''; vb = b[field] ?? '';
+      }
+    }
+    if (typeof va === 'string') return va.localeCompare(vb) * dir;
+    return (va < vb ? -1 : va > vb ? 1 : 0) * dir;
+  });
+}
+
 // ── Products ──────────────────────────────
 function renderProducts() {
   const actions = document.getElementById('topbarActions');
@@ -135,15 +168,18 @@ function renderProducts() {
     return;
   }
 
-  const rows = products.map(p => {
-    const cat  = categories.find(c => c.id === p.categoryId);
-    const imgs = (p.images ?? []).slice(0, 3);
+  const sorted = sortItems([...products], productSort.field, productSort.dir, 'product');
+
+  const rows = sorted.map(p => {
+    const cat    = categories.find(c => c.id === p.categoryId);
+    const imgs   = (p.images ?? []).slice(0, 3);
     const thumbs = imgs.length
       ? imgs.map(url => `<img class="thumb" src="${url}" alt="" loading="lazy" onclick="openAdminPhotoGallery('${p.id}')" style="cursor:zoom-in">`).join('')
       : `<div class="thumb-placeholder">📷</div>`;
-
+    const sel = selectedProds.has(p.id);
     return `
-      <tr>
+      <tr class="${sel ? 'row-checked' : ''}">
+        <td class="td-check"><input type="checkbox" class="row-check" ${sel ? 'checked' : ''} onchange="toggleProd('${p.id}',this.checked)"></td>
         <td><div class="thumb-list">${thumbs}</div></td>
         <td><strong>${p.name ?? '—'}</strong></td>
         <td>${cat?.name ?? '—'}</td>
@@ -159,17 +195,33 @@ function renderProducts() {
       </tr>`;
   }).join('');
 
+  const allChecked = sorted.length > 0 && sorted.every(p => selectedProds.has(p.id));
+  const thP = (field, label) => {
+    const active = productSort.field === field;
+    const arrow  = active ? (productSort.dir === 1 ? ' ↑' : ' ↓') : '';
+    return `<th class="th-sort${active ? ' th-active' : ''}" onclick="sortProds('${field}')">${label}${arrow}</th>`;
+  };
+
+  const bulkBar = selectedProds.size ? `
+    <div class="bulk-bar">
+      <span>${selectedProds.size} producto(s) seleccionado(s)</span>
+      <button class="btn btn-danger btn-sm" onclick="bulkDeleteProds()">🗑️ Eliminar seleccionados</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearProdSelection()">✕ Deseleccionar</button>
+    </div>` : '';
+
   content.innerHTML = `
+    ${bulkBar}
     <div class="table-wrap">
       <table class="data-table">
         <thead>
           <tr>
+            <th class="td-check"><input type="checkbox" id="checkAllProds" ${allChecked ? 'checked' : ''} onchange="toggleAllProds(this.checked)"></th>
             <th>Imagen</th>
-            <th>Nombre</th>
-            <th>Categoría</th>
-            <th>Precio</th>
-            <th>Mínimo</th>
-            <th>Stock</th>
+            ${thP('name', 'Nombre')}
+            ${thP('category', 'Categoría')}
+            ${thP('price', 'Precio')}
+            ${thP('minOrder', 'Mínimo')}
+            ${thP('inStock', 'Stock')}
             <th>Acciones</th>
           </tr>
         </thead>
@@ -196,29 +248,54 @@ function renderCategories() {
     return;
   }
 
-  const rows = categories.map(c => `
-    <tr>
-      <td><div class="grad-preview" style="background:${c.gradient ?? '#ccc'}">${c.emoji ?? ''}</div></td>
-      <td><strong>${c.name}</strong></td>
-      <td>${c.order ?? 0}</td>
-      <td><span class="badge ${c.active !== false ? 'badge-green' : 'badge-gray'}">${c.active !== false ? 'Activa' : 'Inactiva'}</span></td>
-      <td>
-        <div class="actions-cell">
-          <button class="btn-icon edit"   onclick="openCategoryModal('${c.id}')" title="Editar">✏️</button>
-          <button class="btn-icon delete" onclick="confirmDelete('category','${c.id}','${c.name?.replace(/'/g, "\\'")}')" title="Eliminar">🗑️</button>
-        </div>
-      </td>
-    </tr>`).join('');
+  const sorted = sortItems([...categories], categorySort.field, categorySort.dir, 'category');
+
+  const rows = sorted.map(c => {
+    const prodCount = products.filter(p => p.categoryId === c.id).length;
+    const sel = selectedCats.has(c.id);
+    return `
+      <tr class="${sel ? 'row-checked' : ''}">
+        <td class="td-check"><input type="checkbox" class="row-check" ${sel ? 'checked' : ''} onchange="toggleCat('${c.id}',this.checked)"></td>
+        <td><div class="grad-preview" style="background:${c.gradient ?? '#ccc'}">${c.emoji ?? ''}</div></td>
+        <td><strong>${c.name}</strong></td>
+        <td>${c.order ?? 0}</td>
+        <td>${prodCount}</td>
+        <td><span class="badge ${c.active !== false ? 'badge-green' : 'badge-gray'}">${c.active !== false ? 'Activa' : 'Inactiva'}</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn-icon edit"   onclick="openCategoryModal('${c.id}')" title="Editar">✏️</button>
+            <button class="btn-icon delete" onclick="confirmDelete('category','${c.id}','${c.name?.replace(/'/g, "\\'")}')" title="Eliminar">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  const allChecked = sorted.length > 0 && sorted.every(c => selectedCats.has(c.id));
+  const thC = (field, label) => {
+    const active = categorySort.field === field;
+    const arrow  = active ? (categorySort.dir === 1 ? ' ↑' : ' ↓') : '';
+    return `<th class="th-sort${active ? ' th-active' : ''}" onclick="sortCats('${field}')">${label}${arrow}</th>`;
+  };
+
+  const bulkBar = selectedCats.size ? `
+    <div class="bulk-bar">
+      <span>${selectedCats.size} categoría(s) seleccionada(s)</span>
+      <button class="btn btn-danger btn-sm" onclick="bulkDeleteCats()">🗑️ Eliminar seleccionadas</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearCatSelection()">✕ Deseleccionar</button>
+    </div>` : '';
 
   content.innerHTML = `
+    ${bulkBar}
     <div class="table-wrap">
       <table class="data-table">
         <thead>
           <tr>
+            <th class="td-check"><input type="checkbox" id="checkAllCats" ${allChecked ? 'checked' : ''} onchange="toggleAllCats(this.checked)"></th>
             <th>Vista previa</th>
-            <th>Nombre</th>
-            <th>Orden</th>
-            <th>Estado</th>
+            ${thC('name', 'Nombre')}
+            ${thC('order', 'Orden')}
+            ${thC('prodCount', 'Productos')}
+            ${thC('active', 'Estado')}
             <th>Acciones</th>
           </tr>
         </thead>
@@ -248,6 +325,89 @@ const GRADIENTS = [
 window.openProductModal  = openProductModal;
 window.openCategoryModal = openCategoryModal;
 window.confirmDelete     = confirmDelete;
+
+// ── Sort / select global handlers ─────────
+window.sortProds = (field) => {
+  if (productSort.field === field) productSort.dir = -productSort.dir;
+  else { productSort.field = field; productSort.dir = 1; }
+  renderProducts();
+};
+window.sortCats = (field) => {
+  if (categorySort.field === field) categorySort.dir = -categorySort.dir;
+  else { categorySort.field = field; categorySort.dir = 1; }
+  renderCategories();
+};
+window.toggleProd = (id, checked) => {
+  if (checked) selectedProds.add(id); else selectedProds.delete(id);
+  renderProducts();
+};
+window.toggleAllProds = (checked) => {
+  products.forEach(p => checked ? selectedProds.add(p.id) : selectedProds.delete(p.id));
+  renderProducts();
+};
+window.toggleCat = (id, checked) => {
+  if (checked) selectedCats.add(id); else selectedCats.delete(id);
+  renderCategories();
+};
+window.toggleAllCats = (checked) => {
+  categories.forEach(c => checked ? selectedCats.add(c.id) : selectedCats.delete(c.id));
+  renderCategories();
+};
+window.clearProdSelection = () => { selectedProds.clear(); renderProducts(); };
+window.clearCatSelection  = () => { selectedCats.clear(); renderCategories(); };
+
+window.bulkDeleteProds = () => {
+  const ids = [...selectedProds];
+  if (!ids.length) return;
+  const overlay = document.getElementById('confirmOverlay');
+  document.getElementById('confirmTitle').textContent  = '¿Confirmar eliminación?';
+  document.getElementById('confirmMessage').textContent =
+    `¿Eliminar ${ids.length} producto(s)? Las imágenes de Drive también se borrarán. Esta acción no se puede deshacer.`;
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.getElementById('confirmCancel').onclick = () => {
+    overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true');
+  };
+  document.getElementById('confirmOk').onclick = async () => {
+    overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true');
+    selectedProds.clear();
+    let driveErrors = 0;
+    for (const id of ids) {
+      try { driveErrors += await deleteSingleProduct(id); }
+      catch (e) { console.error(e); toast('Error al eliminar producto: ' + e.message, 'error'); }
+    }
+    if (driveErrors) toast(`Advertencia: ${driveErrors} imagen(es) no se pudieron borrar de Drive`, 'error');
+    toast(`${ids.length} producto(s) eliminado(s)`, 'success');
+    await loadData();
+    renderProducts();
+  };
+};
+
+window.bulkDeleteCats = () => {
+  const ids = [...selectedCats];
+  if (!ids.length) return;
+  const totalProds = ids.reduce((sum, id) => sum + products.filter(p => p.categoryId === id).length, 0);
+  const overlay = document.getElementById('confirmOverlay');
+  document.getElementById('confirmTitle').textContent  = '¿Confirmar eliminación?';
+  document.getElementById('confirmMessage').textContent =
+    `¿Eliminar ${ids.length} categoría(s)?${totalProds > 0 ? ` Los ${totalProds} productos en estas categorías NO serán eliminados (quedarán sin categoría).` : ''} Esta acción no se puede deshacer.`;
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.getElementById('confirmCancel').onclick = () => {
+    overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true');
+  };
+  document.getElementById('confirmOk').onclick = async () => {
+    overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true');
+    selectedCats.clear();
+    for (const id of ids) {
+      try { await deleteDoc(doc(db, 'categories', id)); }
+      catch (e) { console.error(e); toast('Error al eliminar categoría: ' + e.message, 'error'); }
+    }
+    toast(`${ids.length} categoría(s) eliminada(s)`, 'success');
+    await loadData();
+    renderCategories();
+  };
+};
 
 function openModal()  {
   document.getElementById('modalOverlay').classList.add('open');
@@ -543,7 +703,14 @@ async function saveCategory(id) {
 //  DELETE
 // ══════════════════════════════════════════
 function confirmDelete(type, id, name) {
+  if (type === 'category') {
+    const catProds = products.filter(p => p.categoryId === id);
+    showCategoryDeleteModal(id, name, catProds);
+    return;
+  }
+
   const overlay = document.getElementById('confirmOverlay');
+  document.getElementById('confirmTitle').textContent  = '¿Confirmar eliminación?';
   document.getElementById('confirmMessage').textContent =
     `¿Querés eliminar "${name}"? Esta acción no se puede deshacer.`;
 
@@ -559,6 +726,67 @@ function confirmDelete(type, id, name) {
     overlay.setAttribute('aria-hidden', 'true');
     await doDelete(type, id);
   };
+}
+
+function showCategoryDeleteModal(id, name, catProds) {
+  document.getElementById('modalTitle').textContent = `Eliminar categoría "${name}"`;
+
+  let bodyHtml;
+  if (catProds.length === 0) {
+    bodyHtml = `<p>¿Confirmar eliminación de la categoría <strong>${name}</strong>? Esta acción no se puede deshacer.</p>`;
+  } else {
+    const prodList = catProds.map(p => `<li>${p.name ?? '(sin nombre)'}</li>`).join('');
+    const otherCats = catProds.filter(p => {
+      const otherRef = categories.find(c => c.id !== id && c.id === p.categoryId);
+      return !!otherRef;
+    });
+    const warning = otherCats.length
+      ? `<p class="delete-warning">⚠️ ${otherCats.length} de estos productos también figuran en otras categorías.</p>`
+      : '';
+    bodyHtml = `
+      <p>Esta categoría contiene <strong>${catProds.length} producto(s)</strong>:</p>
+      <ul class="delete-prod-list">${prodList}</ul>
+      ${warning}
+      <p style="margin-top:1rem">¿Qué querés hacer con estos productos?</p>`;
+  }
+
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  document.getElementById('modalFooter').innerHTML = catProds.length === 0 ? `
+    <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
+    <button class="btn btn-danger" id="deleteCatOnly">Eliminar</button>` : `
+    <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
+    <button class="btn btn-secondary" id="deleteCatOnly">Solo eliminar la categoría</button>
+    <button class="btn btn-danger" id="deleteCatAndProds">Eliminar categoría y productos</button>`;
+
+  document.getElementById('modalCancel').onclick = closeModal;
+  document.getElementById('deleteCatOnly').onclick = async () => {
+    closeModal(); await doDeleteCategory(id, false, catProds);
+  };
+  if (catProds.length > 0) {
+    document.getElementById('deleteCatAndProds').onclick = async () => {
+      closeModal(); await doDeleteCategory(id, true, catProds);
+    };
+  }
+  openModal();
+}
+
+async function doDeleteCategory(id, withProducts, catProds) {
+  try {
+    if (withProducts) {
+      let driveErrors = 0;
+      for (const prod of catProds) {
+        driveErrors += await deleteSingleProduct(prod.id);
+      }
+      if (driveErrors) toast(`Advertencia: ${driveErrors} imagen(es) no se pudieron borrar de Drive`, 'error');
+    }
+    await deleteDoc(doc(db, 'categories', id));
+    toast(`Categoría eliminada${withProducts && catProds.length ? ` y ${catProds.length} producto(s) eliminado(s)` : ''}`, 'success');
+    await loadData();
+    renderCategories();
+  } catch (e) {
+    console.error(e);
+    toast('Error al eliminar: ' + e.message, 'error');
+  }
 }
 
 window.openAdminPhotoGallery = function(productId) {
@@ -602,28 +830,28 @@ window.openAdminPhotoGallery = function(productId) {
   openModal();
 };
 
+async function deleteSingleProduct(id) {
+  const prod = products.find(p => p.id === id);
+  let driveErrors = 0;
+  for (const url of (prod?.images ?? [])) {
+    const fileId = driveFileIdFromUrl(url);
+    if (fileId) {
+      try { await deleteFileFromDrive(fileId); }
+      catch (e) { console.warn('Drive delete failed:', e); driveErrors++; }
+    }
+  }
+  await deleteDoc(doc(db, 'products', id));
+  return driveErrors;
+}
+
 async function doDelete(type, id) {
   try {
     if (type === 'product') {
-      const prod = products.find(p => p.id === id);
-      let driveErrors = 0;
-      for (const url of (prod?.images ?? [])) {
-        const fileId = driveFileIdFromUrl(url);
-        if (fileId) {
-          try { await deleteFileFromDrive(fileId); }
-          catch (e) { console.warn('Drive delete failed:', e); driveErrors++; }
-        }
-      }
+      const driveErrors = await deleteSingleProduct(id);
       if (driveErrors) toast(`Advertencia: ${driveErrors} imagen(es) no se pudieron borrar de Drive`, 'error');
-      await deleteDoc(doc(db, 'products', id));
       toast('Producto eliminado', 'success');
       await loadData();
       renderProducts();
-    } else {
-      await deleteDoc(doc(db, 'categories', id));
-      toast('Categoría eliminada', 'success');
-      await loadData();
-      renderCategories();
     }
   } catch (e) {
     console.error(e);
