@@ -26,9 +26,12 @@ export function initGoogleAuth(clientId) {
 // ── Request / refresh token ────────────────────────────────
 export function requestToken() {
   return new Promise((resolve, reject) => {
-    tokenClient.callback = resp => {
+    tokenClient.callback = async resp => {
       if (resp.error) { reject(new Error(resp.error)); return; }
       accessToken = resp.access_token;
+      // DEBUG: verificar scopes del token
+      const info = await fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`).then(r => r.json());
+      console.log('[TOKEN SCOPES]', info.scope);
       resolve(accessToken);
     };
     // Skip consent screen if we already have a token
