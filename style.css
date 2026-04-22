@@ -65,6 +65,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 .section { padding: 5rem 0; }
 .section-pink    { background: var(--pink-bg); }
+.section-gray    { background: var(--gray-bg); }
 .section-dark    { background: var(--black); color: var(--white); }
 .section-contact { background: linear-gradient(150deg, var(--pink-bg) 0%, var(--pink-pale) 100%); }
 
@@ -535,6 +536,26 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-size: .78rem;
   border-radius: var(--r-md);
 }
+
+.card-cat-tag {
+  font-size: .72rem;
+  color: var(--pink-dark);
+  font-weight: 500;
+  margin-bottom: .15rem;
+}
+.prod-badge-in,
+.prod-badge-out {
+  position: absolute;
+  top: .6rem;
+  right: .6rem;
+  font-size: .65rem;
+  font-weight: 600;
+  padding: .2rem .55rem;
+  border-radius: var(--r-pill);
+  letter-spacing: .03em;
+}
+.prod-badge-in  { background: #d1fae5; color: #065f46; }
+.prod-badge-out { background: #fee2e2; color: #991b1b; }
 
 .catalogo-footer {
   text-align: center;

@@ -46,6 +46,7 @@ async function loadCatalog() {
       grid.appendChild(card);
     });
 
+    renderAllProducts(products, categories);
     setupRevealObserver();
 
   } catch (err) {
@@ -109,6 +110,59 @@ function getMinOrder(products) {
   const mins = products.map(p => p.minOrder).filter(Boolean);
   if (!mins.length) return '[a confirmar]';
   return Math.min(...mins) + ' u.';
+}
+
+// ── Render all individual products ────────────────────────────
+function renderAllProducts(products, categories) {
+  const grid = document.getElementById('allProductsGrid');
+  if (!grid) return;
+
+  const sorted = [...products].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'es'));
+
+  if (!sorted.length) {
+    grid.innerHTML = '<p style="color:var(--text-muted);font-size:.9rem;grid-column:1/-1">Próximamente.</p>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  sorted.forEach((prod, i) => {
+    const cat   = categories.find(c => c.id === prod.categoryId);
+    const img   = prod.images?.[0];
+    const grad  = cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)';
+    const name  = encodeURIComponent(prod.name ?? '');
+    const href  = `${WA_BASE}${name}%20de%20Sandra%20Envia`;
+
+    const imgHtml = img
+      ? `<img src="${img}" alt="${prod.name ?? ''}" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">`
+      : `<span class="card-emoji">${cat?.emoji ?? '👗'}</span>`;
+
+    const price    = prod.price   ? `<p class="card-note">Desde <strong>$${Number(prod.price).toLocaleString('es-AR')}</strong></p>` : '';
+    const minOrder = prod.minOrder ? `<p class="card-note">Mín. <strong>${prod.minOrder} u.</strong></p>` : '';
+    const badge    = prod.inStock === false
+      ? '<span class="prod-badge-out">Sin stock</span>'
+      : '<span class="prod-badge-in">En stock</span>';
+
+    const card = document.createElement('article');
+    card.className = 'product-card';
+    card.setAttribute('role', 'listitem');
+    card.style.transitionDelay = `${i * 40}ms`;
+    card.innerHTML = `
+      <div class="card-img" style="background:${grad};position:relative;">
+        ${imgHtml}
+        ${badge}
+      </div>
+      <div class="card-body">
+        <h3 class="card-name">${prod.name ?? '—'}</h3>
+        ${cat ? `<p class="card-cat-tag">${cat.emoji ?? ''} ${cat.name}</p>` : ''}
+        ${price}${minOrder}
+        <a href="${href}" target="_blank" rel="noopener noreferrer"
+           class="btn btn-wa card-btn"
+           aria-label="Consultar por WhatsApp sobre ${prod.name ?? 'este producto'}">
+          ${WA_ICON} Consultar
+        </a>
+      </div>`;
+    grid.appendChild(card);
+  });
 }
 
 // ── Fallback categories (hardcoded) if Firebase not configured ──
