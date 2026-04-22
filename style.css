@@ -205,6 +205,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   color: var(--black);
   letter-spacing: -.01em;
 }
+.footer-logo-text { color: rgba(255,255,255,.9); }
 .logo-text em, .footer-logo-text em {
   font-style: normal;
   color: var(--pink);
@@ -1444,7 +1445,7 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 .hero-ellas-by {
   font-size: .8rem;
   font-weight: 500;
-  color: rgba(255,255,255,.7);
+  color: var(--text-muted);
   letter-spacing: .05em;
   text-transform: uppercase;
 }
