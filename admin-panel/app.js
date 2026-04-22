@@ -5,7 +5,12 @@ import { initializeApp }                                    from 'https://www.gs
 import { getFirestore, collection, getDocs, addDoc,
          updateDoc, deleteDoc, doc, serverTimestamp }       from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { firebaseConfig, googleClientId }                   from '../firebase.config.js';
-import { initGoogleAuth, requestToken, uploadFileToDrive }  from './google-drive.js';
+import { initGoogleAuth, requestToken, uploadFileToDrive,
+         deleteFileFromDrive, driveFileIdFromUrl }          from './google-drive.js';
+
+const fmtARS = n => n != null
+  ? new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
+  : '—';
 
 // ── Init Firebase ──────────────────────────────────────────
 const app = initializeApp(firebaseConfig);
@@ -133,7 +138,7 @@ function renderProducts() {
     const cat  = categories.find(c => c.id === p.categoryId);
     const imgs = (p.images ?? []).slice(0, 3);
     const thumbs = imgs.length
-      ? imgs.map(url => `<img class="thumb" src="${url}" alt="" loading="lazy">`).join('')
+      ? imgs.map(url => `<img class="thumb" src="${url}" alt="" loading="lazy" onclick="openAdminPhotoGallery('${p.id}')" style="cursor:zoom-in">`).join('')
       : `<div class="thumb-placeholder">📷</div>`;
 
     return `
@@ -141,7 +146,7 @@ function renderProducts() {
         <td><div class="thumb-list">${thumbs}</div></td>
         <td><strong>${p.name ?? '—'}</strong></td>
         <td>${cat?.name ?? '—'}</td>
-        <td>${p.price != null ? '$' + Number(p.price).toLocaleString('es-AR') : '—'}</td>
+        <td>${p.price != null ? fmtARS(p.price) : '—'}</td>
         <td>${p.minOrder ? p.minOrder + ' u.' : '—'}</td>
         <td><span class="badge ${p.inStock ? 'badge-green' : 'badge-red'}">${p.inStock ? '✓ En stock' : '✗ Sin stock'}</span></td>
         <td>
@@ -555,9 +560,55 @@ function confirmDelete(type, id, name) {
   };
 }
 
+window.openAdminPhotoGallery = function(productId) {
+  const prod = products.find(p => p.id === productId);
+  if (!prod?.images?.length) return;
+  const images = prod.images;
+  let idx = 0;
+
+  document.getElementById('modalTitle').textContent = prod.name ?? 'Fotos';
+  document.getElementById('modalBody').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:1rem">
+      <div style="position:relative;width:100%;max-height:420px;display:flex;align-items:center;justify-content:center;background:#000;border-radius:8px;overflow:hidden">
+        <img id="galleryMainImg" src="${images[0]}" style="max-width:100%;max-height:420px;object-fit:contain">
+        ${images.length > 1 ? `
+          <button onclick="galleryPrev()" style="position:absolute;left:.5rem;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer">‹</button>
+          <button onclick="galleryNext()" style="position:absolute;right:.5rem;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer">›</button>
+        ` : ''}
+        <span id="galleryCounter" style="position:absolute;bottom:.5rem;right:.75rem;background:rgba(0,0,0,.5);color:#fff;font-size:.75rem;padding:.2rem .5rem;border-radius:99px">1 / ${images.length}</span>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center">
+        ${images.map((url, i) => `<img src="${url}" onclick="galleryGoTo(${i})" style="width:64px;height:64px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid ${i===0?'var(--pink)':'transparent'}" id="galleryThumb${i}">`).join('')}
+      </div>
+    </div>`;
+
+  window.galleryImages = images;
+  window.galleryIdx    = idx;
+  window.galleryGoTo   = (i) => {
+    window.galleryIdx = i;
+    document.getElementById('galleryMainImg').src = images[i];
+    document.getElementById('galleryCounter').textContent = `${i+1} / ${images.length}`;
+    images.forEach((_, j) => {
+      const t = document.getElementById(`galleryThumb${j}`);
+      if (t) t.style.border = j === i ? '2px solid var(--pink)' : '2px solid transparent';
+    });
+  };
+  window.galleryPrev = () => window.galleryGoTo((window.galleryIdx - 1 + images.length) % images.length);
+  window.galleryNext = () => window.galleryGoTo((window.galleryIdx + 1) % images.length);
+
+  document.getElementById('modalFooter').innerHTML = `<button class="btn btn-ghost" id="modalCancel">Cerrar</button>`;
+  document.getElementById('modalCancel').onclick = closeModal;
+  openModal();
+};
+
 async function doDelete(type, id) {
   try {
     if (type === 'product') {
+      const prod = products.find(p => p.id === id);
+      for (const url of (prod?.images ?? [])) {
+        const fileId = driveFileIdFromUrl(url);
+        if (fileId) { try { await deleteFileFromDrive(fileId); } catch (_) {} }
+      }
       await deleteDoc(doc(db, 'products', id));
       toast('Producto eliminado', 'success');
       await loadData();

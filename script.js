@@ -17,6 +17,10 @@ function driveImgUrl(url) {
   return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800` : url;
 }
 
+const fmtARS = n => n != null
+  ? new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
+  : null;
+
 const WA_NUM  = '5491121802212';
 const WA_BASE = `https://wa.me/${WA_NUM}?text=Hola!%20Quiero%20consultar%20por%20`;
 
@@ -94,11 +98,10 @@ function buildCategoryCard(cat, catProducts, index) {
       <h3 class="card-name">${cat.name}</h3>
       ${priceRange ? `<p class="card-note">${priceRange}</p>` : ''}
       <p class="card-note">Compra mínima: <strong>${getMinOrder(catProducts)}</strong></p>
-      <a href="${href}" target="_blank" rel="noopener noreferrer"
-         class="btn btn-wa card-btn"
-         aria-label="Consultar por WhatsApp sobre ${cat.name}">
-        ${WA_ICON} Consultar por WhatsApp
-      </a>
+      <button class="btn btn-primary card-btn" onclick="openCategoryProducts('${cat.id}')"
+              aria-label="Ver productos de ${cat.name}">
+        Ver Productos →
+      </button>
     </div>`;
 
   return card;
@@ -109,14 +112,59 @@ function getPriceRange(products) {
   if (!prices.length) return '';
   const min = Math.min(...prices);
   const max = Math.max(...prices);
-  const fmt = n => '$' + Number(n).toLocaleString('es-AR');
-  return min === max ? `Desde ${fmt(min)}` : `${fmt(min)} – ${fmt(max)}`;
+  return min === max ? `Desde ${fmtARS(min)}` : `${fmtARS(min)} – ${fmtARS(max)}`;
 }
 
 function getMinOrder(products) {
   const mins = products.map(p => p.minOrder).filter(Boolean);
   if (!mins.length) return '[a confirmar]';
   return Math.min(...mins) + ' u.';
+}
+
+// ── Build a single product card with carousel ──────────────
+function buildProductCard(prod, index) {
+  const cat    = window._categoryMap?.[prod.categoryId];
+  const images = (prod.images ?? []).map(driveImgUrl).filter(Boolean);
+  const grad   = cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)';
+
+  window._productImages          = window._productImages ?? {};
+  window._productImages[prod.id] = images;
+
+  const firstImg = images[0];
+  const imgHtml  = firstImg
+    ? `<img class="carousel-img" data-pid="${prod.id}" src="${firstImg}" alt="${prod.name ?? ''}" loading="lazy">`
+    : `<span class="card-emoji">${cat?.emoji ?? '👗'}</span>`;
+
+  const carouselControls = images.length > 1 ? `
+    <button class="carousel-btn carousel-prev" onclick="carouselGo(event,'${prod.id}',-1)" aria-label="Anterior">‹</button>
+    <button class="carousel-btn carousel-next" onclick="carouselGo(event,'${prod.id}',1)"  aria-label="Siguiente">›</button>
+    <div class="carousel-dots">
+      ${images.map((_, i) => `<span class="carousel-dot${i===0?' active':''}" data-pid="${prod.id}" data-idx="${i}"></span>`).join('')}
+    </div>` : '';
+
+  const badge    = prod.inStock === false ? '<span class="prod-badge-out">Sin stock</span>' : '<span class="prod-badge-in">En stock</span>';
+  const price    = prod.price    ? `<p class="card-note">${fmtARS(prod.price)}</p>` : '';
+  const minOrder = prod.minOrder ? `<p class="card-note">Mín. <strong>${prod.minOrder} u.</strong></p>` : '';
+
+  const card = document.createElement('article');
+  card.className = 'product-card';
+  card.setAttribute('role', 'listitem');
+  card.style.transitionDelay = `${index * 40}ms`;
+  card.innerHTML = `
+    <div class="card-img card-img-carousel" style="background:${grad}">
+      ${imgHtml}${carouselControls}${badge}
+      ${images.length ? `<button class="carousel-zoom" onclick="openProductLightbox('${prod.id}')" aria-label="Ver fotos">🔍</button>` : ''}
+    </div>
+    <div class="card-body">
+      <h3 class="card-name">${prod.name ?? '—'}</h3>
+      ${cat ? `<p class="card-cat-tag">${cat.emoji ?? ''} ${cat.name}</p>` : ''}
+      ${price}${minOrder}
+      <button class="btn btn-primary card-btn" onclick="addToCart('${prod.id}')"
+              ${prod.inStock === false ? 'disabled' : ''}>
+        🛒 Agregar al carrito
+      </button>
+    </div>`;
+  return card;
 }
 
 // ── Render all individual products ────────────────────────────
@@ -133,46 +181,96 @@ function renderAllProducts(products, categories) {
     grid.innerHTML = '<p style="color:var(--text-muted);font-size:.9rem;grid-column:1/-1">Próximamente.</p>';
     return;
   }
-
   grid.innerHTML = '';
-  sorted.forEach((prod, i) => {
-    const cat   = categories.find(c => c.id === prod.categoryId);
-    const img   = driveImgUrl(prod.images?.[0]);
-    const grad  = cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)';
-    const name  = encodeURIComponent(prod.name ?? '');
-    const href  = `${WA_BASE}${name}%20de%20Sandra%20Envia`;
+  sorted.forEach((prod, i) => grid.appendChild(buildProductCard(prod, i)));
+}
 
-    const imgHtml = img
-      ? `<img src="${img}" alt="${prod.name ?? ''}" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">`
-      : `<span class="card-emoji">${cat?.emoji ?? '👗'}</span>`;
+// ── Category products modal ────────────────────────────────
+window.openCategoryProducts = function(catId) {
+  const cat      = window._categoryMap?.[catId];
+  const prods    = Object.values(window._productMap ?? {})
+    .filter(p => p.categoryId === catId)
+    .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'es'));
 
-    const price    = prod.price   ? `<p class="card-note">Desde <strong>$${Number(prod.price).toLocaleString('es-AR')}</strong></p>` : '';
-    const minOrder = prod.minOrder ? `<p class="card-note">Mín. <strong>${prod.minOrder} u.</strong></p>` : '';
-    const badge    = prod.inStock === false
-      ? '<span class="prod-badge-out">Sin stock</span>'
-      : '<span class="prod-badge-in">En stock</span>';
+  document.getElementById('catModalTitle').textContent = `${cat?.emoji ?? ''} ${cat?.name ?? ''}`;
+  const grid = document.getElementById('catModalGrid');
+  grid.innerHTML = '';
+  if (!prods.length) {
+    grid.innerHTML = '<p style="grid-column:1/-1;color:var(--text-muted);text-align:center;padding:2rem">No hay productos en esta categoría todavía.</p>';
+  } else {
+    prods.forEach((p, i) => grid.appendChild(buildProductCard(p, i)));
+  }
+  const overlay = document.getElementById('catModalOverlay');
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+};
 
-    const card = document.createElement('article');
-    card.className = 'product-card';
-    card.setAttribute('role', 'listitem');
-    card.style.transitionDelay = `${i * 40}ms`;
-    card.innerHTML = `
-      <div class="card-img" style="background:${grad};position:relative;">
-        ${imgHtml}
-        ${badge}
-      </div>
-      <div class="card-body">
-        <h3 class="card-name">${prod.name ?? '—'}</h3>
-        ${cat ? `<p class="card-cat-tag">${cat.emoji ?? ''} ${cat.name}</p>` : ''}
-        ${price}${minOrder}
-        <button class="btn btn-primary card-btn" onclick="addToCart('${prod.id}')"
-                ${prod.inStock === false ? 'disabled' : ''}
-                aria-label="Agregar ${prod.name ?? 'producto'} al carrito">
-          🛒 Agregar al carrito
-        </button>
-      </div>`;
-    grid.appendChild(card);
+function closeCategoryModal() {
+  const overlay = document.getElementById('catModalOverlay');
+  overlay.classList.remove('open');
+  overlay.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+// ── Carousel ───────────────────────────────────────────────
+window._carouselIdx = {};
+window.carouselGo = function(event, productId, dir) {
+  event.stopPropagation();
+  const images = window._productImages?.[productId] ?? [];
+  if (images.length <= 1) return;
+  const next = ((window._carouselIdx[productId] ?? 0) + dir + images.length) % images.length;
+  window._carouselIdx[productId] = next;
+  document.querySelectorAll(`.carousel-img[data-pid="${productId}"]`).forEach(el => { el.src = images[next]; });
+  document.querySelectorAll(`.carousel-dot[data-pid="${productId}"]`).forEach((dot, i) => dot.classList.toggle('active', i === next));
+};
+
+// ── Lightbox ───────────────────────────────────────────────
+let _lbImages = [];
+let _lbIndex  = 0;
+
+window.openProductLightbox = function(productId) {
+  event?.stopPropagation?.();
+  const images = window._productImages?.[productId] ?? [];
+  if (!images.length) return;
+  const name = window._productMap?.[productId]?.name ?? '';
+  _lbImages = images;
+  _lbIndex  = window._carouselIdx?.[productId] ?? 0;
+  renderLightbox(name);
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+function renderLightbox(title) {
+  const img     = document.getElementById('lbImg');
+  const counter = document.getElementById('lbCounter');
+  const caption = document.getElementById('lbCaption');
+  if (img)     img.src = _lbImages[_lbIndex] ?? '';
+  if (counter) counter.textContent = `${_lbIndex + 1} / ${_lbImages.length}`;
+  if (caption && title) caption.textContent = title;
+  document.getElementById('lbPrev')?.classList.toggle('hidden', _lbImages.length <= 1);
+  document.getElementById('lbNext')?.classList.toggle('hidden', _lbImages.length <= 1);
+}
+
+window.lbNext = function() { _lbIndex = (_lbIndex + 1) % _lbImages.length; renderLightbox(); };
+window.lbPrev = function() { _lbIndex = (_lbIndex - 1 + _lbImages.length) % _lbImages.length; renderLightbox(); };
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function setupLightbox() {
+  document.getElementById('lbClose')?.addEventListener('click', closeLightbox);
+  document.getElementById('lightbox')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeLightbox(); });
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('lightbox')?.classList.contains('open')) return;
+    if (e.key === 'ArrowRight') window.lbNext();
+    if (e.key === 'ArrowLeft')  window.lbPrev();
+    if (e.key === 'Escape')     closeLightbox();
   });
+  document.getElementById('catModalClose')?.addEventListener('click', closeCategoryModal);
+  document.getElementById('catModalOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeCategoryModal(); });
 }
 
 // ── Fallback categories (hardcoded) if Firebase not configured ──
@@ -378,8 +476,6 @@ function renderCart() {
     return;
   }
 
-  const fmt = n => n != null ? '$' + Number(n).toLocaleString('es-AR') : 'A consultar';
-
   container.innerHTML = cart.map(item => `
     <div class="cart-item">
       <div class="cart-item-img">
@@ -390,7 +486,7 @@ function renderCart() {
       <div class="cart-item-info">
         <p class="cart-item-name">${item.name}</p>
         ${item.categoryName ? `<p class="cart-item-cat">${item.categoryName}</p>` : ''}
-        <p class="cart-item-price">${fmt(item.price)}</p>
+        <p class="cart-item-price">${item.price != null ? fmtARS(item.price) : 'A consultar'}</p>
       </div>
       <div class="cart-item-controls">
         <button class="qty-btn" onclick="updateCartQty('${item.id}',-1)" aria-label="Restar">−</button>
@@ -417,7 +513,7 @@ function renderCart() {
       </div>
       <div class="cart-total-row cart-total-price">
         <span>Total</span>
-        <strong>${allHavePrice ? fmt(totalPrice) : 'A consultar'}</strong>
+        <strong>${allHavePrice ? fmtARS(totalPrice) : 'A consultar'}</strong>
       </div>
     </div>
     <button class="btn btn-wa cart-wa-btn" id="cartSendWa">
@@ -436,16 +532,15 @@ function renderCart() {
 }
 
 function sendCartWhatsApp() {
-  const fmt = n => '$' + Number(n).toLocaleString('es-AR');
   const lines = cart.map(i => {
-    const price = i.price != null ? ` — ${fmt(i.price)} c/u` : '';
+    const price = i.price != null ? ` — ${fmtARS(i.price)} c/u` : '';
     return `• ${i.qty} u. de *${i.name}*${price}`;
   });
 
   const totalUnits = cart.reduce((s, i) => s + i.qty, 0);
   const allHavePrice = cart.every(i => i.price != null);
   const totalPrice   = cart.reduce((s, i) => s + (i.price ?? 0) * i.qty, 0);
-  const totalLine    = allHavePrice ? `*Total: ${totalUnits} unidades · ${fmt(totalPrice)}*` : `*Total: ${totalUnits} unidades*`;
+  const totalLine    = allHavePrice ? `*Total: ${totalUnits} unidades · ${fmtARS(totalPrice)}*` : `*Total: ${totalUnits} unidades*`;
 
   const msg = [
     'Hola Sandra! Te hago el siguiente pedido 🛒',
@@ -473,6 +568,7 @@ function setupCart() {
 // ── Init ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   setupCart();
+  setupLightbox();
   loadCatalog();
   setupRevealObserver();
   setupHeader();

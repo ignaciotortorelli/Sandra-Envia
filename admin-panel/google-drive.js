@@ -33,6 +33,22 @@ export function requestToken() {
 
 export const isSignedIn = () => !!accessToken;
 
+// ── Extract Drive file ID from stored URL ──────────────────
+export function driveFileIdFromUrl(url) {
+  const m = url?.match(/[?&]id=([^&]+)/);
+  return m ? m[1] : null;
+}
+
+// ── Delete a file from Drive ───────────────────────────────
+export async function deleteFileFromDrive(fileId) {
+  await requestToken();
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok && res.status !== 404) throw new Error(`Error al borrar de Drive: ${res.status}`);
+}
+
 // ── Generic authenticated fetch ────────────────────────────
 async function gFetch(url, options = {}) {
   const res = await fetch(url, {
