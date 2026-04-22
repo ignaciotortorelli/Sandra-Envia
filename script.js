@@ -169,11 +169,11 @@ function buildProductCard(prod, index) {
 
 // ── Render all individual products ────────────────────────────
 function renderAllProducts(products, categories) {
-  const grid = document.getElementById('allProductsGrid');
-  if (!grid) return;
-
   window._productMap  = Object.fromEntries(products.map(p => [p.id, p]));
   window._categoryMap = Object.fromEntries(categories.map(c => [c.id, c]));
+
+  const grid = document.getElementById('allProductsGrid');
+  if (!grid) return;
 
   const sorted = [...products].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'es'));
 
