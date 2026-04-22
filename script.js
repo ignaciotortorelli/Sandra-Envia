@@ -182,7 +182,11 @@ function renderAllProducts(products, categories) {
     return;
   }
   grid.innerHTML = '';
-  sorted.forEach((prod, i) => grid.appendChild(buildProductCard(prod, i)));
+  sorted.forEach((prod, i) => {
+    const card = buildProductCard(prod, i);
+    card.classList.add('visible');
+    grid.appendChild(card);
+  });
 }
 
 // ── Category products modal ────────────────────────────────
