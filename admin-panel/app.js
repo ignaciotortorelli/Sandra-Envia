@@ -92,23 +92,39 @@ const SEED_CATS = [
 ];
 
 const SEED_PRODS = [
-  // catIdx → index in SEED_CATS
-  { name: 'Conjunto verano dama',    price: 15000, minOrder:  6, inStock: true,  catIdx: 0, imgs: 3 },
-  { name: 'Vestido floral',          price: 18500, minOrder:  3, inStock: true,  catIdx: 0, imgs: 2 },
-  { name: 'Blusa manga corta',       price:  8900, minOrder: 12, inStock: true,  catIdx: 0, imgs: 2 },
-  { name: 'Pantalón palazzo',        price: 12000, minOrder:  6, inStock: false, catIdx: 0, imgs: 1 },
-  { name: 'Remera básica caballero', price:  7500, minOrder: 12, inStock: true,  catIdx: 1, imgs: 2 },
-  { name: 'Jean slim fit',           price: 22000, minOrder:  3, inStock: true,  catIdx: 1, imgs: 2 },
-  { name: 'Camisa casual',           price: 14000, minOrder:  6, inStock: false, catIdx: 1, imgs: 2 },
-  { name: 'Conjunto niña verano',    price:  9500, minOrder:  6, inStock: true,  catIdx: 2, imgs: 2 },
-  { name: 'Remera niño estampada',   price:  5500, minOrder: 12, inStock: true,  catIdx: 2, imgs: 3 },
-  { name: 'Calza deportiva',         price: 11000, minOrder:  6, inStock: true,  catIdx: 3, imgs: 2 },
-  { name: 'Buzo con capucha',        price: 19500, minOrder:  3, inStock: true,  catIdx: 3, imgs: 3 },
-  { name: 'Remera dry-fit',          price:  8500, minOrder: 12, inStock: false, catIdx: 3, imgs: 1 },
-  { name: 'Cartera cuero eco',       price: 25000, minOrder:  3, inStock: true,  catIdx: 4, imgs: 2 },
-  { name: 'Cinturón trenzado',       price:  6500, minOrder:  6, inStock: true,  catIdx: 4, imgs: 1 },
-  { name: 'Bufanda tejida',          price:  9000, minOrder:  6, inStock: true,  catIdx: 4, imgs: 2 },
+  // catIdx → index in SEED_CATS; imgStart → first image index from that category's pool
+  { name: 'Conjunto verano dama',    price: 15000, minOrder:  6, inStock: true,  catIdx: 0, imgs: 2, imgStart: 0 },
+  { name: 'Vestido floral',          price: 18500, minOrder:  3, inStock: true,  catIdx: 0, imgs: 2, imgStart: 1 },
+  { name: 'Blusa manga corta',       price:  8900, minOrder: 12, inStock: true,  catIdx: 0, imgs: 1, imgStart: 2 },
+  { name: 'Pantalón palazzo',        price: 12000, minOrder:  6, inStock: false, catIdx: 0, imgs: 2, imgStart: 0 },
+  { name: 'Remera básica caballero', price:  7500, minOrder: 12, inStock: true,  catIdx: 1, imgs: 2, imgStart: 0 },
+  { name: 'Jean slim fit',           price: 22000, minOrder:  3, inStock: true,  catIdx: 1, imgs: 2, imgStart: 1 },
+  { name: 'Camisa casual',           price: 14000, minOrder:  6, inStock: false, catIdx: 1, imgs: 1, imgStart: 2 },
+  { name: 'Conjunto niña verano',    price:  9500, minOrder:  6, inStock: true,  catIdx: 2, imgs: 2, imgStart: 0 },
+  { name: 'Remera niño estampada',   price:  5500, minOrder: 12, inStock: true,  catIdx: 2, imgs: 1, imgStart: 1 },
+  { name: 'Calza deportiva',         price: 11000, minOrder:  6, inStock: true,  catIdx: 3, imgs: 2, imgStart: 0 },
+  { name: 'Buzo con capucha',        price: 19500, minOrder:  3, inStock: true,  catIdx: 3, imgs: 2, imgStart: 1 },
+  { name: 'Remera dry-fit',          price:  8500, minOrder: 12, inStock: false, catIdx: 3, imgs: 1, imgStart: 2 },
+  { name: 'Cartera cuero eco',       price: 25000, minOrder:  3, inStock: true,  catIdx: 4, imgs: 2, imgStart: 0 },
+  { name: 'Cinturón trenzado',       price:  6500, minOrder:  6, inStock: true,  catIdx: 4, imgs: 1, imgStart: 1 },
+  { name: 'Bufanda tejida',          price:  9000, minOrder:  6, inStock: true,  catIdx: 4, imgs: 2, imgStart: 0 },
 ];
+
+// Unsplash photo IDs per category (clothing/fashion, CORS-enabled CDN).
+// Products in the same category share this pool — we upload each once.
+const SEED_IMG_POOLS = [
+  // 0 Damas
+  ['1515886657613-9f3515b0c78f', '1469334031218-e382a71b716b', '1558618666-fcd25c85cd64'],
+  // 1 Caballeros
+  ['1516257984-b1b4f45c0b93', '1507003211169-0a1dd7228f2d', '1552374196-1ab2a1c593e8'],
+  // 2 Niños
+  ['1622290291468-a28f7a7dc6a8', '1503919545889-aef636e10ad4'],
+  // 3 Deportivo
+  ['1571902943202-507ec2618e8f', '1556909114-44e3e70034e2', '1538805060514-2d5b2e3d5d7c'],
+  // 4 Accesorios
+  ['1548036161-18aafe94b13b', '1584917865442-de89df76afd3'],
+];
+const SEED_TOTAL_IMGS = SEED_IMG_POOLS.reduce((s, p) => s + p.length, 0);
 
 window.seedTestData = () => {
   document.getElementById('modalTitle').textContent = '🧪 Datos de prueba';
@@ -116,9 +132,9 @@ window.seedTestData = () => {
     <p>Se van a agregar los siguientes datos de prueba a Firestore (sin borrar los existentes):</p>
     <ul class="seed-summary">
       <li><strong>${SEED_CATS.length} categorías</strong> — ${SEED_CATS.map(c => c.emoji + ' ' + c.name).join(', ')}</li>
-      <li><strong>${SEED_PRODS.length} productos</strong> con imágenes de ejemplo (placeholder)</li>
+      <li><strong>${SEED_PRODS.length} productos</strong> con fotos de ropa subidas a Google Drive</li>
     </ul>
-    <p class="seed-note">Podés borrarlos luego con la selección múltiple.</p>
+    <p class="seed-note">Se descargarán ${SEED_TOTAL_IMGS} fotos de Unsplash y se subirán a Drive. Puede tardar ~1 minuto. Podés borrar todo luego con la selección múltiple.</p>
     <div id="seedProgress" style="display:none;text-align:center;margin-top:1.25rem">
       <div class="spinner" style="margin:0 auto .6rem"></div>
       <p id="seedProgressText" style="font-size:.875rem;color:var(--muted)"></p>
@@ -131,11 +147,19 @@ window.seedTestData = () => {
   openModal();
 };
 
+async function fetchImageAsFile(unsplashId, filename) {
+  const url = `https://images.unsplash.com/photo-${unsplashId}?w=600&h=600&fit=crop&q=80`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const blob = await resp.blob();
+  return new File([blob], filename, { type: blob.type || 'image/jpeg' });
+}
+
 async function runSeed() {
-  const btn        = document.getElementById('seedConfirmBtn');
-  const cancelBtn  = document.getElementById('modalCancel');
-  const progress   = document.getElementById('seedProgress');
-  const progText   = document.getElementById('seedProgressText');
+  const btn       = document.getElementById('seedConfirmBtn');
+  const cancelBtn = document.getElementById('modalCancel');
+  const progress  = document.getElementById('seedProgress');
+  const progText  = document.getElementById('seedProgressText');
 
   btn.disabled = true;
   btn.textContent = 'Generando…';
@@ -143,22 +167,43 @@ async function runSeed() {
   progress.style.display = 'block';
 
   try {
+    // Step 1 — Upload each unique photo to Drive once, cache the Drive URL
+    const poolDriveUrls = SEED_IMG_POOLS.map(pool => Array(pool.length).fill(null));
+    let uploadsDone = 0;
+    for (let ci = 0; ci < SEED_IMG_POOLS.length; ci++) {
+      for (let ii = 0; ii < SEED_IMG_POOLS[ci].length; ii++) {
+        uploadsDone++;
+        progText.textContent = `Subiendo foto ${uploadsDone}/${SEED_TOTAL_IMGS} a Drive…`;
+        try {
+          const file = await fetchImageAsFile(
+            SEED_IMG_POOLS[ci][ii],
+            `ropa-seed-cat${ci}-img${ii}.jpg`
+          );
+          poolDriveUrls[ci][ii] = await uploadFileToDrive(file);
+        } catch (e) {
+          console.warn(`Foto ${ci}-${ii} falló:`, e);
+        }
+      }
+    }
+
+    // Step 2 — Create categories
     const catIds = [];
     for (let i = 0; i < SEED_CATS.length; i++) {
-      progText.textContent = `Creando categoría ${i + 1} de ${SEED_CATS.length}…`;
+      progText.textContent = `Creando categoría ${i + 1}/${SEED_CATS.length}…`;
       const ref = await addDoc(collection(db, 'categories'), {
         ...SEED_CATS[i], createdAt: serverTimestamp(),
       });
       catIds.push(ref.id);
     }
 
+    // Step 3 — Create products, assigning Drive URLs from the pool
     for (let i = 0; i < SEED_PRODS.length; i++) {
-      const p = SEED_PRODS[i];
-      progText.textContent = `Creando producto ${i + 1} de ${SEED_PRODS.length}…`;
-      const slug   = encodeURIComponent(p.name.replace(/\s+/g, '-').toLowerCase());
+      const p    = SEED_PRODS[i];
+      const pool = poolDriveUrls[p.catIdx];
+      progText.textContent = `Creando producto ${i + 1}/${SEED_PRODS.length}…`;
       const images = Array.from({ length: p.imgs }, (_, j) =>
-        `https://picsum.photos/seed/${slug}-${j}/400/400`
-      );
+        pool[(p.imgStart + j) % pool.length]
+      ).filter(Boolean);
       await addDoc(collection(db, 'products'), {
         name:       p.name,
         categoryId: catIds[p.catIdx],
@@ -172,7 +217,7 @@ async function runSeed() {
     }
 
     closeModal();
-    toast(`✓ ${SEED_CATS.length} categorías y ${SEED_PRODS.length} productos de prueba creados`, 'success');
+    toast(`✓ ${SEED_CATS.length} categorías y ${SEED_PRODS.length} productos creados con fotos en Drive`, 'success');
     await loadData();
     renderDashboard();
   } catch (e) {
