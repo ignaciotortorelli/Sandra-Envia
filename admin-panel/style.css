@@ -139,6 +139,12 @@ img { display: block; max-width: 100%; }
   gap: .5rem;
   font-size: .75rem;
   color: rgba(255,255,255,.5);
+  overflow: hidden;
+}
+.firebase-status .status-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .status-dot {
   width: 7px; height: 7px;

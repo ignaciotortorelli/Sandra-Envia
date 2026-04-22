@@ -6,7 +6,8 @@ import { getFirestore, collection, getDocs, addDoc,
          updateDoc, deleteDoc, doc, serverTimestamp }       from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { firebaseConfig, googleClientId }                   from '../firebase.config.js';
 import { initGoogleAuth, requestToken, uploadFileToDrive,
-         deleteFileFromDrive, driveFileIdFromUrl }          from './google-drive.js';
+         deleteFileFromDrive, driveFileIdFromUrl,
+         getDriveUserInfo, signOutDrive }                   from './google-drive.js';
 
 const fmtARS = n => n != null
   ? new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
@@ -683,6 +684,32 @@ function setupModalClose() {
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
+// ── Drive connection status ────────────────────────────────
+function setDriveStatus(email) {
+  const el   = document.getElementById('driveStatus');
+  const btn  = document.getElementById('driveConnectBtn');
+  if (!el) return;
+  if (email) {
+    el.querySelector('.status-dot').classList.add('connected');
+    el.querySelector('.status-text').textContent = email;
+    el.title = email;
+    if (btn) btn.style.display = 'none';
+  } else {
+    el.querySelector('.status-dot').classList.remove('connected');
+    el.querySelector('.status-text').textContent = 'Drive: desconectado';
+    if (btn) btn.style.display = 'block';
+  }
+}
+
+async function connectDrive() {
+  try {
+    const user = await getDriveUserInfo();
+    setDriveStatus(user?.email ?? null);
+  } catch (_) {
+    setDriveStatus(null);
+  }
+}
+
 function setupThemeToggle() {
   const btn = document.getElementById('themeToggle');
   if (!btn) return;
@@ -709,6 +736,9 @@ async function init() {
   await waitForGIS();
   if (googleClientId && googleClientId !== 'REEMPLAZAR_CON_TU_CLIENT_ID') {
     initGoogleAuth(googleClientId);
+    // Auto-connect with cached token; if none, show connect button
+    connectDrive().catch(() => setDriveStatus(null));
+    document.getElementById('driveConnectBtn')?.addEventListener('click', connectDrive);
   }
 
   await loadData();

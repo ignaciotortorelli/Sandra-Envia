@@ -3,12 +3,38 @@
 //  admin-panel/google-drive.js
 // ══════════════════════════════════════════
 
-const SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const SCOPE            = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email';
 const DRIVE_FOLDER_NAME = 'Sandra Envía – Productos';
+const TOKEN_KEY        = 'se_drive_token';
 
-let tokenClient  = null;
-let accessToken  = null;
+let tokenClient   = null;
+let accessToken   = null;
 let driveFolderId = null;
+
+// ── Token cache (sessionStorage, 55-min expiry) ────────────
+function saveToken(token) {
+  accessToken = token;
+  try {
+    sessionStorage.setItem(TOKEN_KEY, JSON.stringify({
+      token,
+      expiry: Date.now() + 55 * 60 * 1000,
+    }));
+  } catch (_) {}
+}
+
+function loadCachedToken() {
+  try {
+    const d = JSON.parse(sessionStorage.getItem(TOKEN_KEY) ?? 'null');
+    if (d?.token && d.expiry > Date.now()) { accessToken = d.token; return true; }
+  } catch (_) {}
+  return false;
+}
+
+function clearToken() {
+  accessToken   = null;
+  driveFolderId = null;
+  try { sessionStorage.removeItem(TOKEN_KEY); } catch (_) {}
+}
 
 // ── Init OAuth client ──────────────────────────────────────
 export function initGoogleAuth(clientId) {
@@ -19,20 +45,40 @@ export function initGoogleAuth(clientId) {
   });
 }
 
-// ── Request / refresh token ────────────────────────────────
+// ── Request token (uses cache, no forced consent screen) ───
 export function requestToken() {
-  if (accessToken) return Promise.resolve(accessToken);
+  if (loadCachedToken()) return Promise.resolve(accessToken);
   return new Promise((resolve, reject) => {
     tokenClient.callback = resp => {
       if (resp.error) { reject(new Error(resp.error)); return; }
-      accessToken = resp.access_token;
+      saveToken(resp.access_token);
       resolve(accessToken);
     };
-    tokenClient.requestAccessToken({ prompt: 'consent' });
+    tokenClient.requestAccessToken({ prompt: '' });
   });
 }
 
-export const isSignedIn = () => !!accessToken;
+export const isSignedIn = () => loadCachedToken();
+
+// ── Sign out ───────────────────────────────────────────────
+export function signOutDrive() {
+  if (accessToken) {
+    try { window.google.accounts.oauth2.revoke(accessToken, () => {}); } catch (_) {}
+  }
+  clearToken();
+}
+
+// ── Get signed-in user info ────────────────────────────────
+export async function getDriveUserInfo() {
+  try {
+    await requestToken();
+    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!res.ok) return null;
+    return res.json(); // { email, name, picture }
+  } catch (_) { return null; }
+}
 
 // ── Extract Drive file ID from stored URL ──────────────────
 export function driveFileIdFromUrl(url) {
@@ -48,7 +94,7 @@ export async function deleteFileFromDrive(fileId) {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (res.status === 401) {
-    accessToken = null;
+    clearToken();
     await requestToken();
     res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
       method: 'DELETE',
