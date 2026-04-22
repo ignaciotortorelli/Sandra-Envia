@@ -753,3 +753,89 @@ img { display: block; max-width: 100%; }
   .data-table th:nth-child(4),
   .data-table td:nth-child(4) { display: none; }
 }
+
+/* ══════════════════════════════════════════
+   DARK MODE TOGGLE BUTTON (admin)
+   ══════════════════════════════════════════ */
+.theme-toggle {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: none;
+  border: 1.5px solid var(--gray-line);
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--ease);
+  flex-shrink: 0;
+}
+.theme-toggle:hover { border-color: var(--pink); color: var(--pink); background: var(--pink-bg); }
+.theme-toggle svg   { width: 15px; height: 15px; pointer-events: none; }
+.theme-toggle .icon-sun  { display: none; }
+.theme-toggle .icon-moon { display: block; }
+
+/* ══════════════════════════════════════════
+   DARK MODE (admin)
+   ══════════════════════════════════════════ */
+[data-theme="dark"] {
+  --gray-bg:   #141428;
+  --gray-line: rgba(255,255,255,.08);
+  --text:      #F0EBFF;
+  --muted:     #8878A8;
+  --white:     #1A1A2E;
+  --sh-sm: 0 1px 4px rgba(0,0,0,.35);
+  --sh-md: 0 4px 16px rgba(0,0,0,.45);
+  --sh-lg: 0 8px 32px rgba(0,0,0,.55);
+}
+[data-theme="dark"] body { background: #0F0F1E; color: #F0EBFF; }
+
+/* Sidebar — already dark, subtle tweak */
+[data-theme="dark"] .sidebar { background: #0A0A18; }
+[data-theme="dark"] .sidebar-header { border-bottom-color: rgba(255,255,255,.06); }
+[data-theme="dark"] .sidebar-footer { border-top-color: rgba(255,255,255,.06); }
+
+/* Topbar */
+[data-theme="dark"] .topbar { background: #1A1A2E; border-bottom-color: rgba(255,255,255,.07); }
+[data-theme="dark"] .topbar-title { color: #F0EBFF; }
+[data-theme="dark"] .hamburger-btn span { background: #F0EBFF; }
+
+/* Toggle in dark mode */
+[data-theme="dark"] .theme-toggle { border-color: rgba(255,255,255,.18); color: #F0EBFF; }
+[data-theme="dark"] .theme-toggle:hover { background: rgba(247,37,133,.15); border-color: var(--pink); color: #FFB3C6; }
+[data-theme="dark"] .theme-toggle .icon-sun  { display: block; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+/* Cards & tables */
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .quick-card,
+[data-theme="dark"] .table-wrap { background: #1A1A2E; }
+[data-theme="dark"] .quick-card:hover { border-color: rgba(247,37,133,.25); }
+[data-theme="dark"] .stat-num { color: #F0EBFF; }
+[data-theme="dark"] .quick-card h3 { color: #F0EBFF; }
+[data-theme="dark"] .data-table th { background: #141428; color: #8878A8; }
+[data-theme="dark"] .data-table td { border-bottom-color: rgba(255,255,255,.05); }
+[data-theme="dark"] .data-table tr:hover td { background: rgba(255,255,255,.03); }
+
+/* Modals & forms */
+[data-theme="dark"] .modal { background: #1A1A2E; }
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer { border-color: rgba(255,255,255,.07); }
+[data-theme="dark"] .modal-title { color: #F0EBFF; }
+[data-theme="dark"] .modal-close:hover { background: rgba(255,255,255,.07); color: #F0EBFF; }
+[data-theme="dark"] .form-label { color: #F0EBFF; }
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .form-textarea { background: #0F0F1E; color: #F0EBFF; border-color: rgba(255,255,255,.12); }
+[data-theme="dark"] .form-input::placeholder,
+[data-theme="dark"] .form-textarea::placeholder { color: #8878A8; }
+[data-theme="dark"] .upload-zone { border-color: rgba(255,255,255,.12); color: #8878A8; }
+[data-theme="dark"] .upload-zone:hover { border-color: var(--pink); background: rgba(247,37,133,.08); }
+[data-theme="dark"] .btn-ghost { border-color: rgba(255,255,255,.15); color: #8878A8; }
+[data-theme="dark"] .btn-ghost:hover { border-color: #F0EBFF; color: #F0EBFF; }
+[data-theme="dark"] .btn-black { background: #F0EBFF; color: #0F0F1E; }
+[data-theme="dark"] .btn-icon:hover { background: rgba(255,255,255,.06); }
+[data-theme="dark"] .btn-icon.edit:hover { background: rgba(247,37,133,.1); }
+[data-theme="dark"] .btn-icon.delete:hover { background: rgba(230,57,70,.1); }
+[data-theme="dark"] .toggle-opt { border-color: rgba(255,255,255,.12); color: #F0EBFF; }
+[data-theme="dark"] .grad-opt.selected { border-color: #F0EBFF; }
+[data-theme="dark"] .thumb { border-color: rgba(255,255,255,.1); }
+[data-theme="dark"] .thumb-placeholder { background: #141428; border-color: rgba(255,255,255,.1); }

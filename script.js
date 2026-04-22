@@ -638,8 +638,21 @@ function setupCart() {
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCart(); });
 }
 
+// ── Dark mode toggle ───────────────────────────────────────
+function setupThemeToggle() {
+  const btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('se_theme', next);
+    btn.setAttribute('aria-label', next === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro');
+  });
+}
+
 // ── Init ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  setupThemeToggle();
   setupCart();
   setupLightbox();
   loadCatalog();

@@ -683,9 +683,21 @@ function setupModalClose() {
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
+function setupThemeToggle() {
+  const btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('se_theme', next);
+    btn.setAttribute('aria-label', next === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro');
+  });
+}
+
 async function init() {
   setupMobileMenu();
   setupModalClose();
+  setupThemeToggle();
 
   // Init Google Auth once GIS script is loaded
   const waitForGIS = () => new Promise(resolve => {
