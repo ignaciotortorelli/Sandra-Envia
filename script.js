@@ -55,6 +55,7 @@ async function loadCatalog() {
       const catProducts = products.filter(p => p.categoryId === cat.id && p.inStock !== false);
       const card = buildCategoryCard(cat, catProducts, i);
       grid.appendChild(card);
+      attachCarouselAuto(card, `cat_${cat.id}`);
     });
 
     renderAllProducts(products, categories);
@@ -73,16 +74,28 @@ function buildCategoryCard(cat, catProducts, index) {
   card.setAttribute('role', 'listitem');
   card.style.transitionDelay = `${index * 55}ms`;
 
-  const name    = encodeURIComponent(cat.name);
-  const href    = `${WA_BASE}${name}%20de%20Sandra%20Envia`;
-  const grad    = cat.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)';
-  const emoji   = cat.emoji ?? '👗';
+  const grad  = cat.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)';
+  const emoji = cat.emoji ?? '👗';
+  const cid   = `cat_${cat.id}`;
 
-  // Show first product image if available, else gradient + emoji
-  const firstImg = driveImgUrl(catProducts[0]?.images?.[0]);
-  const imgHtml  = firstImg
-    ? `<img src="${firstImg}" alt="${cat.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">`
-    : `<span class="card-emoji">${emoji}</span><span class="card-label">Ver productos</span>`;
+  const allImgs = catProducts.flatMap(p => (p.images ?? []).map(driveImgUrl).filter(Boolean));
+  window._carouselImages      = window._carouselImages ?? {};
+  window._carouselImages[cid] = allImgs;
+
+  let imgHtml;
+  if (allImgs.length > 0) {
+    imgHtml = `<img class="carousel-img" data-cid="${cid}" src="${allImgs[0]}" alt="${cat.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">`;
+  } else {
+    imgHtml = `<span class="card-emoji">${emoji}</span><span class="card-label">Ver productos</span>`;
+  }
+
+  const carouselControls = allImgs.length > 1 ? `
+    <button class="carousel-btn carousel-prev" onclick="carouselGo(event,'${cid}',-1)" aria-label="Anterior">‹</button>
+    <button class="carousel-btn carousel-next" onclick="carouselGo(event,'${cid}',1)"  aria-label="Siguiente">›</button>
+    <div class="carousel-dots">
+      ${allImgs.map((_, i) => `<span class="carousel-dot${i===0?' active':''}" data-cid="${cid}" data-idx="${i}"></span>`).join('')}
+    </div>
+    <div class="carousel-bar" data-cid="${cid}"></div>` : '';
 
   const priceRange = getPriceRange(catProducts);
   const stockBadge = catProducts.length === 0
@@ -90,9 +103,8 @@ function buildCategoryCard(cat, catProducts, index) {
     : '';
 
   card.innerHTML = `
-    <div class="card-img" style="background:${grad};position:relative;">
-      ${imgHtml}
-      ${stockBadge}
+    <div class="card-img card-img-carousel" style="background:${grad};position:relative;">
+      ${imgHtml}${carouselControls}${stockBadge}
     </div>
     <div class="card-body">
       <h3 class="card-name">${cat.name}</h3>
@@ -126,21 +138,23 @@ function buildProductCard(prod, index) {
   const cat    = window._categoryMap?.[prod.categoryId];
   const images = (prod.images ?? []).map(driveImgUrl).filter(Boolean);
   const grad   = cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)';
+  const cid    = prod.id;
 
-  window._productImages          = window._productImages ?? {};
-  window._productImages[prod.id] = images;
+  window._carouselImages      = window._carouselImages ?? {};
+  window._carouselImages[cid] = images;
 
   const firstImg = images[0];
   const imgHtml  = firstImg
-    ? `<img class="carousel-img" data-pid="${prod.id}" src="${firstImg}" alt="${prod.name ?? ''}" loading="lazy">`
+    ? `<img class="carousel-img" data-cid="${cid}" src="${firstImg}" alt="${prod.name ?? ''}" loading="lazy">`
     : `<span class="card-emoji">${cat?.emoji ?? '👗'}</span>`;
 
   const carouselControls = images.length > 1 ? `
-    <button class="carousel-btn carousel-prev" onclick="carouselGo(event,'${prod.id}',-1)" aria-label="Anterior">‹</button>
-    <button class="carousel-btn carousel-next" onclick="carouselGo(event,'${prod.id}',1)"  aria-label="Siguiente">›</button>
+    <button class="carousel-btn carousel-prev" onclick="carouselGo(event,'${cid}',-1)" aria-label="Anterior">‹</button>
+    <button class="carousel-btn carousel-next" onclick="carouselGo(event,'${cid}',1)"  aria-label="Siguiente">›</button>
     <div class="carousel-dots">
-      ${images.map((_, i) => `<span class="carousel-dot${i===0?' active':''}" data-pid="${prod.id}" data-idx="${i}"></span>`).join('')}
-    </div>` : '';
+      ${images.map((_, i) => `<span class="carousel-dot${i===0?' active':''}" data-cid="${cid}" data-idx="${i}"></span>`).join('')}
+    </div>
+    <div class="carousel-bar" data-cid="${cid}"></div>` : '';
 
   const badge    = prod.inStock === false ? '<span class="prod-badge-out">Sin stock</span>' : '<span class="prod-badge-in">En stock</span>';
   const price    = prod.price    ? `<p class="card-note">${fmtARS(prod.price)}</p>` : '';
@@ -151,9 +165,9 @@ function buildProductCard(prod, index) {
   card.setAttribute('role', 'listitem');
   card.style.transitionDelay = `${index * 40}ms`;
   card.innerHTML = `
-    <div class="card-img card-img-carousel" style="background:${grad}">
+    <div class="card-img card-img-carousel" style="background:${grad}"
+         ${images.length ? `onclick="openProductLightbox('${cid}')"` : ''}>
       ${imgHtml}${carouselControls}${badge}
-      ${images.length ? `<button class="carousel-zoom" onclick="openProductLightbox('${prod.id}')" aria-label="Ver fotos">🔍</button>` : ''}
     </div>
     <div class="card-body">
       <h3 class="card-name">${prod.name ?? '—'}</h3>
@@ -186,6 +200,7 @@ function renderAllProducts(products, categories) {
     const card = buildProductCard(prod, i);
     card.classList.add('visible');
     grid.appendChild(card);
+    attachCarouselAuto(card, prod.id);
   });
 }
 
@@ -206,6 +221,7 @@ window.openCategoryProducts = function(catId) {
       const card = buildProductCard(p, i);
       card.classList.add('visible');
       grid.appendChild(card);
+      attachCarouselAuto(card, p.id);
     });
   }
   const overlay = document.getElementById('catModalOverlay');
@@ -222,28 +238,61 @@ function closeCategoryModal() {
 }
 
 // ── Carousel ───────────────────────────────────────────────
-window._carouselIdx = {};
-window.carouselGo = function(event, productId, dir) {
-  event.stopPropagation();
-  const images = window._productImages?.[productId] ?? [];
+window._carouselImages = {};
+window._carouselIdx    = {};
+window._carouselTimers = {};
+
+window.carouselGo = function(event, cid, dir) {
+  event?.stopPropagation?.();
+  const images = window._carouselImages?.[cid] ?? [];
   if (images.length <= 1) return;
-  const next = ((window._carouselIdx[productId] ?? 0) + dir + images.length) % images.length;
-  window._carouselIdx[productId] = next;
-  document.querySelectorAll(`.carousel-img[data-pid="${productId}"]`).forEach(el => { el.src = images[next]; });
-  document.querySelectorAll(`.carousel-dot[data-pid="${productId}"]`).forEach((dot, i) => dot.classList.toggle('active', i === next));
+  const next = ((window._carouselIdx[cid] ?? 0) + dir + images.length) % images.length;
+  window._carouselIdx[cid] = next;
+  document.querySelectorAll(`.carousel-img[data-cid="${cid}"]`).forEach(el => { el.src = images[next]; });
+  document.querySelectorAll(`.carousel-dot[data-cid="${cid}"]`).forEach((dot, i) => dot.classList.toggle('active', i === next));
+  restartProgressBar(cid);
 };
+
+function restartProgressBar(cid) {
+  document.querySelectorAll(`.carousel-bar[data-cid="${cid}"]`).forEach(bar => {
+    bar.classList.remove('running');
+    void bar.offsetWidth;
+    bar.classList.add('running');
+  });
+}
+
+function startCarouselAuto(cid) {
+  if (window._carouselTimers[cid]) return;
+  if ((window._carouselImages[cid] ?? []).length <= 1) return;
+  restartProgressBar(cid);
+  window._carouselTimers[cid] = setInterval(() => window.carouselGo(null, cid, 1), 3000);
+}
+
+function stopCarouselAuto(cid) {
+  clearInterval(window._carouselTimers[cid]);
+  delete window._carouselTimers[cid];
+  document.querySelectorAll(`.carousel-bar[data-cid="${cid}"]`).forEach(bar => bar.classList.remove('running'));
+}
+
+function attachCarouselAuto(card, cid) {
+  const imgDiv = card.querySelector('.card-img-carousel');
+  if (!imgDiv) return;
+  imgDiv.addEventListener('mouseenter', () => stopCarouselAuto(cid));
+  imgDiv.addEventListener('mouseleave', () => startCarouselAuto(cid));
+  startCarouselAuto(cid);
+}
 
 // ── Lightbox ───────────────────────────────────────────────
 let _lbImages = [];
 let _lbIndex  = 0;
 
-window.openProductLightbox = function(productId) {
+window.openProductLightbox = function(cid) {
   event?.stopPropagation?.();
-  const images = window._productImages?.[productId] ?? [];
+  const images = window._carouselImages?.[cid] ?? [];
   if (!images.length) return;
-  const name = window._productMap?.[productId]?.name ?? '';
+  const name = window._productMap?.[cid]?.name ?? '';
   _lbImages = images;
-  _lbIndex  = window._carouselIdx?.[productId] ?? 0;
+  _lbIndex  = window._carouselIdx?.[cid] ?? 0;
   renderLightbox(name);
   document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
