@@ -81,6 +81,110 @@ function router() {
 window.addEventListener('hashchange', router);
 
 // ══════════════════════════════════════════
+//  SEED / TEST DATA
+// ══════════════════════════════════════════
+const SEED_CATS = [
+  { name: 'Damas',      emoji: '👗', gradient: 'linear-gradient(135deg,#FF4D6D,#C9184A)', order: 1, active: true },
+  { name: 'Caballeros', emoji: '👔', gradient: 'linear-gradient(135deg,#1A1A2E,#2D2D44)', order: 2, active: true },
+  { name: 'Niños',      emoji: '🧒', gradient: 'linear-gradient(135deg,#74B9FF,#0984E3)', order: 3, active: true },
+  { name: 'Deportivo',  emoji: '🏃', gradient: 'linear-gradient(135deg,#FFD166,#FF9A3C)', order: 4, active: true },
+  { name: 'Accesorios', emoji: '👜', gradient: 'linear-gradient(135deg,#845EC2,#C9184A)', order: 5, active: true },
+];
+
+const SEED_PRODS = [
+  // catIdx → index in SEED_CATS
+  { name: 'Conjunto verano dama',    price: 15000, minOrder:  6, inStock: true,  catIdx: 0, imgs: 3 },
+  { name: 'Vestido floral',          price: 18500, minOrder:  3, inStock: true,  catIdx: 0, imgs: 2 },
+  { name: 'Blusa manga corta',       price:  8900, minOrder: 12, inStock: true,  catIdx: 0, imgs: 2 },
+  { name: 'Pantalón palazzo',        price: 12000, minOrder:  6, inStock: false, catIdx: 0, imgs: 1 },
+  { name: 'Remera básica caballero', price:  7500, minOrder: 12, inStock: true,  catIdx: 1, imgs: 2 },
+  { name: 'Jean slim fit',           price: 22000, minOrder:  3, inStock: true,  catIdx: 1, imgs: 2 },
+  { name: 'Camisa casual',           price: 14000, minOrder:  6, inStock: false, catIdx: 1, imgs: 2 },
+  { name: 'Conjunto niña verano',    price:  9500, minOrder:  6, inStock: true,  catIdx: 2, imgs: 2 },
+  { name: 'Remera niño estampada',   price:  5500, minOrder: 12, inStock: true,  catIdx: 2, imgs: 3 },
+  { name: 'Calza deportiva',         price: 11000, minOrder:  6, inStock: true,  catIdx: 3, imgs: 2 },
+  { name: 'Buzo con capucha',        price: 19500, minOrder:  3, inStock: true,  catIdx: 3, imgs: 3 },
+  { name: 'Remera dry-fit',          price:  8500, minOrder: 12, inStock: false, catIdx: 3, imgs: 1 },
+  { name: 'Cartera cuero eco',       price: 25000, minOrder:  3, inStock: true,  catIdx: 4, imgs: 2 },
+  { name: 'Cinturón trenzado',       price:  6500, minOrder:  6, inStock: true,  catIdx: 4, imgs: 1 },
+  { name: 'Bufanda tejida',          price:  9000, minOrder:  6, inStock: true,  catIdx: 4, imgs: 2 },
+];
+
+window.seedTestData = () => {
+  document.getElementById('modalTitle').textContent = '🧪 Datos de prueba';
+  document.getElementById('modalBody').innerHTML = `
+    <p>Se van a agregar los siguientes datos de prueba a Firestore (sin borrar los existentes):</p>
+    <ul class="seed-summary">
+      <li><strong>${SEED_CATS.length} categorías</strong> — ${SEED_CATS.map(c => c.emoji + ' ' + c.name).join(', ')}</li>
+      <li><strong>${SEED_PRODS.length} productos</strong> con imágenes de ejemplo (placeholder)</li>
+    </ul>
+    <p class="seed-note">Podés borrarlos luego con la selección múltiple.</p>
+    <div id="seedProgress" style="display:none;text-align:center;margin-top:1.25rem">
+      <div class="spinner" style="margin:0 auto .6rem"></div>
+      <p id="seedProgressText" style="font-size:.875rem;color:var(--muted)"></p>
+    </div>`;
+  document.getElementById('modalFooter').innerHTML = `
+    <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
+    <button class="btn btn-primary" id="seedConfirmBtn">Generar datos</button>`;
+  document.getElementById('modalCancel').onclick = closeModal;
+  document.getElementById('seedConfirmBtn').onclick = runSeed;
+  openModal();
+};
+
+async function runSeed() {
+  const btn        = document.getElementById('seedConfirmBtn');
+  const cancelBtn  = document.getElementById('modalCancel');
+  const progress   = document.getElementById('seedProgress');
+  const progText   = document.getElementById('seedProgressText');
+
+  btn.disabled = true;
+  btn.textContent = 'Generando…';
+  cancelBtn.style.display = 'none';
+  progress.style.display = 'block';
+
+  try {
+    const catIds = [];
+    for (let i = 0; i < SEED_CATS.length; i++) {
+      progText.textContent = `Creando categoría ${i + 1} de ${SEED_CATS.length}…`;
+      const ref = await addDoc(collection(db, 'categories'), {
+        ...SEED_CATS[i], createdAt: serverTimestamp(),
+      });
+      catIds.push(ref.id);
+    }
+
+    for (let i = 0; i < SEED_PRODS.length; i++) {
+      const p = SEED_PRODS[i];
+      progText.textContent = `Creando producto ${i + 1} de ${SEED_PRODS.length}…`;
+      const slug   = encodeURIComponent(p.name.replace(/\s+/g, '-').toLowerCase());
+      const images = Array.from({ length: p.imgs }, (_, j) =>
+        `https://picsum.photos/seed/${slug}-${j}/400/400`
+      );
+      await addDoc(collection(db, 'products'), {
+        name:       p.name,
+        categoryId: catIds[p.catIdx],
+        price:      p.price,
+        minOrder:   p.minOrder,
+        inStock:    p.inStock,
+        images,
+        createdAt:  serverTimestamp(),
+        updatedAt:  serverTimestamp(),
+      });
+    }
+
+    closeModal();
+    toast(`✓ ${SEED_CATS.length} categorías y ${SEED_PRODS.length} productos de prueba creados`, 'success');
+    await loadData();
+    renderDashboard();
+  } catch (e) {
+    console.error(e);
+    toast('Error al generar datos: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Reintentar';
+    cancelBtn.style.display = '';
+  }
+}
+
+// ══════════════════════════════════════════
 //  VIEWS
 // ══════════════════════════════════════════
 
@@ -118,6 +222,15 @@ function renderDashboard() {
         <div class="quick-card-icon">🌐</div>
         <h3>Ver Sitio</h3>
         <p>Abrí el sitio público para verificar los cambios.</p>
+      </div>
+    </div>
+    <div class="seed-zone">
+      <div class="seed-zone-inner">
+        <div>
+          <p class="seed-zone-title">🧪 Datos de prueba</p>
+          <p class="seed-zone-desc">Generá ${SEED_CATS.length} categorías y ${SEED_PRODS.length} productos de ejemplo para testear el sistema.</p>
+        </div>
+        <button class="btn btn-ghost seed-btn" onclick="seedTestData()">Generar datos de prueba</button>
       </div>
     </div>`;
 }
