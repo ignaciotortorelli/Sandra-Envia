@@ -249,8 +249,17 @@ window.carouselGo = function(event, cid, dir) {
   const next = ((window._carouselIdx[cid] ?? 0) + dir + images.length) % images.length;
   window._carouselIdx[cid] = next;
   document.querySelectorAll(`.carousel-img[data-cid="${cid}"]`).forEach(el => {
+    let back = el.parentElement.querySelector('.carousel-img-back');
+    if (!back) {
+      back = document.createElement('img');
+      back.className = 'carousel-img-back';
+      el.parentElement.insertBefore(back, el);
+    }
+    back.src = el.src;
     el.style.opacity = '0';
-    setTimeout(() => { el.src = images[next]; el.style.opacity = ''; }, 250);
+    el.src = images[next];
+    void el.offsetWidth;
+    el.style.opacity = '';
   });
   document.querySelectorAll(`.carousel-dot[data-cid="${cid}"]`).forEach((dot, i) => dot.classList.toggle('active', i === next));
   restartProgressBar(cid);
