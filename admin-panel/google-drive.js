@@ -21,13 +21,14 @@ export function initGoogleAuth(clientId) {
 
 // ── Request / refresh token ────────────────────────────────
 export function requestToken() {
+  if (accessToken) return Promise.resolve(accessToken);
   return new Promise((resolve, reject) => {
     tokenClient.callback = resp => {
       if (resp.error) { reject(new Error(resp.error)); return; }
       accessToken = resp.access_token;
       resolve(accessToken);
     };
-    tokenClient.requestAccessToken({ prompt: accessToken ? '' : 'consent' });
+    tokenClient.requestAccessToken({ prompt: 'consent' });
   });
 }
 
