@@ -43,10 +43,18 @@ export function driveFileIdFromUrl(url) {
 // ── Delete a file from Drive ───────────────────────────────
 export async function deleteFileFromDrive(fileId) {
   await requestToken();
-  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+  let res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${accessToken}` },
   });
+  if (res.status === 401) {
+    accessToken = null;
+    await requestToken();
+    res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  }
   if (!res.ok && res.status !== 404) throw new Error(`Error al borrar de Drive: ${res.status}`);
 }
 

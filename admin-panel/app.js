@@ -605,10 +605,15 @@ async function doDelete(type, id) {
   try {
     if (type === 'product') {
       const prod = products.find(p => p.id === id);
+      let driveErrors = 0;
       for (const url of (prod?.images ?? [])) {
         const fileId = driveFileIdFromUrl(url);
-        if (fileId) { try { await deleteFileFromDrive(fileId); } catch (_) {} }
+        if (fileId) {
+          try { await deleteFileFromDrive(fileId); }
+          catch (e) { console.warn('Drive delete failed:', e); driveErrors++; }
+        }
       }
+      if (driveErrors) toast(`Advertencia: ${driveErrors} imagen(es) no se pudieron borrar de Drive`, 'error');
       await deleteDoc(doc(db, 'products', id));
       toast('Producto eliminado', 'success');
       await loadData();
