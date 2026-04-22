@@ -341,7 +341,11 @@ function renderProducts() {
         <td><div class="thumb-list">${thumbs}</div></td>
         <td><strong>${p.name ?? '—'}</strong></td>
         <td>${cat?.name ?? '—'}</td>
-        <td>${p.price != null ? fmtARS(p.price) : '—'}</td>
+        <td>
+          ${p.price != null ? fmtARS(p.price) : '—'}
+          ${p.discount ? `<br><span class="badge badge-orange">−${p.discount}%</span>` : ''}
+          ${p.bulkMinQty && p.bulkPrice ? `<br><span class="cell-note">×${p.bulkMinQty}: ${fmtARS(p.bulkPrice)}</span>` : ''}
+        </td>
         <td>${p.minOrder ? p.minOrder + ' u.' : '—'}</td>
         <td><span class="badge ${p.inStock ? 'badge-green' : 'badge-red'}">${p.inStock ? '✓ En stock' : '✗ Sin stock'}</span></td>
         <td>
@@ -654,6 +658,22 @@ async function openProductModal(id) {
       </div>
 
       <div class="form-group">
+        <label class="form-label">Precio por mayor <span class="form-hint">— dejar en blanco para desactivar</span></label>
+        <div class="form-row">
+          <input class="form-input" id="pBulkQty"   type="number" min="1" value="${prod?.bulkMinQty ?? ''}" placeholder="A partir de (u.)">
+          <input class="form-input" id="pBulkPrice" type="number" min="0" value="${prod?.bulkPrice  ?? ''}" placeholder="Precio ($)">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descuento <span class="form-hint">— dejar en blanco para desactivar</span></label>
+        <div class="discount-input-wrap">
+          <input class="form-input" id="pDiscount" type="number" min="1" max="99" value="${prod?.discount ?? ''}" placeholder="Ej: 20">
+          <span class="discount-pct-symbol">%</span>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label class="form-label">Estado de stock</label>
         <div class="stock-toggle">
           <label class="toggle-opt ${prod?.inStock !== false ? 'selected-yes' : ''}" id="toggleYes">
@@ -769,14 +789,19 @@ async function saveProduct(id) {
 
   try {
     const imageUrls = await uploadImages();
+    const bulkQty   = parseInt(document.getElementById('pBulkQty')?.value)   || null;
+    const bulkPrice = parseFloat(document.getElementById('pBulkPrice')?.value) || null;
     const data = {
       name,
-      categoryId: document.getElementById('pCategory')?.value || null,
-      price:      parseFloat(document.getElementById('pPrice')?.value) || null,
-      minOrder:   parseInt(document.getElementById('pMinOrder')?.value) || null,
-      inStock:    document.querySelector('input[name="stock"]:checked')?.value !== 'no',
-      images:     imageUrls,
-      updatedAt:  serverTimestamp(),
+      categoryId:  document.getElementById('pCategory')?.value || null,
+      price:       parseFloat(document.getElementById('pPrice')?.value) || null,
+      minOrder:    parseInt(document.getElementById('pMinOrder')?.value) || null,
+      bulkMinQty:  (bulkQty && bulkPrice) ? bulkQty   : null,
+      bulkPrice:   (bulkQty && bulkPrice) ? bulkPrice : null,
+      discount:    parseInt(document.getElementById('pDiscount')?.value) || null,
+      inStock:     document.querySelector('input[name="stock"]:checked')?.value !== 'no',
+      images:      imageUrls,
+      updatedAt:   serverTimestamp(),
     };
 
     if (id) {

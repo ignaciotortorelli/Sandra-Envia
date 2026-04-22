@@ -413,6 +413,24 @@ img { display: block; max-width: 100%; }
 .badge-green  { background: #d4f7e7; color: #1a7a4a; }
 .badge-red    { background: #fde8e8; color: #c0303b; }
 .badge-gray   { background: var(--gray-bg); color: var(--muted); }
+.badge-orange { background: #fff0e0; color: #c0620a; }
+[data-theme="dark"] .badge-orange { background: rgba(255,154,60,.15); color: #FF9A3C; }
+
+.cell-note { font-size: .75rem; color: var(--muted); }
+
+.form-hint { font-size: .75rem; color: var(--muted); font-weight: 400; margin-left: .3rem; }
+
+.discount-input-wrap { position: relative; max-width: 180px; }
+.discount-input-wrap .form-input { padding-right: 2.2rem; }
+.discount-pct-symbol {
+  position: absolute;
+  right: .75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: .9rem;
+  pointer-events: none;
+}
 
 .actions-cell { display: flex; gap: .3rem; }
 

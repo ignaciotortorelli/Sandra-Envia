@@ -156,9 +156,19 @@ function buildProductCard(prod, index) {
     </div>
     <div class="carousel-bar" data-cid="${cid}"></div>` : '';
 
-  const badge    = prod.inStock === false ? '<span class="prod-badge-out">Sin stock</span>' : '<span class="prod-badge-in">En stock</span>';
-  const price    = prod.price    ? `<p class="card-note">${fmtARS(prod.price)}</p>` : '';
-  const minOrder = prod.minOrder ? `<p class="card-note">Mín. <strong>${prod.minOrder} u.</strong></p>` : '';
+  const badge       = prod.inStock === false ? '<span class="prod-badge-out">Sin stock</span>' : '<span class="prod-badge-in">En stock</span>';
+  const discPct     = prod.discount > 0 ? prod.discount : null;
+  const discBadge   = discPct ? `<span class="prod-badge-discount">−${discPct}%</span>` : '';
+  const discPrice   = (prod.price && discPct) ? Math.round(prod.price * (1 - discPct / 100)) : null;
+  const price       = prod.price
+    ? `<p class="card-note">${discPrice
+        ? `<s class="price-original">${fmtARS(prod.price)}</s> <strong class="price-discounted">${fmtARS(discPrice)}</strong>`
+        : fmtARS(prod.price)}</p>`
+    : '';
+  const minOrder    = prod.minOrder ? `<p class="card-note">Mín. <strong>${prod.minOrder} u.</strong></p>` : '';
+  const bulkNote    = (prod.bulkMinQty && prod.bulkPrice)
+    ? `<p class="card-note card-note-bulk">Mayor ×${prod.bulkMinQty}: <strong>${fmtARS(prod.bulkPrice)}</strong></p>`
+    : '';
 
   const card = document.createElement('article');
   card.className = 'product-card';
@@ -167,12 +177,12 @@ function buildProductCard(prod, index) {
   card.innerHTML = `
     <div class="card-img card-img-carousel" style="background:${grad}"
          ${images.length ? `onclick="openProductLightbox('${cid}')"` : ''}>
-      ${imgHtml}${carouselControls}${badge}
+      ${imgHtml}${carouselControls}${badge}${discBadge}
     </div>
     <div class="card-body">
       <h3 class="card-name">${prod.name ?? '—'}</h3>
       ${cat ? `<p class="card-cat-tag">${cat.emoji ?? ''} ${cat.name}</p>` : ''}
-      ${price}${minOrder}
+      ${price}${minOrder}${bulkNote}
       <button class="btn btn-primary card-btn" onclick="addToCart('${prod.id}')"
               ${prod.inStock === false ? 'disabled' : ''}>
         🛒 Agregar al carrito

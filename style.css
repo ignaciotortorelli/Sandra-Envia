@@ -558,6 +558,26 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .prod-badge-in  { background: #d1fae5; color: #065f46; z-index: 4; }
 .prod-badge-out { background: #fee2e2; color: #991b1b; z-index: 4; }
 
+.prod-badge-discount {
+  position: absolute;
+  top: .6rem;
+  left: .6rem;
+  background: #FF9A3C;
+  color: #fff;
+  font-size: .65rem;
+  font-weight: 700;
+  padding: .2rem .55rem;
+  border-radius: var(--r-pill);
+  letter-spacing: .03em;
+  z-index: 4;
+}
+
+.price-original   { color: var(--text-muted); text-decoration: line-through; margin-right: .2rem; font-size: .9em; }
+.price-discounted { color: var(--pink-dark); }
+.card-note-bulk   { color: #0984E3; font-weight: 500; }
+
+[data-theme="dark"] .card-note-bulk { color: #74B9FF; }
+
 .catalogo-footer {
   text-align: center;
   padding: 2.25rem 1.5rem;
