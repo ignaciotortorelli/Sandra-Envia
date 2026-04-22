@@ -1014,6 +1014,69 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .floating-wa:hover .float-tooltip { opacity: 1; }
 
 /* ══════════════════════════════════════════
+   ELLAS ITUZAINGÓ BRANDING
+   ══════════════════════════════════════════ */
+.hero-ellas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  margin: -.4rem 0 .6rem;
+}
+.hero-ellas-by {
+  font-size: .8rem;
+  font-weight: 500;
+  color: rgba(255,255,255,.7);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.hero-ellas-logo {
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.5));
+}
+@media (max-width: 480px) {
+  .hero-ellas-logo { height: 40px; }
+}
+
+.social-featured {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1.2rem;
+  padding: 1.4rem 2rem;
+}
+@media (min-width: 480px) {
+  .social-featured { grid-column: auto; flex-direction: column; gap: .6rem; padding: 1.75rem 1rem; }
+}
+.social-ellas-logo {
+  height: 54px;
+  object-fit: contain;
+  filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,.3));
+}
+@media (min-width: 480px) {
+  .social-ellas-logo { height: 62px; }
+}
+
+.footer-ellas {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: .85rem;
+}
+.footer-ellas span {
+  font-size: .75rem;
+  color: rgba(255,255,255,.45);
+  font-style: italic;
+}
+.footer-ellas-logo {
+  height: 32px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: .75;
+}
+
+/* ══════════════════════════════════════════
    RESPONSIVE — small tweaks
    ══════════════════════════════════════════ */
 @media (max-width: 480px) {
