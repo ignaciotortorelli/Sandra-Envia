@@ -66,7 +66,11 @@ export async function listPhotos(pageToken = null) {
     `https://photoslibrary.googleapis.com/v1/mediaItems?${params}`,
     { headers: { Authorization: `Bearer ${accessToken}` } }
   );
-  if (!res.ok) throw new Error(`Error al listar fotos: ${res.status}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    console.error('[PHOTOS 403 DETAIL]', JSON.stringify(body));
+    throw new Error(`Error al listar fotos: ${res.status}`);
+  }
   return res.json();
 }
 
