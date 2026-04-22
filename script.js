@@ -198,7 +198,11 @@ window.openCategoryProducts = function(catId) {
   if (!prods.length) {
     grid.innerHTML = '<p style="grid-column:1/-1;color:var(--text-muted);text-align:center;padding:2rem">No hay productos en esta categoría todavía.</p>';
   } else {
-    prods.forEach((p, i) => grid.appendChild(buildProductCard(p, i)));
+    prods.forEach((p, i) => {
+      const card = buildProductCard(p, i);
+      card.classList.add('visible');
+      grid.appendChild(card);
+    });
   }
   const overlay = document.getElementById('catModalOverlay');
   overlay.classList.add('open');
