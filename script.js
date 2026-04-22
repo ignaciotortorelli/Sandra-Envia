@@ -260,6 +260,7 @@ window.carouselGo = function(event, cid, dir) {
     el.src = images[next];
     void el.offsetWidth;
     el.style.opacity = '';
+    setTimeout(() => { back.src = images[next]; }, 750);
   });
   document.querySelectorAll(`.carousel-dot[data-cid="${cid}"]`).forEach((dot, i) => dot.classList.toggle('active', i === next));
   restartProgressBar(cid);

@@ -1027,7 +1027,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   position: absolute;
   inset: 0;
   z-index: 1;
-  transition: opacity .45s ease;
+  transition: opacity .7s ease;
 }
 .carousel-img-back {
   width: 100%;
