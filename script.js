@@ -78,7 +78,7 @@ function buildCategoryCard(cat, catProducts, index) {
   const emoji = cat.emoji ?? '👗';
   const cid   = `cat_${cat.id}`;
 
-  const allImgs = catProducts.flatMap(p => (p.images ?? []).map(driveImgUrl).filter(Boolean));
+  const allImgs = catProducts.map(p => driveImgUrl(p.images?.[0])).filter(Boolean);
   window._carouselImages      = window._carouselImages ?? {};
   window._carouselImages[cid] = allImgs;
 
@@ -248,7 +248,10 @@ window.carouselGo = function(event, cid, dir) {
   if (images.length <= 1) return;
   const next = ((window._carouselIdx[cid] ?? 0) + dir + images.length) % images.length;
   window._carouselIdx[cid] = next;
-  document.querySelectorAll(`.carousel-img[data-cid="${cid}"]`).forEach(el => { el.src = images[next]; });
+  document.querySelectorAll(`.carousel-img[data-cid="${cid}"]`).forEach(el => {
+    el.style.opacity = '0';
+    setTimeout(() => { el.src = images[next]; el.style.opacity = ''; }, 250);
+  });
   document.querySelectorAll(`.carousel-dot[data-cid="${cid}"]`).forEach((dot, i) => dot.classList.toggle('active', i === next));
   restartProgressBar(cid);
 };
