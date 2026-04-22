@@ -32,7 +32,7 @@ export function requestToken() {
       resolve(accessToken);
     };
     // Skip consent screen if we already have a token
-    tokenClient.requestAccessToken({ prompt: accessToken ? '' : 'consent' });
+    tokenClient.requestAccessToken({ prompt: 'consent' });
   });
 }
 
