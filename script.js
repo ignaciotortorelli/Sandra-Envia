@@ -167,7 +167,7 @@ function buildProductCard(prod, index) {
     : '';
   const minOrder    = prod.minOrder ? `<p class="card-note">Mín. <strong>${prod.minOrder} u.</strong></p>` : '';
   const bulkNote    = (prod.bulkMinQty && prod.bulkPrice)
-    ? `<p class="card-note card-note-bulk">Mayor ×${prod.bulkMinQty}: <strong>${fmtARS(prod.bulkPrice)}</strong></p>`
+    ? `<p class="card-note card-note-bulk">Precio por mayor ×${prod.bulkMinQty}: <strong>${fmtARS(prod.bulkPrice)}</strong></p>`
     : '';
 
   const card = document.createElement('article');
