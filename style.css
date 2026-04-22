@@ -554,8 +554,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   border-radius: var(--r-pill);
   letter-spacing: .03em;
 }
-.prod-badge-in  { background: #d1fae5; color: #065f46; }
-.prod-badge-out { background: #fee2e2; color: #991b1b; }
+.prod-badge-in  { background: #d1fae5; color: #065f46; z-index: 4; }
+.prod-badge-out { background: #fee2e2; color: #991b1b; z-index: 4; }
 
 .catalogo-footer {
   text-align: center;

@@ -255,12 +255,15 @@ window.carouselGo = function(event, cid, dir) {
       back.className = 'carousel-img-back';
       el.parentElement.insertBefore(back, el);
     }
-    back.src = el.src;
+    back.src = images[next];
     el.style.opacity = '0';
-    el.src = images[next];
-    void el.offsetWidth;
-    el.style.opacity = '';
-    setTimeout(() => { back.src = images[next]; }, 750);
+    setTimeout(() => {
+      el.style.transition = 'none';
+      el.src = images[next];
+      el.style.opacity = '1';
+      void el.offsetWidth;
+      el.style.transition = '';
+    }, 750);
   });
   document.querySelectorAll(`.carousel-dot[data-cid="${cid}"]`).forEach((dot, i) => dot.classList.toggle('active', i === next));
   restartProgressBar(cid);
