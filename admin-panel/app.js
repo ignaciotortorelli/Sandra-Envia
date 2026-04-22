@@ -499,27 +499,66 @@ window.bulkDeleteProds = () => {
 window.bulkDeleteCats = () => {
   const ids = [...selectedCats];
   if (!ids.length) return;
-  const totalProds = ids.reduce((sum, id) => sum + products.filter(p => p.categoryId === id).length, 0);
-  const overlay = document.getElementById('confirmOverlay');
-  document.getElementById('confirmTitle').textContent  = '¿Confirmar eliminación?';
-  document.getElementById('confirmMessage').textContent =
-    `¿Eliminar ${ids.length} categoría(s)?${totalProds > 0 ? ` Los ${totalProds} productos en estas categorías NO serán eliminados (quedarán sin categoría).` : ''} Esta acción no se puede deshacer.`;
-  overlay.classList.add('open');
-  overlay.setAttribute('aria-hidden', 'false');
-  document.getElementById('confirmCancel').onclick = () => {
-    overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true');
-  };
-  document.getElementById('confirmOk').onclick = async () => {
-    overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true');
+
+  const catProdsMap = Object.fromEntries(
+    ids.map(id => [id, products.filter(p => p.categoryId === id)])
+  );
+  const totalProds = ids.reduce((sum, id) => sum + catProdsMap[id].length, 0);
+  const allCatProds = ids.flatMap(id => catProdsMap[id]);
+
+  const catNames = ids.map(id => categories.find(c => c.id === id)?.name ?? id);
+
+  document.getElementById('modalTitle').textContent = `Eliminar ${ids.length} categoría(s)`;
+
+  let bodyHtml = `<p>Categorías seleccionadas: <strong>${catNames.join(', ')}</strong></p>`;
+  if (totalProds > 0) {
+    const prodList = allCatProds.map(p => {
+      const cat = categories.find(c => c.id === p.categoryId);
+      return `<li>${p.name ?? '(sin nombre)'} <span style="color:var(--muted);font-size:.8rem">(${cat?.name ?? '—'})</span></li>`;
+    }).join('');
+    bodyHtml += `
+      <p style="margin-top:.75rem">Estas categorías contienen <strong>${totalProds} producto(s)</strong>:</p>
+      <ul class="delete-prod-list">${prodList}</ul>
+      <p style="margin-top:1rem">¿Qué querés hacer con estos productos?</p>`;
+  } else {
+    bodyHtml += `<p style="margin-top:.75rem">Esta acción no se puede deshacer.</p>`;
+  }
+
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  document.getElementById('modalFooter').innerHTML = totalProds > 0 ? `
+    <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
+    <button class="btn btn-secondary" id="bulkCatOnly">Solo eliminar las categorías</button>
+    <button class="btn btn-danger" id="bulkCatAndProds">Eliminar categorías y productos</button>` : `
+    <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
+    <button class="btn btn-danger" id="bulkCatOnly">Eliminar</button>`;
+
+  document.getElementById('modalCancel').onclick = closeModal;
+
+  const runBulkCatDelete = async (withProds) => {
+    closeModal();
     selectedCats.clear();
+    let driveErrors = 0;
+    if (withProds) {
+      for (const prod of allCatProds) {
+        try { driveErrors += await deleteSingleProduct(prod.id); }
+        catch (e) { console.error(e); }
+      }
+    }
     for (const id of ids) {
       try { await deleteDoc(doc(db, 'categories', id)); }
       catch (e) { console.error(e); toast('Error al eliminar categoría: ' + e.message, 'error'); }
     }
-    toast(`${ids.length} categoría(s) eliminada(s)`, 'success');
+    if (driveErrors) toast(`Advertencia: ${driveErrors} imagen(es) no se pudieron borrar de Drive`, 'error');
+    toast(`${ids.length} categoría(s) eliminada(s)${withProds && totalProds ? ` y ${totalProds} producto(s)` : ''}`, 'success');
     await loadData();
     renderCategories();
   };
+
+  document.getElementById('bulkCatOnly').onclick = () => runBulkCatDelete(false);
+  if (totalProds > 0) {
+    document.getElementById('bulkCatAndProds').onclick = () => runBulkCatDelete(true);
+  }
+  openModal();
 };
 
 function openModal()  {
