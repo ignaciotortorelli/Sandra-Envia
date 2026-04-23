@@ -797,55 +797,96 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* ══════════════════════════════════════════
    TESTIMONIOS
    ══════════════════════════════════════════ */
-.testimonials-grid {
+.testimonials-grid { width: 100%; }
+
+/* ── Testimonios — CSS-only infinite ticker ── */
+.t-slider {
+  --width:  200px;
+  --height: 340px;
+  --dur:    16s;
+  width: 100%;
+  height: var(--height);
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 12% 88%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12% 88%, transparent);
+}
+.t-list {
   display: flex;
-  justify-content: center;
+  width: 100%;
+  min-width: calc(var(--width) * var(--quantity));
+  position: relative;
+  height: var(--height);
+}
+.t-list .item {
+  width: var(--width);
+  height: var(--height);
+  position: absolute;
+  left: 100%;
+  padding: 0 8px;
+  animation: tRun var(--dur) linear infinite;
+  animation-delay: calc(
+    (var(--dur) / var(--quantity)) * (var(--position) - 1) - var(--dur)
+  );
+  transition: filter .4s;
+}
+@keyframes tRun {
+  from { left: 100%; }
+  to   { left: calc(var(--width) * -1); }
+}
+.t-slider:hover .item {
+  animation-play-state: paused;
+  filter: grayscale(.55);
+}
+.t-slider .item:hover { filter: grayscale(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .t-list .item { animation-play-state: paused; }
 }
 
-/* ── Testimonios carousel ── */
-.testimonios-carousel {
+/* Card inside each item */
+.t-screenshot {
   width: 100%;
-  max-width: 360px;
+  height: 100%;
+  border-radius: var(--r-md);
   overflow: hidden;
-  border-radius: var(--r-xl);
-  box-shadow: var(--sh-lg), 0 0 0 6px rgba(247,37,133,.12);
-}
-.testimonios-track {
-  display: flex;
-  will-change: transform;
-}
-.testimonial-slide {
-  min-width: 100%;
+  box-shadow: var(--sh-md);
   background: var(--white);
   display: flex;
   flex-direction: column;
 }
-.testimonial-img-wrap {
+.t-screenshot img {
   width: 100%;
-  background: #f0f0f0;
-  line-height: 0;
-}
-.testimonial-img-wrap img {
-  width: 100%;
-  height: auto;
+  flex: 1;
+  min-height: 0;
+  object-fit: cover;
+  object-position: top center;
   display: block;
-  max-height: 70vh;
-  object-fit: contain;
 }
-.testimonial-caption {
-  padding: .65rem 1rem;
-  font-size: .78rem;
-  font-weight: 500;
-  color: var(--text-muted);
+.t-screenshot-ph {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  background: var(--pink-bg);
+}
+.t-caption {
+  font-size: .68rem;
   text-align: center;
+  padding: .35rem .5rem;
+  color: var(--text-muted);
+  font-weight: 500;
   background: var(--white);
   border-top: 1px solid var(--pink-pale);
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-[data-theme="dark"] .testimonios-carousel { box-shadow: var(--sh-lg), 0 0 0 6px rgba(247,37,133,.2); }
-[data-theme="dark"] .testimonial-slide { background: #1A1A2E; }
-[data-theme="dark"] .testimonial-caption { background: #1A1A2E; border-top-color: rgba(255,255,255,.07); color: #8878A8; }
-[data-theme="dark"] .testimonial-img-wrap { background: #141428; }
+[data-theme="dark"] .t-screenshot     { background: #1A1A2E; }
+[data-theme="dark"] .t-caption        { background: #1A1A2E; border-top-color: rgba(255,255,255,.07); color: #8878A8; }
+[data-theme="dark"] .t-screenshot-ph  { background: rgba(247,37,133,.1); }
 
 /* ══════════════════════════════════════════
    REDES SOCIALES
