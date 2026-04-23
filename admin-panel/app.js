@@ -367,6 +367,7 @@ function renderProducts() {
   const bulkBar = selectedProds.size ? `
     <div class="bulk-bar">
       <span>${selectedProds.size} producto(s) seleccionado(s)</span>
+      <button class="btn btn-secondary btn-sm" onclick="bulkEditProds()">✏️ Editar seleccionados</button>
       <button class="btn btn-danger btn-sm" onclick="bulkDeleteProds()">🗑️ Eliminar seleccionados</button>
       <button class="btn btn-ghost btn-sm" onclick="clearProdSelection()">✕ Deseleccionar</button>
     </div>` : '';
@@ -416,7 +417,14 @@ function renderCategories() {
     const prodCount = products.filter(p => p.categoryId === c.id).length;
     const sel = selectedCats.has(c.id);
     return `
-      <tr class="${sel ? 'row-checked' : ''}">
+      <tr class="${sel ? 'row-checked' : ''}"
+          draggable="true"
+          ondragstart="catDragStart(event,'${c.id}')"
+          ondragover="catDragOver(event)"
+          ondragleave="catDragLeave(event)"
+          ondrop="catDrop(event,'${c.id}')"
+          ondragend="catDragEnd(event)">
+        <td class="drag-handle-cell" title="Arrastrar para reordenar">⠿</td>
         <td class="td-check"><input type="checkbox" class="row-check" ${sel ? 'checked' : ''} onchange="toggleCat('${c.id}',this.checked)"></td>
         <td><div class="grad-preview" style="background:${c.gradient ?? '#ccc'}">${c.emoji ?? ''}</div></td>
         <td><strong>${c.name}</strong></td>
@@ -452,6 +460,7 @@ function renderCategories() {
       <table class="data-table">
         <thead>
           <tr>
+            <th class="drag-handle-cell"></th>
             <th class="td-check"><input type="checkbox" id="checkAllCats" ${allChecked ? 'checked' : ''} onchange="toggleAllCats(this.checked)"></th>
             <th>Vista previa</th>
             ${thC('name', 'Nombre')}
@@ -517,6 +526,152 @@ window.toggleAllCats = (checked) => {
 };
 window.clearProdSelection = () => { selectedProds.clear(); renderProducts(); };
 window.clearCatSelection  = () => { selectedCats.clear(); renderCategories(); };
+
+// ── Bulk edit products ────────────────────
+window.bulkEditProds = () => {
+  const ids = [...selectedProds];
+  if (!ids.length) return;
+
+  const catOptions = categories.map(c =>
+    `<option value="${c.id}">${c.name}</option>`
+  ).join('');
+
+  document.getElementById('modalTitle').textContent = `Editar ${ids.length} producto(s)`;
+  document.getElementById('modalBody').innerHTML = `
+    <p class="bulk-edit-info">Solo se actualizan los campos activados. Dejá un campo vacío para limpiarlo.</p>
+    <div class="bulk-fields">
+      <div class="bulk-field">
+        <label class="bulk-toggle"><input type="checkbox" id="applyCategory"> Categoría</label>
+        <select class="form-select" id="bCategory" disabled>
+          <option value="">— Sin categoría —</option>${catOptions}
+        </select>
+      </div>
+      <div class="bulk-field">
+        <label class="bulk-toggle"><input type="checkbox" id="applyStock"> Stock</label>
+        <select class="form-select" id="bStock" disabled>
+          <option value="yes">✓ En stock</option>
+          <option value="no">✗ Sin stock</option>
+        </select>
+      </div>
+      <div class="bulk-field">
+        <label class="bulk-toggle"><input type="checkbox" id="applyMinOrder"> Cant. mínima</label>
+        <input class="form-input" id="bMinOrder" type="number" min="1" placeholder="Ej: 6" disabled>
+      </div>
+      <div class="bulk-field">
+        <label class="bulk-toggle"><input type="checkbox" id="applyBulk"> Precio por mayor</label>
+        <div class="form-row">
+          <input class="form-input" id="bBulkQty"   type="number" min="1" placeholder="A partir de (u.)" disabled>
+          <input class="form-input" id="bBulkPrice" type="number" min="0" placeholder="Precio ($)" disabled>
+        </div>
+      </div>
+      <div class="bulk-field">
+        <label class="bulk-toggle"><input type="checkbox" id="applyDiscount"> Descuento</label>
+        <div class="discount-input-wrap">
+          <input class="form-input" id="bDiscount" type="number" min="0" max="99" placeholder="Ej: 20 (0 = quitar)" disabled>
+          <span class="discount-pct-symbol">%</span>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('modalFooter').innerHTML = `
+    <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
+    <button class="btn btn-primary" id="modalSave">Aplicar cambios</button>`;
+  document.getElementById('modalCancel').onclick = closeModal;
+  document.getElementById('modalSave').onclick   = () => runBulkEdit(ids);
+
+  // Wire checkbox → enable/disable inputs
+  [
+    ['applyCategory', ['bCategory']],
+    ['applyStock',    ['bStock']],
+    ['applyMinOrder', ['bMinOrder']],
+    ['applyBulk',     ['bBulkQty', 'bBulkPrice']],
+    ['applyDiscount', ['bDiscount']],
+  ].forEach(([ckId, inputIds]) => {
+    const ck = document.getElementById(ckId);
+    const inputs = inputIds.map(id => document.getElementById(id)).filter(Boolean);
+    ck?.addEventListener('change', () => inputs.forEach(inp => inp.disabled = !ck.checked));
+  });
+
+  openModal();
+};
+
+async function runBulkEdit(ids) {
+  const updates = {};
+  if (document.getElementById('applyCategory')?.checked)
+    updates.categoryId = document.getElementById('bCategory')?.value || null;
+  if (document.getElementById('applyStock')?.checked)
+    updates.inStock = document.getElementById('bStock')?.value !== 'no';
+  if (document.getElementById('applyMinOrder')?.checked)
+    updates.minOrder = parseInt(document.getElementById('bMinOrder')?.value) || null;
+  if (document.getElementById('applyBulk')?.checked) {
+    const qty   = parseInt(document.getElementById('bBulkQty')?.value)   || null;
+    const price = parseFloat(document.getElementById('bBulkPrice')?.value) || null;
+    updates.bulkMinQty = (qty && price) ? qty   : null;
+    updates.bulkPrice  = (qty && price) ? price : null;
+  }
+  if (document.getElementById('applyDiscount')?.checked)
+    updates.discount = parseInt(document.getElementById('bDiscount')?.value) || null;
+
+  if (!Object.keys(updates).length) {
+    toast('Activá al menos un campo para editar', 'error'); return;
+  }
+  updates.updatedAt = serverTimestamp();
+
+  const btn = document.getElementById('modalSave');
+  btn.textContent = 'Guardando…'; btn.disabled = true;
+  try {
+    for (const id of ids) await updateDoc(doc(db, 'products', id), updates);
+    closeModal();
+    toast(`${ids.length} producto(s) actualizados ✓`, 'success');
+    selectedProds.clear();
+    await loadData(); renderProducts();
+  } catch (e) {
+    console.error(e);
+    toast('Error al actualizar: ' + e.message, 'error');
+    btn.textContent = 'Aplicar cambios'; btn.disabled = false;
+  }
+}
+
+// ── Category drag-and-drop reorder ────────
+let catDragSrcId = null;
+
+window.catDragStart = (e, id) => {
+  catDragSrcId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('row-dragging');
+};
+window.catDragOver = (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('row-drag-over');
+};
+window.catDragLeave = (e) => {
+  e.currentTarget.classList.remove('row-drag-over');
+};
+window.catDrop = async (e, targetId) => {
+  e.preventDefault();
+  e.currentTarget.classList.remove('row-drag-over');
+  if (!catDragSrcId || catDragSrcId === targetId) return;
+
+  const srcIdx = categories.findIndex(c => c.id === catDragSrcId);
+  const tgtIdx = categories.findIndex(c => c.id === targetId);
+  if (srcIdx === -1 || tgtIdx === -1) return;
+
+  const [moved] = categories.splice(srcIdx, 1);
+  categories.splice(tgtIdx, 0, moved);
+  categories.forEach((c, i) => { c.order = i + 1; });
+
+  categorySort = { field: 'order', dir: 1 };
+  renderCategories(); // optimistic
+
+  for (const { id, order } of categories.map((c, i) => ({ id: c.id, order: i + 1 }))) {
+    try { await updateDoc(doc(db, 'categories', id), { order }); } catch (e) { console.error(e); }
+  }
+};
+window.catDragEnd = (e) => {
+  e.currentTarget.classList.remove('row-dragging');
+  document.querySelectorAll('.row-drag-over').forEach(el => el.classList.remove('row-drag-over'));
+};
 
 window.toggleStock = async (id, current) => {
   try {

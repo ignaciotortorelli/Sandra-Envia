@@ -956,6 +956,47 @@ img { display: block; max-width: 100%; }
 [data-theme="dark"] .delete-prod-list { color: #8878A8; }
 [data-theme="dark"] .delete-warning { background: rgba(255,154,60,.1); }
 
+/* ── Drag & Drop ── */
+.drag-handle-cell {
+  width: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 1.1rem;
+  cursor: grab;
+  user-select: none;
+  padding: 0 .25rem !important;
+}
+.drag-handle-cell:active { cursor: grabbing; }
+tr.row-dragging { opacity: .35; }
+tr.row-drag-over > td { background: rgba(247,37,133,.07) !important; box-shadow: inset 0 2px 0 var(--pink); }
+
+/* ── Bulk edit form ── */
+.bulk-edit-info { font-size: .82rem; color: var(--muted); margin-bottom: 1rem; }
+.bulk-fields { display: flex; flex-direction: column; gap: 0; }
+.bulk-field {
+  display: grid;
+  grid-template-columns: 155px 1fr;
+  align-items: start;
+  gap: .75rem;
+  padding: .65rem 0;
+  border-bottom: 1px solid var(--gray-line);
+}
+.bulk-field:last-child { border-bottom: none; }
+.bulk-toggle {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding-top: .45rem;
+}
+.bulk-toggle input[type="checkbox"] { accent-color: var(--pink); width: 15px; height: 15px; cursor: pointer; }
+.bulk-field .form-input:disabled,
+.bulk-field .form-select:disabled { opacity: .35; cursor: not-allowed; }
+.bulk-field .discount-input-wrap .form-input:disabled { opacity: .35; cursor: not-allowed; }
+[data-theme="dark"] .bulk-field { border-bottom-color: rgba(255,255,255,.07); }
+
 /* ══════════════════════════════════════════
    SEED / TEST DATA
    ══════════════════════════════════════════ */
