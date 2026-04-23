@@ -1108,54 +1108,73 @@ function initTickerDrag(sliderEl) {
   const list  = sliderEl.querySelector('.t-list');
   if (!items.length || !list) return;
 
-  const cardW = parseFloat(getComputedStyle(sliderEl).getPropertyValue('--width')) || 200;
-  const dur   = parseFloat(getComputedStyle(sliderEl).getPropertyValue('--dur'))   || 16;
+  const cardW   = parseFloat(getComputedStyle(sliderEl).getPropertyValue('--width')) || 200;
+  const dur     = parseFloat(getComputedStyle(sliderEl).getPropertyValue('--dur'))   || 16;
+  const DAMPING = 1.2;
 
-  let dragging = false, startX = 0, hasMoved = false;
-  let baseOffset = 0; // list translateX at drag start
+  let dragging = false, startX = 0, moved = false;
   let velTrack = [];
   let momRaf   = null;
+  let jsMode   = false;   // true while items are JS-driven (left: px, animation:none)
+  let lefts    = [];      // current px positions when in jsMode
 
   const sw     = () => sliderEl.offsetWidth;
-  const natVel = () => -(sw() + cardW) / dur;  // natural px/sec (leftward)
+  const natVel = () => -(sw() + cardW) / dur;
 
-  // Restart each item's animation from its current screen position
-  function commitPositions() {
-    const W = sw(), totalD = W + cardW;
+  // Switch from CSS animation → JS-driven left positions (atomic read+write)
+  function toJS() {
+    if (jsMode) return;
     const r = sliderEl.getBoundingClientRect();
-    items.forEach(it => {
-      const l = it.getBoundingClientRect().left - r.left;
-      let prog = (W - l) / totalD;
+    const captured = items.map(it => it.getBoundingClientRect().left - r.left);
+    list.style.transform = '';
+    items.forEach((it, i) => {
+      it.style.animation = 'none';
+      it.style.left = captured[i] + 'px';
+    });
+    lefts = captured;
+    jsMode = true;
+  }
+
+  // Move all items by dx px, wrapping around the loop boundary
+  function shift(dx) {
+    const W = sw(), P = W + cardW;
+    lefts = lefts.map((l, i) => {
+      let nl = l + dx;
+      if (nl < -cardW - 1) nl += P;
+      if (nl > W + 1)      nl -= P;
+      items[i].style.left = nl + 'px';
+      return nl;
+    });
+  }
+
+  // Switch back to CSS animation with correct delays
+  function toCSS() {
+    if (!jsMode) return;
+    const W = sw(), P = W + cardW;
+    items.forEach((it, i) => {
+      let prog = (W - lefts[i]) / P;
       prog = ((prog % 1) + 1) % 1;
-      // Restart animation cleanly (animationName toggle forces reset)
-      it.style.animationPlayState = '';
       it.style.animationName = 'none';
-      void it.offsetWidth;                          // force reflow
-      it.style.animationName = '';                  // restore CSS name
+      void it.offsetWidth;
+      it.style.left      = '';
+      it.style.animation = '';
       it.style.animationDelay = -(prog * dur) + 's';
     });
-    list.style.transform = '';
+    jsMode = false;
   }
 
   function startMomentum(initVel) {
     if (momRaf) cancelAnimationFrame(momRaf);
     const nv = natVel();
-    const DAMPING = 1.5;
-    let vel = initVel, lastT = performance.now();
-    let offset = baseOffset + (dragging ? 0 : parseFloat(
-      (list.style.transform || 'translateX(0)').replace(/[^-\d.]/g,'') || '0'
-    ));
-
-    // Items stay paused; only the list translateX changes
-    items.forEach(it => it.style.animationPlayState = 'paused');
+    let vel = Math.sign(initVel) * Math.min(Math.abs(initVel), Math.abs(nv) * 6);
+    let lastT = performance.now();
 
     function frame(ts) {
       const dt = Math.min((ts - lastT) / 1000, 0.05);
       lastT = ts;
       vel += (nv - vel) * (1 - Math.exp(-DAMPING * dt));
-      offset += vel * dt;
-      list.style.transform = `translateX(${offset}px)`;
-      if (Math.abs(vel - nv) < 1.5) { commitPositions(); return; }
+      shift(vel * dt);
+      if (Math.abs(vel - nv) < 1) { toCSS(); return; }
       momRaf = requestAnimationFrame(frame);
     }
     momRaf = requestAnimationFrame(frame);
@@ -1163,26 +1182,25 @@ function initTickerDrag(sliderEl) {
 
   function onStart(x) {
     if (momRaf) { cancelAnimationFrame(momRaf); momRaf = null; }
-    dragging = true; hasMoved = false; startX = x;
-    baseOffset = parseFloat((list.style.transform || 'translateX(0)').replace(/[^-\d.]/g,'') || '0');
+    toJS();
+    dragging = true; moved = false; startX = x;
     velTrack = [{ x, t: performance.now() }];
-    items.forEach(it => it.style.animationPlayState = 'paused');
     sliderEl.classList.add('is-dragging');
   }
   function onMove(x) {
     if (!dragging) return;
-    if (Math.abs(x - startX) > 5) hasMoved = true;
-    list.style.transform = `translateX(${baseOffset + (x - startX)}px)`;
+    if (Math.abs(x - startX) > 4) moved = true;
+    shift(x - startX - (velTrack.length ? velTrack[velTrack.length-1].x - startX : 0));
+    // recalculate delta from last move, not from start
+    startX = x;  // rolling origin so shift() gets incremental delta
     velTrack.push({ x, t: performance.now() });
     if (velTrack.length > 6) velTrack.shift();
   }
-  function onEnd(x) {
+  function onEnd() {
     if (!dragging) return;
     dragging = false;
     sliderEl.classList.remove('is-dragging');
-
-    if (!hasMoved) { commitPositions(); return; }
-
+    if (!moved) { toCSS(); return; }
     let vel = natVel();
     if (velTrack.length >= 2) {
       const a = velTrack[0], b = velTrack[velTrack.length - 1];
@@ -1192,19 +1210,17 @@ function initTickerDrag(sliderEl) {
     startMomentum(vel);
   }
 
-  // No e.preventDefault() — use CSS user-select:none instead so click still fires
-  sliderEl.addEventListener('mousedown', e => onStart(e.clientX));
+  sliderEl.addEventListener('mousedown', e => { onStart(e.clientX); e.preventDefault(); });
   document.addEventListener('mousemove', e => onMove(e.clientX));
-  document.addEventListener('mouseup',   e => onEnd(e.clientX));
-  sliderEl.addEventListener('touchstart', e => onStart(e.touches[0].clientX),        { passive: true });
+  document.addEventListener('mouseup',   () => onEnd());
+  sliderEl.addEventListener('touchstart', e => onStart(e.touches[0].clientX),           { passive: true });
   sliderEl.addEventListener('touchmove',  e => { if (dragging) onMove(e.touches[0].clientX); }, { passive: true });
-  sliderEl.addEventListener('touchend',   e => onEnd(e.changedTouches[0].clientX),   { passive: true });
+  sliderEl.addEventListener('touchend',   () => onEnd(),                                 { passive: true });
 
-  // Click → popup (fires only when no significant drag happened)
-  items.forEach(it => it.addEventListener('click', () => {
-    if (hasMoved) return;
-    showTickerPopup(it);
-  }));
+  // Click popup — use pointerup to distinguish tap from drag
+  items.forEach(it => {
+    it.addEventListener('pointerup', () => { if (!moved) showTickerPopup(it); });
+  });
 }
 
 function showTickerPopup(item) {
