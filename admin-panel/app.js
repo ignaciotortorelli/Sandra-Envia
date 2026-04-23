@@ -26,6 +26,7 @@ let productSort  = { field: 'name', dir: 1 };
 let categorySort = { field: 'order', dir: 1 };
 let selectedProds = new Set();
 let selectedCats  = new Set();
+let searchQuery   = '';
 
 // ── Firebase status indicator ──────────────────────────────
 function setStatus(state) {
@@ -74,11 +75,36 @@ function router() {
   const titles = { '/': 'Dashboard', '/productos': 'Productos', '/categorias': 'Categorías' };
   document.getElementById('topbarTitle').textContent = titles[hash] ?? 'Admin';
   document.getElementById('topbarActions').innerHTML = '';
+  searchQuery = '';
 
   render();
 }
 
 window.addEventListener('hashchange', router);
+
+// ── Search ────────────────────────────────
+window.onSearchInput = (val) => {
+  searchQuery = val;
+  const hash = location.hash.replace('#', '') || '/';
+  if (hash === '/')                renderDashboard();
+  else if (hash === '/productos')  renderProducts();
+  else if (hash === '/categorias') renderCategories();
+  const inp = document.querySelector('.search-input');
+  if (inp) { inp.focus(); inp.setSelectionRange(val.length, val.length); }
+};
+
+function searchBarHtml(placeholder) {
+  return `
+    <div class="search-bar-wrap">
+      <div class="search-bar">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" type="search" placeholder="${placeholder}"
+               value="${searchQuery.replace(/"/g, '&quot;')}"
+               oninput="onSearchInput(this.value)" autocomplete="off">
+        ${searchQuery ? `<button class="search-clear" onclick="onSearchInput('')">✕</button>` : ''}
+      </div>
+    </div>`;
+}
 
 // ══════════════════════════════════════════
 //  SEED / TEST DATA
@@ -236,8 +262,10 @@ async function runSeed() {
 // ── Dashboard ─────────────────────────────
 function renderDashboard() {
   const outOfStock = products.filter(p => !p.inStock).length;
-  const content = document.getElementById('appContent');
-  content.innerHTML = `
+  const content    = document.getElementById('appContent');
+  const q          = searchQuery.toLowerCase().trim();
+
+  const normalHtml = `
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-num">${products.length}</div>
@@ -254,18 +282,15 @@ function renderDashboard() {
     </div>
     <div class="quick-links">
       <div class="quick-card" onclick="location.hash='#/productos'">
-        <div class="quick-card-icon">👗</div>
-        <h3>Productos</h3>
+        <div class="quick-card-icon">👗</div><h3>Productos</h3>
         <p>Agregá, editá o eliminá productos del catálogo.</p>
       </div>
       <div class="quick-card" onclick="location.hash='#/categorias'">
-        <div class="quick-card-icon">📂</div>
-        <h3>Categorías</h3>
+        <div class="quick-card-icon">📂</div><h3>Categorías</h3>
         <p>Gestioná las categorías del sitio.</p>
       </div>
       <div class="quick-card" onclick="window.open('../', '_blank')">
-        <div class="quick-card-icon">🌐</div>
-        <h3>Ver Sitio</h3>
+        <div class="quick-card-icon">🌐</div><h3>Ver Sitio</h3>
         <p>Abrí el sitio público para verificar los cambios.</p>
       </div>
     </div>
@@ -278,6 +303,40 @@ function renderDashboard() {
         <button class="btn btn-ghost seed-btn" onclick="seedTestData()">Generar datos de prueba</button>
       </div>
     </div>`;
+
+  let resultsHtml = '';
+  if (q) {
+    const mCats  = categories.filter(c => c.name?.toLowerCase().includes(q));
+    const mProds = products.filter(p => {
+      const cat = categories.find(c => c.id === p.categoryId);
+      return p.name?.toLowerCase().includes(q) || cat?.name?.toLowerCase().includes(q);
+    });
+    const catRows = mCats.map(c => `
+      <div class="search-result-item" onclick="openCategoryModal('${c.id}')">
+        <div class="grad-preview" style="background:${c.gradient ?? '#ccc'};width:32px;height:32px;border-radius:8px;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">${c.emoji ?? ''}</div>
+        <div class="search-result-info"><span class="search-result-name">${c.name}</span></div>
+        <span class="search-result-tag">Categoría</span>
+      </div>`).join('');
+    const prodRows = mProds.map(p => {
+      const cat = categories.find(c => c.id === p.categoryId);
+      return `
+      <div class="search-result-item" onclick="openProductModal('${p.id}')">
+        <div class="search-result-thumb">${p.images?.[0] ? `<img src="${p.images[0]}" alt="">` : '👗'}</div>
+        <div class="search-result-info">
+          <span class="search-result-name">${p.name ?? '—'}</span>
+          ${cat ? `<span class="search-result-sub">${cat.name}</span>` : ''}
+        </div>
+        <span class="search-result-tag">Producto</span>
+      </div>`;
+    }).join('');
+    resultsHtml = `<div class="search-results">
+      ${mCats.length  ? `<p class="search-group-title">📂 Categorías (${mCats.length})</p>${catRows}` : ''}
+      ${mProds.length ? `<p class="search-group-title">👗 Productos (${mProds.length})</p>${prodRows}` : ''}
+      ${!mCats.length && !mProds.length ? `<div class="search-empty"><div class="empty-icon">🔍</div><p>Sin resultados para "<strong>${searchQuery}</strong>"</p></div>` : ''}
+    </div>`;
+  }
+
+  content.innerHTML = searchBarHtml('Buscar productos, categorías…') + (q ? resultsHtml : normalHtml);
 }
 
 // ── Sort helper ───────────────────────────
@@ -317,7 +376,7 @@ function renderProducts() {
   const content = document.getElementById('appContent');
 
   if (!products.length) {
-    content.innerHTML = `
+    content.innerHTML = searchBarHtml('Buscar productos…') + `
       <div class="empty-state">
         <div class="empty-icon">👗</div>
         <p>Todavía no hay productos. ¡Creá el primero!</p>
@@ -326,7 +385,23 @@ function renderProducts() {
     return;
   }
 
-  const sorted = sortItems([...products], productSort.field, productSort.dir, 'product');
+  const q        = searchQuery.toLowerCase().trim();
+  const filtered = q ? products.filter(p => {
+    const cat = categories.find(c => c.id === p.categoryId);
+    return p.name?.toLowerCase().includes(q) || cat?.name?.toLowerCase().includes(q);
+  }) : products;
+
+  if (q && !filtered.length) {
+    content.innerHTML = searchBarHtml('Buscar productos…') + `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <p>Sin resultados para "<strong>${searchQuery}</strong>"</p>
+        <button class="btn btn-ghost" onclick="onSearchInput('')">Limpiar búsqueda</button>
+      </div>`;
+    return;
+  }
+
+  const sorted = sortItems([...filtered], productSort.field, productSort.dir, 'product');
 
   const rows = sorted.map(p => {
     const cat    = categories.find(c => c.id === p.categoryId);
@@ -372,7 +447,7 @@ function renderProducts() {
       <button class="btn btn-ghost btn-sm" onclick="clearProdSelection()">✕ Deseleccionar</button>
     </div>` : '';
 
-  content.innerHTML = `
+  content.innerHTML = searchBarHtml('Buscar productos…') + `
     ${bulkBar}
     <div class="table-wrap">
       <table class="data-table">
@@ -402,7 +477,7 @@ function renderCategories() {
   const content = document.getElementById('appContent');
 
   if (!categories.length) {
-    content.innerHTML = `
+    content.innerHTML = searchBarHtml('Buscar categorías…') + `
       <div class="empty-state">
         <div class="empty-icon">📂</div>
         <p>Todavía no hay categorías.</p>
@@ -411,7 +486,20 @@ function renderCategories() {
     return;
   }
 
-  const sorted = sortItems([...categories], categorySort.field, categorySort.dir, 'category');
+  const q        = searchQuery.toLowerCase().trim();
+  const filtered = q ? categories.filter(c => c.name?.toLowerCase().includes(q)) : categories;
+
+  if (q && !filtered.length) {
+    content.innerHTML = searchBarHtml('Buscar categorías…') + `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <p>Sin resultados para "<strong>${searchQuery}</strong>"</p>
+        <button class="btn btn-ghost" onclick="onSearchInput('')">Limpiar búsqueda</button>
+      </div>`;
+    return;
+  }
+
+  const sorted = sortItems([...filtered], categorySort.field, categorySort.dir, 'category');
 
   const rows = sorted.map(c => {
     const prodCount = products.filter(p => p.categoryId === c.id).length;
@@ -454,7 +542,7 @@ function renderCategories() {
       <button class="btn btn-ghost btn-sm" onclick="clearCatSelection()">✕ Deseleccionar</button>
     </div>` : '';
 
-  content.innerHTML = `
+  content.innerHTML = searchBarHtml('Buscar categorías…') + `
     ${bulkBar}
     <div class="table-wrap">
       <table class="data-table">
