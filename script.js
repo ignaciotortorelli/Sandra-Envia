@@ -63,23 +63,14 @@ function applySettings(s) {
     if (fp) { fp.textContent = s.phone; fp.href = `tel:${tel}`; }
   }
 
-  // Hero text
-  const ht = document.getElementById('heroTagline');
-  if (ht && s.tagline) ht.textContent = s.tagline;
-  const hs = document.getElementById('heroSubtitle');
-  if (hs && s.subtitle) hs.innerHTML = s.subtitle;
-
-  // Min order label
-  if (s.minOrderLabel) {
+  // Min order in ARS
+  if (s.minOrderARS) {
+    const label = fmtARS(s.minOrderARS);
     const mo = document.getElementById('heroMinOrder');
-    if (mo) mo.textContent = s.minOrderLabel;
+    if (mo) mo.textContent = label;
     const co = document.getElementById('catalogMinOrder');
-    if (co) co.textContent = s.minOrderLabel;
+    if (co) co.textContent = label;
   }
-
-  // Shipping note
-  const sn = document.getElementById('shippingNote');
-  if (sn && s.shippingNote) sn.textContent = '📦 ' + s.shippingNote;
 
   // Hours
   const ch = document.getElementById('contactHours');

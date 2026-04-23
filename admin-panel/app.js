@@ -1784,23 +1784,11 @@ function renderAjustes() {
       </div>
 
       <div class="settings-section">
-        <h3 class="settings-section-title">✨ Contenido del sitio</h3>
+        <h3 class="settings-section-title">🛒 Compra mínima</h3>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">Tagline del hero</label>
-            <input class="form-input" id="sTagline" value="${v('tagline','Venta mayorista de ropa')}">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Subtítulo del hero</label>
-            <input class="form-input" id="sSubtitle" value="${v('subtitle','Comprá fácil por WhatsApp · Enviamos a todo el país')}">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Nota de envíos</label>
-            <input class="form-input" id="sShippingNote" value="${v('shippingNote','Coordinamos el envío por WhatsApp. Te informamos el costo según tu zona.')}">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Compra mínima (etiqueta) <span class="form-hint">— vacío = se calcula automáticamente desde los productos</span></label>
-            <input class="form-input" id="sMinOrder" value="${v('minOrderLabel')}" placeholder="Ej: 6 u. (mínimo)">
+            <label class="form-label">Monto mínimo de compra ($) <span class="form-hint">— vacío = se oculta en el sitio</span></label>
+            <input class="form-input" id="sMinOrderARS" type="number" min="0" value="${v('minOrderARS')}" placeholder="Ej: 15000">
           </div>
         </div>
       </div>
@@ -1839,10 +1827,7 @@ async function saveSettings() {
       instagramHandle: document.getElementById('sInstagramHandle')?.value.trim(),
       tiktok:          document.getElementById('sTiktok')?.value.trim(),
       tiktokHandle:    document.getElementById('sTiktokHandle')?.value.trim(),
-      tagline:         document.getElementById('sTagline')?.value.trim(),
-      subtitle:        document.getElementById('sSubtitle')?.value.trim(),
-      shippingNote:    document.getElementById('sShippingNote')?.value.trim(),
-      minOrderLabel:   document.getElementById('sMinOrder')?.value.trim(),
+      minOrderARS:     parseFloat(document.getElementById('sMinOrderARS')?.value) || null,
       logoUrl:         document.getElementById('sLogoUrl')?.value.trim(),
       ellasLogoUrl:    document.getElementById('sEllasLogoUrl')?.value.trim(),
       updatedAt:       serverTimestamp(),
