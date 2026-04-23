@@ -130,7 +130,8 @@ function getPriceRange(products) {
 function getMinOrder(products) {
   const mins = products.map(p => p.minOrder).filter(Boolean);
   if (!mins.length) return '[a confirmar]';
-  return Math.min(...mins) + ' u.';
+  const lo = Math.min(...mins), hi = Math.max(...mins);
+  return lo === hi ? `${lo} u.` : `${lo} – ${hi} u.`;
 }
 
 // ── Build a single product card with carousel ──────────────
