@@ -926,6 +926,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* 2D ticker — hover lift (mouse only, no pause, no scale to avoid overlap) */
+.t-slider { user-select: none; cursor: grab; }
+.t-slider:active { cursor: grabbing; }
 .t-list { overflow: visible; }
 .t-list .item { transition: transform .25s ease, filter .25s; cursor: pointer; }
 .t-list .item:hover { transform: translateY(-9px) !important; z-index: 20; filter: brightness(1.06) !important; }
