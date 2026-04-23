@@ -125,42 +125,86 @@ function searchBarHtml(placeholder) {
 //  SEED / TEST DATA
 // ══════════════════════════════════════════
 const SEED_CATS = [
-  { name: 'Damas',      emoji: '👗', gradient: 'linear-gradient(135deg,#FF4D6D,#C9184A)', order: 1, active: true },
-  { name: 'Caballeros', emoji: '👔', gradient: 'linear-gradient(135deg,#1A1A2E,#2D2D44)', order: 2, active: true },
-  { name: 'Niños',      emoji: '🧒', gradient: 'linear-gradient(135deg,#74B9FF,#0984E3)', order: 3, active: true },
-  { name: 'Deportivo',  emoji: '🏃', gradient: 'linear-gradient(135deg,#FFD166,#FF9A3C)', order: 4, active: true },
-  { name: 'Accesorios', emoji: '👜', gradient: 'linear-gradient(135deg,#845EC2,#C9184A)', order: 5, active: true },
+  { name: 'Damas',         emoji: '👗', gradient: 'linear-gradient(135deg,#FF4D6D,#C9184A)', order:  1, active: true },
+  { name: 'Caballeros',    emoji: '👔', gradient: 'linear-gradient(135deg,#1A1A2E,#2D2D44)', order:  2, active: true },
+  { name: 'Niños',         emoji: '🧒', gradient: 'linear-gradient(135deg,#74B9FF,#0984E3)', order:  3, active: true },
+  { name: 'Deportivo',     emoji: '🏃', gradient: 'linear-gradient(135deg,#FFD166,#FF9A3C)', order:  4, active: true },
+  { name: 'Accesorios',    emoji: '👜', gradient: 'linear-gradient(135deg,#845EC2,#C9184A)', order:  5, active: true },
+  { name: 'Calzado',       emoji: '👟', gradient: 'linear-gradient(135deg,#2D3436,#636E72)', order:  6, active: true },
+  { name: 'Ropa Interior', emoji: '🩲', gradient: 'linear-gradient(135deg,#FFB3C6,#F72585)', order:  7, active: true },
+  { name: 'Abrigos',       emoji: '🧥', gradient: 'linear-gradient(135deg,#6B2D5E,#C9184A)', order:  8, active: true },
+  { name: 'Bebés',         emoji: '👶', gradient: 'linear-gradient(135deg,#FFB3C6,#FF85A1)', order:  9, active: true },
+  { name: 'Teens',         emoji: '🎒', gradient: 'linear-gradient(135deg,#FF85A1,#FF4D6D)', order: 10, active: true },
 ];
 
+// catIdx → SEED_CATS index | imgPoolIdx → SEED_IMG_POOLS index (5 pools shared across 10 cats)
 const SEED_PRODS = [
-  // catIdx → index in SEED_CATS; imgStart → first image index from that category's pool
-  { name: 'Conjunto verano dama',    price: 15000, minOrder:  6, inStock: true,  catIdx: 0, imgs: 2, imgStart: 0 },
-  { name: 'Vestido floral',          price: 18500, minOrder:  3, inStock: true,  catIdx: 0, imgs: 2, imgStart: 1 },
-  { name: 'Blusa manga corta',       price:  8900, minOrder: 12, inStock: true,  catIdx: 0, imgs: 1, imgStart: 2 },
-  { name: 'Pantalón palazzo',        price: 12000, minOrder:  6, inStock: false, catIdx: 0, imgs: 2, imgStart: 0 },
-  { name: 'Remera básica caballero', price:  7500, minOrder: 12, inStock: true,  catIdx: 1, imgs: 2, imgStart: 0 },
-  { name: 'Jean slim fit',           price: 22000, minOrder:  3, inStock: true,  catIdx: 1, imgs: 2, imgStart: 1 },
-  { name: 'Camisa casual',           price: 14000, minOrder:  6, inStock: false, catIdx: 1, imgs: 1, imgStart: 2 },
-  { name: 'Conjunto niña verano',    price:  9500, minOrder:  6, inStock: true,  catIdx: 2, imgs: 2, imgStart: 0 },
-  { name: 'Remera niño estampada',   price:  5500, minOrder: 12, inStock: true,  catIdx: 2, imgs: 1, imgStart: 1 },
-  { name: 'Calza deportiva',         price: 11000, minOrder:  6, inStock: true,  catIdx: 3, imgs: 2, imgStart: 0 },
-  { name: 'Buzo con capucha',        price: 19500, minOrder:  3, inStock: true,  catIdx: 3, imgs: 2, imgStart: 1 },
-  { name: 'Remera dry-fit',          price:  8500, minOrder: 12, inStock: false, catIdx: 3, imgs: 1, imgStart: 2 },
-  { name: 'Cartera cuero eco',       price: 25000, minOrder:  3, inStock: true,  catIdx: 4, imgs: 2, imgStart: 0 },
-  { name: 'Cinturón trenzado',       price:  6500, minOrder:  6, inStock: true,  catIdx: 4, imgs: 1, imgStart: 1 },
-  { name: 'Bufanda tejida',          price:  9000, minOrder:  6, inStock: true,  catIdx: 4, imgs: 2, imgStart: 0 },
+  // ── Damas (cat 0, pool 0) ──
+  { name: 'Vestido largo verano',     price: 22000, minOrder:  3, inStock: true,  discount: 15, bulkMinQty: null,  bulkPrice: null,  catIdx: 0, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
+  { name: 'Conjunto lencería seda',   price: 18500, minOrder:  6, inStock: true,  discount: null,bulkMinQty: 12,   bulkPrice: 15000, catIdx: 0, imgPoolIdx: 0, imgs: 2, imgStart: 1 },
+  { name: 'Blusa estampada',          price:  9900, minOrder: 12, inStock: true,  discount: 20, bulkMinQty: 24,   bulkPrice:  7500, catIdx: 0, imgPoolIdx: 0, imgs: 1, imgStart: 2 },
+  { name: 'Pantalón palazzo negro',   price: 14000, minOrder:  6, inStock: false, discount: null,bulkMinQty: null,  bulkPrice: null,  catIdx: 0, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
+  { name: 'Remera algodón dama',      price:  7500, minOrder: 24, inStock: true,  discount: null,bulkMinQty: 48,   bulkPrice:  6000, catIdx: 0, imgPoolIdx: 0, imgs: 1, imgStart: 1 },
+  // ── Caballeros (cat 1, pool 1) ──
+  { name: 'Jean slim negro',          price: 24000, minOrder:  3, inStock: true,  discount: 10, bulkMinQty:  6,   bulkPrice: 20000, catIdx: 1, imgPoolIdx: 1, imgs: 2, imgStart: 0 },
+  { name: 'Camisa cuadros',           price: 16000, minOrder:  6, inStock: true,  discount: null,bulkMinQty: null,  bulkPrice: null,  catIdx: 1, imgPoolIdx: 1, imgs: 2, imgStart: 1 },
+  { name: 'Polo básico',              price:  8500, minOrder: 12, inStock: true,  discount: 25, bulkMinQty: 24,   bulkPrice:  5500, catIdx: 1, imgPoolIdx: 1, imgs: 1, imgStart: 2 },
+  { name: 'Bermuda cargo',            price: 13000, minOrder:  6, inStock: false, discount: null,bulkMinQty: 12,   bulkPrice: 10500, catIdx: 1, imgPoolIdx: 1, imgs: 2, imgStart: 0 },
+  // ── Niños (cat 2, pool 2) ──
+  { name: 'Conjunto deportivo niña',  price: 10500, minOrder:  6, inStock: true,  discount: 15, bulkMinQty: null,  bulkPrice: null,  catIdx: 2, imgPoolIdx: 2, imgs: 2, imgStart: 0 },
+  { name: 'Remera estampada nene',    price:  6000, minOrder: 12, inStock: true,  discount: null,bulkMinQty: 24,   bulkPrice:  4800, catIdx: 2, imgPoolIdx: 2, imgs: 1, imgStart: 1 },
+  { name: 'Vestido floral niña',      price: 11000, minOrder:  6, inStock: true,  discount: 20, bulkMinQty: 12,   bulkPrice:  8500, catIdx: 2, imgPoolIdx: 2, imgs: 2, imgStart: 0 },
+  { name: 'Short verano niño',        price:  7500, minOrder: 12, inStock: false, discount: null,bulkMinQty: null,  bulkPrice: null,  catIdx: 2, imgPoolIdx: 2, imgs: 1, imgStart: 1 },
+  // ── Deportivo (cat 3, pool 3) ──
+  { name: 'Calza deportiva mujer',    price: 12000, minOrder:  6, inStock: true,  discount: null,bulkMinQty: 12,   bulkPrice:  9500, catIdx: 3, imgPoolIdx: 3, imgs: 2, imgStart: 0 },
+  { name: 'Buzo canguro',             price: 21000, minOrder:  3, inStock: true,  discount: 10, bulkMinQty:  6,   bulkPrice: 17500, catIdx: 3, imgPoolIdx: 3, imgs: 2, imgStart: 1 },
+  { name: 'Short running',            price:  9500, minOrder: 12, inStock: true,  discount: null,bulkMinQty: null,  bulkPrice: null,  catIdx: 3, imgPoolIdx: 3, imgs: 1, imgStart: 2 },
+  { name: 'Remera dry-fit',           price:  8500, minOrder: 12, inStock: false, discount: 30, bulkMinQty: null,  bulkPrice: null,  catIdx: 3, imgPoolIdx: 3, imgs: 1, imgStart: 0 },
+  { name: 'Conjunto gym mujer',       price: 25000, minOrder:  3, inStock: true,  discount: 15, bulkMinQty:  6,   bulkPrice: 20000, catIdx: 3, imgPoolIdx: 3, imgs: 2, imgStart: 1 },
+  // ── Accesorios (cat 4, pool 4) ──
+  { name: 'Cartera eco cuero',        price: 27000, minOrder:  3, inStock: true,  discount: null,bulkMinQty:  6,   bulkPrice: 22000, catIdx: 4, imgPoolIdx: 4, imgs: 2, imgStart: 0 },
+  { name: 'Cinturón cuero',           price:  7500, minOrder:  6, inStock: true,  discount: null,bulkMinQty: null,  bulkPrice: null,  catIdx: 4, imgPoolIdx: 4, imgs: 1, imgStart: 1 },
+  { name: 'Bufanda tejida',           price:  9000, minOrder:  6, inStock: true,  discount: 20, bulkMinQty: null,  bulkPrice: null,  catIdx: 4, imgPoolIdx: 4, imgs: 2, imgStart: 0 },
+  { name: 'Mochila urbana',           price: 32000, minOrder:  1, inStock: true,  discount: 10, bulkMinQty:  3,   bulkPrice: 27000, catIdx: 4, imgPoolIdx: 4, imgs: 1, imgStart: 1 },
+  // ── Calzado (cat 5, pool 3) ──
+  { name: 'Zapatilla urbana',         price: 35000, minOrder:  1, inStock: true,  discount: null,bulkMinQty:  3,   bulkPrice: 30000, catIdx: 5, imgPoolIdx: 3, imgs: 2, imgStart: 0 },
+  { name: 'Bota cuero eco',           price: 42000, minOrder:  1, inStock: true,  discount: 15, bulkMinQty: null,  bulkPrice: null,  catIdx: 5, imgPoolIdx: 3, imgs: 2, imgStart: 1 },
+  { name: 'Sandalia verano',          price: 18000, minOrder:  3, inStock: true,  discount: 20, bulkMinQty:  6,   bulkPrice: 14000, catIdx: 5, imgPoolIdx: 3, imgs: 1, imgStart: 2 },
+  { name: 'Mocasín clásico',          price: 28000, minOrder:  1, inStock: false, discount: null,bulkMinQty: null,  bulkPrice: null,  catIdx: 5, imgPoolIdx: 3, imgs: 2, imgStart: 0 },
+  { name: 'Zapatilla niño',           price: 22000, minOrder:  3, inStock: true,  discount: 10, bulkMinQty:  6,   bulkPrice: 18000, catIdx: 5, imgPoolIdx: 3, imgs: 1, imgStart: 1 },
+  // ── Ropa Interior (cat 6, pool 0) ──
+  { name: 'Pack box 3u hombre',       price:  9500, minOrder:  6, inStock: true,  discount: null,bulkMinQty: 12,   bulkPrice:  7500, catIdx: 6, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
+  { name: 'Conjunto íntimo mujer',    price: 14000, minOrder:  3, inStock: true,  discount: 25, bulkMinQty: null,  bulkPrice: null,  catIdx: 6, imgPoolIdx: 0, imgs: 2, imgStart: 1 },
+  { name: 'Medias pack 6u',           price:  4500, minOrder: 12, inStock: true,  discount: null,bulkMinQty: 24,   bulkPrice:  3500, catIdx: 6, imgPoolIdx: 0, imgs: 1, imgStart: 2 },
+  { name: 'Bombacha algodón',         price:  3500, minOrder: 24, inStock: true,  discount: null,bulkMinQty: 48,   bulkPrice:  2800, catIdx: 6, imgPoolIdx: 0, imgs: 1, imgStart: 0 },
+  // ── Abrigos (cat 7, pool 1) ──
+  { name: 'Campera acolchada',        price: 55000, minOrder:  1, inStock: true,  discount: 10, bulkMinQty:  3,   bulkPrice: 47000, catIdx: 7, imgPoolIdx: 1, imgs: 2, imgStart: 0 },
+  { name: 'Buzo polar',               price: 28000, minOrder:  3, inStock: true,  discount: null,bulkMinQty:  6,   bulkPrice: 23000, catIdx: 7, imgPoolIdx: 1, imgs: 2, imgStart: 1 },
+  { name: 'Chaleco inflable',         price: 38000, minOrder:  1, inStock: true,  discount: 20, bulkMinQty: null,  bulkPrice: null,  catIdx: 7, imgPoolIdx: 1, imgs: 1, imgStart: 2 },
+  { name: 'Cárdigan punto',           price: 22000, minOrder:  3, inStock: false, discount: null,bulkMinQty:  6,   bulkPrice: 18000, catIdx: 7, imgPoolIdx: 1, imgs: 2, imgStart: 0 },
+  { name: 'Tapado largo mujer',       price: 65000, minOrder:  1, inStock: true,  discount: 15, bulkMinQty:  3,   bulkPrice: 53000, catIdx: 7, imgPoolIdx: 1, imgs: 1, imgStart: 1 },
+  // ── Bebés (cat 8, pool 2) ──
+  { name: 'Mameluco algodón',         price:  8500, minOrder:  6, inStock: true,  discount: null,bulkMinQty: 12,   bulkPrice:  6800, catIdx: 8, imgPoolIdx: 2, imgs: 2, imgStart: 0 },
+  { name: 'Conjunto bebé invierno',   price: 13000, minOrder:  3, inStock: true,  discount: 15, bulkMinQty:  6,   bulkPrice: 10500, catIdx: 8, imgPoolIdx: 2, imgs: 2, imgStart: 1 },
+  { name: 'Ajuar recién nacido',      price: 25000, minOrder:  1, inStock: true,  discount: null,bulkMinQty:  3,   bulkPrice: 21000, catIdx: 8, imgPoolIdx: 2, imgs: 1, imgStart: 0 },
+  { name: 'Medias bebé pack',         price:  3000, minOrder: 12, inStock: true,  discount: null,bulkMinQty: 24,   bulkPrice:  2300, catIdx: 8, imgPoolIdx: 2, imgs: 1, imgStart: 1 },
+  // ── Teens (cat 9, pool 0) ──
+  { name: 'Jogger cargo teen',        price: 16000, minOrder:  3, inStock: true,  discount: 15, bulkMinQty:  6,   bulkPrice: 13000, catIdx: 9, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
+  { name: 'Crop top básico',          price:  7500, minOrder: 12, inStock: true,  discount: null,bulkMinQty: 24,   bulkPrice:  6000, catIdx: 9, imgPoolIdx: 0, imgs: 1, imgStart: 1 },
+  { name: 'Jean roturas mujer',       price: 21000, minOrder:  3, inStock: true,  discount: 20, bulkMinQty: null,  bulkPrice: null,  catIdx: 9, imgPoolIdx: 0, imgs: 2, imgStart: 2 },
+  { name: 'Buzo oversized',           price: 18000, minOrder:  6, inStock: false, discount: null,bulkMinQty: 12,   bulkPrice: 14500, catIdx: 9, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
+  { name: 'Short jean',               price: 12000, minOrder:  6, inStock: true,  discount: 10, bulkMinQty: 12,   bulkPrice:  9500, catIdx: 9, imgPoolIdx: 0, imgs: 1, imgStart: 1 },
 ];
 
-// Unsplash photo IDs per category (clothing/fashion, CORS-enabled CDN).
-// Products in the same category share this pool — we upload each once.
+// 5 image pools shared across 10 categories — same 12 Unsplash photos as before
 const SEED_IMG_POOLS = [
-  // 0 Damas
+  // 0 Damas / Ropa Interior / Teens
   ['1515886657613-9f3515b0c78f', '1469334031218-e382a71b716b', '1558618666-fcd25c85cd64'],
-  // 1 Caballeros
+  // 1 Caballeros / Abrigos
   ['1516257984-b1b4f45c0b93', '1507003211169-0a1dd7228f2d', '1552374196-1ab2a1c593e8'],
-  // 2 Niños
+  // 2 Niños / Bebés
   ['1622290291468-a28f7a7dc6a8', '1503919545889-aef636e10ad4'],
-  // 3 Deportivo
+  // 3 Deportivo / Calzado
   ['1571902943202-507ec2618e8f', '1556909114-44e3e70034e2', '1538805060514-2d5b2e3d5d7c'],
   // 4 Accesorios
   ['1548036161-18aafe94b13b', '1584917865442-de89df76afd3'],
@@ -254,7 +298,7 @@ async function runSeed() {
     // Step 3 — Create products, assigning Drive URLs from the pool
     for (let i = 0; i < SEED_PRODS.length; i++) {
       const p    = SEED_PRODS[i];
-      const pool = poolDriveUrls[p.catIdx];
+      const pool = poolDriveUrls[p.imgPoolIdx];
       progText.textContent = `Creando producto ${i + 1}/${SEED_PRODS.length}…`;
       const images = Array.from({ length: p.imgs }, (_, j) =>
         pool[(p.imgStart + j) % pool.length]
@@ -265,6 +309,9 @@ async function runSeed() {
         price:      p.price,
         minOrder:   p.minOrder,
         inStock:    p.inStock,
+        discount:   p.discount   ?? null,
+        bulkMinQty: p.bulkMinQty ?? null,
+        bulkPrice:  p.bulkPrice  ?? null,
         images,
         createdAt:  serverTimestamp(),
         updatedAt:  serverTimestamp(),
