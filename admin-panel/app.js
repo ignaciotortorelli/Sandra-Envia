@@ -3,7 +3,8 @@
 // ══════════════════════════════════════════
 import { initializeApp }                                    from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, getDocs, addDoc,
-         updateDoc, deleteDoc, doc, serverTimestamp }       from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+         updateDoc, deleteDoc, doc, serverTimestamp,
+         setDoc, getDoc }                                   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { firebaseConfig, googleClientId }                   from '../firebase.config.js';
 import { initGoogleAuth, requestToken, uploadFileToDrive,
          deleteFileFromDrive, driveFileIdFromUrl,
@@ -18,10 +19,11 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 // ── State ──────────────────────────────────────────────────
-let categories = [];
-let products   = [];
-let notices    = [];
+let categories  = [];
+let products    = [];
+let notices     = [];
 let testimonios = [];
+let siteSettings = null;
 let pendingImages = []; // { file, url } during product form
 
 let productSort  = { field: 'name', dir: 1 };
@@ -42,11 +44,12 @@ function setStatus(state) {
 // ── Load data from Firestore ───────────────────────────────
 async function loadData() {
   try {
-    const [catSnap, prodSnap, noticeSnap, refSnap] = await Promise.all([
+    const [catSnap, prodSnap, noticeSnap, refSnap, settingsSnap] = await Promise.all([
       getDocs(collection(db, 'categories')),
       getDocs(collection(db, 'products')),
       getDocs(collection(db, 'notices')),
       getDocs(collection(db, 'testimonios')),
+      getDoc(doc(db, 'settings', 'main')),
     ]);
     categories = catSnap.docs.map(d => ({ id: d.id, ...d.data() }))
                              .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
@@ -55,6 +58,7 @@ async function loadData() {
                                 .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
     testimonios = refSnap.docs.map(d => ({ id: d.id, ...d.data() }))
                               .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+    siteSettings = settingsSnap.exists() ? settingsSnap.data() : null;
     setStatus('ok');
   } catch (e) {
     console.error(e);
@@ -70,8 +74,9 @@ const ROUTES = {
   '/':           renderDashboard,
   '/productos':  renderProducts,
   '/categorias': renderCategories,
-  '/avisos':     renderAvisos,
+  '/avisos':      renderAvisos,
   '/testimonios': renderTestimonios,
+  '/ajustes':     renderAjustes,
 };
 
 function router() {
@@ -82,7 +87,7 @@ function router() {
     a.classList.toggle('active', a.getAttribute('href') === '#' + hash);
   });
 
-  const titles = { '/': 'Dashboard', '/productos': 'Productos', '/categorias': 'Categorías', '/avisos': 'Avisos', '/testimonios': 'Testimonios' };
+  const titles = { '/': 'Dashboard', '/productos': 'Productos', '/categorias': 'Categorías', '/avisos': 'Avisos', '/testimonios': 'Testimonios', '/ajustes': 'Ajustes' };
   document.getElementById('topbarTitle').textContent = titles[hash] ?? 'Admin';
   document.getElementById('topbarActions').innerHTML = '';
   searchQuery = '';
@@ -340,6 +345,10 @@ function renderDashboard() {
       <div class="quick-card" onclick="location.hash='#/testimonios'">
         <div class="quick-card-icon">⭐</div><h3>Testimonios</h3>
         <p>Gestioná los testimonios de las clientas.</p>
+      </div>
+      <div class="quick-card" onclick="location.hash='#/ajustes'">
+        <div class="quick-card-icon">⚙️</div><h3>Ajustes</h3>
+        <p>WhatsApp, redes, logos y textos del sitio.</p>
       </div>
       <div class="quick-card" onclick="window.open('../', '_blank')">
         <div class="quick-card-icon">🌐</div><h3>Ver Sitio</h3>
@@ -1704,6 +1713,150 @@ window.toggleTestimonioActive = async (id, current) => {
     renderTestimonios();
   } catch (e) { toast('Error: ' + e.message, 'error'); }
 };
+
+// ══════════════════════════════════════════
+//  AJUSTES
+// ══════════════════════════════════════════
+function renderAjustes() {
+  const actions = document.getElementById('topbarActions');
+  actions.innerHTML = `<button class="btn btn-primary" id="btnSaveSettings">💾 Guardar cambios</button>`;
+  const s = siteSettings ?? {};
+  const v = (key, fallback = '') => {
+    const val = s[key] ?? fallback;
+    return String(val).replace(/"/g, '&quot;');
+  };
+
+  document.getElementById('appContent').innerHTML = `
+    <div class="settings-page">
+
+      <div class="settings-section">
+        <h3 class="settings-section-title">📱 Contacto y WhatsApp</h3>
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Número de WhatsApp <span class="form-hint">sin + ni espacios</span></label>
+              <input class="form-input" id="sWaNumber" value="${v('waNumber','5491121802212')}" placeholder="5491121802212">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono (para mostrar en el sitio)</label>
+              <input class="form-input" id="sPhone" value="${v('phone','+54 011 2180-2212')}" placeholder="+54 011 2180-2212">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mensaje predeterminado de WhatsApp</label>
+            <input class="form-input" id="sWaMessage" value="${v('waMessage','Hola! Quiero consultar por los productos de Sandra Envia')}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Horario de atención</label>
+            <input class="form-input" id="sHours" value="${v('hours','Lunes a viernes de 9 a 18 h · Sábados de 9 a 13 h')}">
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3 class="settings-section-title">🌐 Redes Sociales</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Facebook URL</label>
+            <input class="form-input" id="sFacebook" type="url" value="${v('facebook','https://www.facebook.com/ellasdesdeituzaingo/')}" placeholder="https://facebook.com/...">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Instagram URL</label>
+              <input class="form-input" id="sInstagram" type="url" value="${v('instagram')}" placeholder="https://instagram.com/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Instagram usuario</label>
+              <input class="form-input" id="sInstagramHandle" value="${v('instagramHandle','@[usuario]')}" placeholder="@usuario">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">TikTok URL</label>
+              <input class="form-input" id="sTiktok" type="url" value="${v('tiktok')}" placeholder="https://tiktok.com/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">TikTok usuario</label>
+              <input class="form-input" id="sTiktokHandle" value="${v('tiktokHandle','@[usuario]')}" placeholder="@usuario">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3 class="settings-section-title">✨ Contenido del sitio</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tagline del hero</label>
+            <input class="form-input" id="sTagline" value="${v('tagline','Venta mayorista de ropa')}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subtítulo del hero</label>
+            <input class="form-input" id="sSubtitle" value="${v('subtitle','Comprá fácil por WhatsApp · Enviamos a todo el país')}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nota de envíos</label>
+            <input class="form-input" id="sShippingNote" value="${v('shippingNote','Coordinamos el envío por WhatsApp. Te informamos el costo según tu zona.')}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Compra mínima (etiqueta) <span class="form-hint">— vacío = se calcula automáticamente desde los productos</span></label>
+            <input class="form-input" id="sMinOrder" value="${v('minOrderLabel')}" placeholder="Ej: 6 u. (mínimo)">
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3 class="settings-section-title">🖼️ Logos</h3>
+        <p class="settings-note">URL de Google Drive u otro host. Dejar vacío para usar los archivos locales del servidor (Logo.png / ellas-logo.png).</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Logo principal (URL)</label>
+            <input class="form-input" id="sLogoUrl" type="url" value="${v('logoUrl')}" placeholder="https://…">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Logo Ellas Ituzaingó (URL)</label>
+            <input class="form-input" id="sEllasLogoUrl" type="url" value="${v('ellasLogoUrl')}" placeholder="https://…">
+          </div>
+        </div>
+      </div>
+
+    </div>`;
+
+  document.getElementById('btnSaveSettings').onclick = saveSettings;
+}
+
+async function saveSettings() {
+  const btn = document.getElementById('btnSaveSettings');
+  btn.textContent = 'Guardando…'; btn.disabled = true;
+  try {
+    const data = {
+      waNumber:        document.getElementById('sWaNumber')?.value.trim(),
+      phone:           document.getElementById('sPhone')?.value.trim(),
+      waMessage:       document.getElementById('sWaMessage')?.value.trim(),
+      hours:           document.getElementById('sHours')?.value.trim(),
+      facebook:        document.getElementById('sFacebook')?.value.trim(),
+      instagram:       document.getElementById('sInstagram')?.value.trim(),
+      instagramHandle: document.getElementById('sInstagramHandle')?.value.trim(),
+      tiktok:          document.getElementById('sTiktok')?.value.trim(),
+      tiktokHandle:    document.getElementById('sTiktokHandle')?.value.trim(),
+      tagline:         document.getElementById('sTagline')?.value.trim(),
+      subtitle:        document.getElementById('sSubtitle')?.value.trim(),
+      shippingNote:    document.getElementById('sShippingNote')?.value.trim(),
+      minOrderLabel:   document.getElementById('sMinOrder')?.value.trim(),
+      logoUrl:         document.getElementById('sLogoUrl')?.value.trim(),
+      ellasLogoUrl:    document.getElementById('sEllasLogoUrl')?.value.trim(),
+      updatedAt:       serverTimestamp(),
+    };
+    await setDoc(doc(db, 'settings', 'main'), data);
+    siteSettings = data;
+    toast('Ajustes guardados ✓', 'success');
+  } catch (e) {
+    console.error(e);
+    toast('Error al guardar: ' + e.message, 'error');
+  } finally {
+    btn.textContent = '💾 Guardar cambios'; btn.disabled = false;
+  }
+}
 
 // ══════════════════════════════════════════
 //  TOAST

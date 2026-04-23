@@ -1112,3 +1112,22 @@ tr.row-drag-over > td { background: rgba(247,37,133,.07) !important; box-shadow:
 
 [data-theme="dark"] .seed-zone { border-color: rgba(255,255,255,.1); }
 [data-theme="dark"] .seed-zone-title { color: #F0EBFF; }
+
+/* ── Settings page ── */
+.settings-page { display: flex; flex-direction: column; gap: 1.5rem; max-width: 820px; }
+.settings-section {
+  background: var(--white);
+  border-radius: var(--r-md);
+  padding: 1.5rem;
+  box-shadow: var(--sh-sm);
+}
+.settings-section-title {
+  font-size: .975rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--gray-line);
+}
+.settings-note { font-size: .8rem; color: var(--muted); margin-bottom: 1rem; }
+[data-theme="dark"] .settings-section { background: #1A1A2E; }
+[data-theme="dark"] .settings-section-title { border-bottom-color: rgba(255,255,255,.07); color: #F0EBFF; }
