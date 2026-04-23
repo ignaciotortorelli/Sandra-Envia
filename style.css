@@ -892,7 +892,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   --height: 340px;
   --dur:    16s;
   width: 100%;
-  height: var(--height);
+  height: calc(var(--height) + 18px); /* extra room for hover lift */
   overflow: hidden;
   mask-image: linear-gradient(to right, transparent, #000 12% 88%, transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, #000 12% 88%, transparent);
@@ -925,9 +925,12 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   .t-list .item { animation-play-state: paused; }
 }
 
-/* 2D ticker — hover lift (mouse only, no pause) */
-.t-list .item { transition: transform .25s ease; }
-.t-list .item:hover { transform: translateY(-10px) scale(1.04) !important; z-index: 10; filter: brightness(1) !important; }
+/* 2D ticker — hover lift (mouse only, no pause, no scale to avoid overlap) */
+.t-list { overflow: visible; }
+.t-list .item { transition: transform .25s ease, filter .25s; cursor: pointer; }
+.t-list .item:hover { transform: translateY(-9px) !important; z-index: 20; filter: brightness(1.06) !important; }
+.t-slider.is-dragging .item { pointer-events: none; }
+.t-slider.is-dragging .item:hover { transform: none !important; filter: none !important; }
 
 /* 3D carousel — hover glow + selected ring */
 .card-3d { cursor: grab; }

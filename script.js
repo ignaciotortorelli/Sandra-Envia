@@ -1099,7 +1099,7 @@ function renderRefs(refs) {
 //  CAROUSEL INTERACTIONS (drag + hover + click)
 // ══════════════════════════════════════════
 
-// ── 2D ticker: drag to scrub ───────────────────────────────
+// ── 2D ticker: drag + momentum + click popup ──────────────
 function initTickerDrag(sliderEl) {
   if (!sliderEl) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -1111,38 +1111,161 @@ function initTickerDrag(sliderEl) {
   const cardW = parseFloat(getComputedStyle(sliderEl).getPropertyValue('--width')) || 200;
   const dur   = parseFloat(getComputedStyle(sliderEl).getPropertyValue('--dur'))   || 16;
 
-  let dragging = false, startX = 0;
+  let dragging = false, startX = 0, hasMoved = false;
+  let velTrack = [];
+  let momRaf   = null;
 
-  function pauseAll()  { items.forEach(it => it.style.animationPlayState = 'paused'); }
-  function resumeAll() { items.forEach(it => it.style.animationPlayState = 'running'); }
+  const sw       = () => sliderEl.offsetWidth;
+  const natVel   = () => -(sw() + cardW) / dur; // px/sec (negative = leftward)
 
-  function commit(endX) {
-    const delta    = endX - startX;
-    const sliderW  = sliderEl.offsetWidth;
-    const totalD   = sliderW + cardW;
-    const sliderR  = sliderEl.getBoundingClientRect();
-    items.forEach(it => {
-      const curLeft = it.getBoundingClientRect().left - sliderR.left;
-      let prog = (sliderW - curLeft) / totalD;
-      prog = ((prog % 1) + 1) % 1;
-      it.style.animationDelay = -(prog * dur) + 's';
-    });
-    list.style.transform = '';
-    resumeAll();
+  function screenLeft(it) {
+    return it.getBoundingClientRect().left - sliderEl.getBoundingClientRect().left;
   }
 
-  function onStart(x) { dragging = true; startX = x; pauseAll(); }
-  function onMove(x)  { if (!dragging) return; list.style.transform = `translateX(${x - startX}px)`; }
-  function onEnd(x)   { if (!dragging) return; dragging = false; commit(x); }
+  // Capture current rendered positions into inline px `left`, disable CSS animation
+  function capturePositions() {
+    items.forEach(it => {
+      const l = screenLeft(it);
+      it.style.animation = 'none';
+      it.style.left = l + 'px';
+    });
+    list.style.transform = '';
+  }
+
+  // Hand control back to CSS animation with freshly computed delays
+  function restoreAnimation() {
+    const W = sw(), totalD = W + cardW;
+    items.forEach(it => {
+      const l = parseFloat(it.style.left);
+      let prog = (W - l) / totalD;
+      prog = ((prog % 1) + 1) % 1;
+      it.style.left      = '';
+      it.style.animation = '';
+      it.style.animationDelay = -(prog * dur) + 's';
+    });
+  }
+
+  function startMomentum(initVel) {
+    if (momRaf) cancelAnimationFrame(momRaf);
+    capturePositions();
+    const nv = natVel(), W = sw();
+    const DAMPING = 1.5;
+    let vel = initVel, lastT = performance.now();
+
+    function frame(ts) {
+      const dt = Math.min((ts - lastT) / 1000, 0.05);
+      lastT = ts;
+      vel += (nv - vel) * (1 - Math.exp(-DAMPING * dt));
+      items.forEach(it => {
+        let l = parseFloat(it.style.left) + vel * dt;
+        if (l < -cardW - 5) l += W + cardW;
+        if (l > W + 5)      l -= W + cardW;
+        it.style.left = l + 'px';
+      });
+      if (Math.abs(vel - nv) < 1.5) { restoreAnimation(); return; }
+      momRaf = requestAnimationFrame(frame);
+    }
+    momRaf = requestAnimationFrame(frame);
+  }
+
+  function onStart(x) {
+    if (momRaf) { cancelAnimationFrame(momRaf); momRaf = null; capturePositions(); }
+    else { items.forEach(it => it.style.animationPlayState = 'paused'); }
+    dragging = true; hasMoved = false; startX = x;
+    velTrack = [{ x, t: performance.now() }];
+    sliderEl.classList.add('is-dragging');
+  }
+  function onMove(x) {
+    if (!dragging) return;
+    if (Math.abs(x - startX) > 5) hasMoved = true;
+    list.style.transform = `translateX(${x - startX}px)`;
+    velTrack.push({ x, t: performance.now() });
+    if (velTrack.length > 6) velTrack.shift();
+  }
+  function onEnd(x) {
+    if (!dragging) return;
+    dragging = false;
+    sliderEl.classList.remove('is-dragging');
+
+    if (!hasMoved) {
+      // Tap — restore animation from current position
+      list.style.transform = '';
+      const W = sw(), totalD = W + cardW;
+      const r = sliderEl.getBoundingClientRect();
+      items.forEach(it => {
+        const curL = it.getBoundingClientRect().left - r.left;
+        let prog = (W - curL) / totalD;
+        prog = ((prog % 1) + 1) % 1;
+        it.style.animationDelay = -(prog * dur) + 's';
+        it.style.animationPlayState = 'running';
+      });
+      return;
+    }
+
+    // Compute drag velocity
+    let vel = natVel();
+    if (velTrack.length >= 2) {
+      const a = velTrack[0], b = velTrack[velTrack.length - 1];
+      const dt = (b.t - a.t) / 1000;
+      if (dt > 0.01) vel = (b.x - a.x) / dt;
+    }
+    startMomentum(vel);
+  }
 
   sliderEl.style.cursor = 'grab';
   sliderEl.addEventListener('mousedown', e => { onStart(e.clientX); e.preventDefault(); });
   document.addEventListener('mousemove', e => onMove(e.clientX));
   document.addEventListener('mouseup',   e => onEnd(e.clientX));
+  sliderEl.addEventListener('touchstart', e => onStart(e.touches[0].clientX),        { passive: true });
+  sliderEl.addEventListener('touchmove',  e => { if (dragging) onMove(e.touches[0].clientX); }, { passive: true });
+  sliderEl.addEventListener('touchend',   e => onEnd(e.changedTouches[0].clientX),   { passive: true });
 
-  sliderEl.addEventListener('touchstart', e => onStart(e.touches[0].clientX),       { passive: true });
-  sliderEl.addEventListener('touchmove',  e => onMove(e.touches[0].clientX),        { passive: true });
-  sliderEl.addEventListener('touchend',   e => onEnd(e.changedTouches[0].clientX),  { passive: true });
+  // Click → popup (only when not a drag)
+  items.forEach(it => it.addEventListener('click', () => {
+    if (hasMoved) return;
+    showTickerPopup(it);
+  }));
+}
+
+function showTickerPopup(item) {
+  const overlay = document.getElementById('catModalOverlay');
+  const titleEl = document.getElementById('catModalTitle');
+  const grid    = document.getElementById('catModalGrid');
+  if (!overlay || !grid) return;
+
+  const screenshot = item.querySelector('.t-screenshot');
+  const aviso      = item.querySelector('.aviso-2d');
+
+  if (screenshot) {
+    const img     = screenshot.querySelector('img');
+    const caption = screenshot.querySelector('.t-caption')?.textContent ?? 'Testimonio';
+    titleEl.textContent = caption;
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;display:flex;justify-content:center;padding:1rem 0">
+        ${img
+          ? `<img src="${img.src}" alt="" style="max-width:100%;max-height:72vh;object-fit:contain;border-radius:12px;box-shadow:var(--sh-lg)">`
+          : '<p style="font-size:3rem;text-align:center">💬</p>'}
+      </div>`;
+  } else if (aviso) {
+    const typeClass = [...aviso.classList].find(c => /^aviso-(info|promo|warning)$/.test(c)) ?? 'aviso-info';
+    const icon  = aviso.querySelector('.aviso-2d-icon')?.textContent ?? 'ℹ️';
+    const title = aviso.querySelector('.aviso-2d-title')?.textContent ?? '';
+    const body  = aviso.querySelector('.aviso-2d-body')?.textContent  ?? '';
+    const imgEl = aviso.querySelector('.aviso-2d-img');
+    titleEl.textContent = title;
+    grid.innerHTML = `
+      <div style="grid-column:1/-1">
+        <div class="${typeClass}" style="padding:1.5rem;border-radius:12px;border-left:4px solid;display:flex;flex-direction:column;gap:1rem;align-items:flex-start">
+          <span style="font-size:2rem">${icon}</span>
+          <p style="font-size:.95rem;line-height:1.65;color:var(--black)">${body}</p>
+          ${imgEl ? `<img src="${imgEl.src}" alt="" style="width:100%;max-height:50vh;object-fit:contain;border-radius:8px">` : ''}
+        </div>
+      </div>`;
+  } else { return; }
+
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
 }
 
 // ── 3D carousel: drag + momentum + click-to-center ────────
