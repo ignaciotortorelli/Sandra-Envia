@@ -330,28 +330,143 @@ function renderAllProducts(products, categories) {
 }
 
 window.openAllProductsModal = function() {
-  const prods = Object.values(window._productMap ?? {})
-    .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'es'));
+  // Sync search from the main-page input if present
+  const mainInp = document.getElementById('carouselSearch');
+  if (mainInp) modalSearch = mainInp.value;
+
   document.getElementById('catModalTitle').textContent = '👗 Todos los productos';
-  const grid = document.getElementById('catModalGrid');
-  grid.innerHTML = '';
-  if (!prods.length) {
-    grid.innerHTML = '<p style="grid-column:1/-1;color:var(--text-muted);text-align:center;padding:2rem">No hay productos todavía.</p>';
-  } else {
-    prods.forEach((prod, i) => {
-      const card = buildProductCard(prod, i);
-      card.classList.add('visible');
-      grid.appendChild(card);
-      attachCarouselAuto(card, prod.id);
-    });
-  }
-  document.getElementById('catModalOverlay').setAttribute('aria-hidden', 'false');
-  document.getElementById('catModalOverlay').classList.add('open');
+  renderModalControls();
+  renderModalProducts();
+  const overlay = document.getElementById('catModalOverlay');
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
 };
 
+// ── All-products modal state ───────────────────────────────
+let modalSearch   = '';
+let modalCategory = '';
+let modalPriceMin = '';
+let modalPriceMax = '';
+let modalDiscount = false;
+let modalWholesale = false;
+let modalSort    = 'alpha';
+let modalSortDir = 1;
+
+window.setModalSearch   = v => { modalSearch   = v; renderModalProducts(); };
+window.onModalCategory  = v => { modalCategory = v; renderModalProducts(); };
+window.onModalPriceMin  = v => { modalPriceMin = v; renderModalProducts(); };
+window.onModalPriceMax  = v => { modalPriceMax = v; renderModalProducts(); };
+window.onModalDiscount  = v => { modalDiscount = v; renderModalProducts(); };
+window.onModalWholesale = v => { modalWholesale = v; renderModalProducts(); };
+window.onModalSort = key => {
+  if (modalSort === key) modalSortDir = -modalSortDir;
+  else { modalSort = key; modalSortDir = key === 'discount' ? -1 : 1; }
+  renderModalProducts();
+};
+
+function prodEffectivePrice(p) {
+  if (p.price == null) return null;
+  if (p.discount > 0) return Math.round(p.price * (1 - p.discount / 100));
+  return p.price;
+}
+
+function renderModalControls() {
+  const el = document.getElementById('catModalControls');
+  if (!el) return;
+  const cats = Object.values(window._categoryMap ?? {})
+    .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+  const catOpts = cats.map(c =>
+    `<option value="${c.id}" ${modalCategory === c.id ? 'selected' : ''}>${c.emoji ?? ''} ${c.name}</option>`
+  ).join('');
+  const SORT_LABELS = { alpha: 'A–Z', price: 'Precio', discount: 'Descuento', wholesale: 'Por mayor' };
+  const sortBtns = Object.keys(SORT_LABELS).map(k => `
+    <button class="msort-btn ${modalSort === k ? 'msort-active' : ''}" onclick="onModalSort('${k}')">
+      ${SORT_LABELS[k]}${modalSort === k ? (modalSortDir === 1 ? ' ↑' : ' ↓') : ''}
+    </button>`).join('');
+
+  el.innerHTML = `
+    <div class="mctrl-search">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="mctrl-search-input" type="search" placeholder="Buscar productos…"
+             value="${modalSearch.replace(/"/g,'&quot;')}"
+             oninput="setModalSearch(this.value)" autocomplete="off">
+    </div>
+    <div class="mctrl-filters">
+      <select class="mctrl-select" onchange="onModalCategory(this.value)">
+        <option value="">Todas las categorías</option>${catOpts}
+      </select>
+      <div class="mctrl-price">
+        <input class="mctrl-price-input" type="number" min="0" placeholder="$ mín"
+               value="${modalPriceMin}" oninput="onModalPriceMin(this.value)">
+        <span>–</span>
+        <input class="mctrl-price-input" type="number" min="0" placeholder="$ máx"
+               value="${modalPriceMax}" oninput="onModalPriceMax(this.value)">
+      </div>
+      <label class="mctrl-check"><input type="checkbox" ${modalDiscount ? 'checked' : ''} onchange="onModalDiscount(this.checked)"> Con descuento</label>
+      <label class="mctrl-check"><input type="checkbox" ${modalWholesale ? 'checked' : ''} onchange="onModalWholesale(this.checked)"> Precio por mayor</label>
+    </div>
+    <div class="mctrl-sort">
+      <span class="mctrl-sort-label">Ordenar:</span>
+      ${sortBtns}
+    </div>`;
+}
+
+function renderModalProducts() {
+  const allProds = Object.values(window._productMap ?? {});
+  const q = modalSearch.toLowerCase().trim();
+
+  let result = allProds.filter(p => {
+    if (q && !p.name?.toLowerCase().includes(q)) return false;
+    if (modalCategory && p.categoryId !== modalCategory) return false;
+    const eff = prodEffectivePrice(p);
+    if (modalPriceMin !== '' && eff != null && eff < parseFloat(modalPriceMin)) return false;
+    if (modalPriceMax !== '' && eff != null && eff > parseFloat(modalPriceMax)) return false;
+    if (modalDiscount  && !(p.discount > 0)) return false;
+    if (modalWholesale && !(p.bulkMinQty && p.bulkPrice)) return false;
+    return true;
+  });
+
+  result.sort((a, b) => {
+    if (modalSort === 'alpha')
+      return (a.name ?? '').localeCompare(b.name ?? '', 'es') * modalSortDir;
+    if (modalSort === 'price')
+      return ((prodEffectivePrice(a) ?? Infinity) - (prodEffectivePrice(b) ?? Infinity)) * modalSortDir;
+    if (modalSort === 'discount')
+      return ((a.discount ?? 0) - (b.discount ?? 0)) * modalSortDir;
+    if (modalSort === 'wholesale')
+      return ((a.bulkPrice ?? Infinity) - (b.bulkPrice ?? Infinity)) * modalSortDir;
+    return 0;
+  });
+
+  // Re-render sort buttons (direction may have changed)
+  renderModalControls();
+
+  const grid = document.getElementById('catModalGrid');
+  grid.innerHTML = '';
+  if (!result.length) {
+    grid.innerHTML = `<p style="grid-column:1/-1;color:var(--text-muted);text-align:center;padding:2rem">Sin resultados${q ? ` para "<strong>${modalSearch}</strong>"` : ''}.</p>`;
+    return;
+  }
+  result.forEach((prod, i) => {
+    const card = buildProductCard(prod, i);
+    card.classList.add('visible');
+    grid.appendChild(card);
+    attachCarouselAuto(card, prod.id);
+  });
+
+  // Refocus search input if it has focus
+  const inp = document.querySelector('.mctrl-search-input');
+  if (inp && document.activeElement?.classList.contains('mctrl-search-input')) {
+    const val = inp.value;
+    inp.focus();
+    inp.setSelectionRange(val.length, val.length);
+  }
+}
+
 // ── Category products modal ────────────────────────────────
 window.openCategoryProducts = function(catId) {
+  document.getElementById('catModalControls').innerHTML = '';
   const cat      = window._categoryMap?.[catId];
   const prods    = Object.values(window._productMap ?? {})
     .filter(p => p.categoryId === catId)

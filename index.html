@@ -212,6 +212,11 @@
           <div class="card-3d" id="carousel3d"></div>
         </div>
         <div class="carousel-3d-cta">
+          <div class="carousel-cta-search">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="carouselSearch" placeholder="Buscar un producto…"
+                   oninput="setModalSearch(this.value)" autocomplete="off">
+          </div>
           <button class="btn btn-primary" onclick="openAllProductsModal()">
             Todos los productos
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -426,6 +431,7 @@
         <h2 id="catModalTitle"></h2>
         <button class="cat-modal-close" id="catModalClose" aria-label="Cerrar">✕</button>
       </div>
+      <div id="catModalControls"></div>
       <div class="products-grid cat-modal-grid" id="catModalGrid" role="list"></div>
     </div>
   </div>
