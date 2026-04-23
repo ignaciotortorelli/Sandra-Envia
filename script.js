@@ -80,13 +80,27 @@ function applySettings(s) {
   const fb = document.getElementById('socialFb');
   if (fb && s.facebook) fb.href = s.facebook;
   const ig = document.getElementById('socialIg');
-  if (ig) { if (s.instagram) ig.href = s.instagram; }
+  if (ig && s.instagram) ig.href = s.instagram;
   const igh = document.getElementById('igHandle');
   if (igh && s.instagramHandle) igh.textContent = s.instagramHandle;
   const tt = document.getElementById('socialTt');
-  if (tt) { if (s.tiktok) tt.href = s.tiktok; }
+  if (tt && s.tiktok) tt.href = s.tiktok;
   const tth = document.getElementById('ttHandle');
   if (tth && s.tiktokHandle) tth.textContent = s.tiktokHandle;
+
+  // Social logos
+  if (s.facebookLogoUrl) {
+    const el = document.getElementById('fbLogoImg');
+    if (el) el.src = s.facebookLogoUrl;
+  }
+  if (s.instagramLogoUrl) {
+    const el = document.getElementById('igLogoArea');
+    if (el) el.innerHTML = `<img src="${s.instagramLogoUrl}" alt="Instagram" style="width:48px;height:48px;object-fit:contain;border-radius:8px">`;
+  }
+  if (s.tiktokLogoUrl) {
+    const el = document.getElementById('ttLogoArea');
+    if (el) el.innerHTML = `<img src="${s.tiktokLogoUrl}" alt="TikTok" style="width:48px;height:48px;object-fit:contain;border-radius:8px">`;
+  }
 
   // Logos
   if (s.logoUrl) {

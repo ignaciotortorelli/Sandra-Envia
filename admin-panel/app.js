@@ -1756,9 +1756,15 @@ function renderAjustes() {
       <div class="settings-section">
         <h3 class="settings-section-title">🌐 Redes Sociales</h3>
         <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">Facebook URL</label>
-            <input class="form-input" id="sFacebook" type="url" value="${v('facebook','https://www.facebook.com/ellasdesdeituzaingo/')}" placeholder="https://facebook.com/...">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Facebook URL</label>
+              <input class="form-input" id="sFacebook" type="url" value="${v('facebook','https://www.facebook.com/ellasdesdeituzaingo/')}" placeholder="https://facebook.com/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Facebook — logo URL <span class="form-hint">opcional</span></label>
+              <input class="form-input" id="sFacebookLogo" type="url" value="${v('facebookLogoUrl')}" placeholder="https://drive.google.com/…">
+            </div>
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -1770,6 +1776,10 @@ function renderAjustes() {
               <input class="form-input" id="sInstagramHandle" value="${v('instagramHandle','@[usuario]')}" placeholder="@usuario">
             </div>
           </div>
+          <div class="form-group">
+            <label class="form-label">Instagram — logo URL <span class="form-hint">opcional</span></label>
+            <input class="form-input" id="sInstagramLogo" type="url" value="${v('instagramLogoUrl')}" placeholder="https://drive.google.com/…">
+          </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">TikTok URL</label>
@@ -1779,6 +1789,10 @@ function renderAjustes() {
               <label class="form-label">TikTok usuario</label>
               <input class="form-input" id="sTiktokHandle" value="${v('tiktokHandle','@[usuario]')}" placeholder="@usuario">
             </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">TikTok — logo URL <span class="form-hint">opcional</span></label>
+            <input class="form-input" id="sTiktokLogo" type="url" value="${v('tiktokLogoUrl')}" placeholder="https://drive.google.com/…">
           </div>
         </div>
       </div>
@@ -1823,10 +1837,13 @@ async function saveSettings() {
       waMessage:       document.getElementById('sWaMessage')?.value.trim(),
       hours:           document.getElementById('sHours')?.value.trim(),
       facebook:        document.getElementById('sFacebook')?.value.trim(),
+      facebookLogoUrl: document.getElementById('sFacebookLogo')?.value.trim(),
       instagram:       document.getElementById('sInstagram')?.value.trim(),
       instagramHandle: document.getElementById('sInstagramHandle')?.value.trim(),
+      instagramLogoUrl:document.getElementById('sInstagramLogo')?.value.trim(),
       tiktok:          document.getElementById('sTiktok')?.value.trim(),
       tiktokHandle:    document.getElementById('sTiktokHandle')?.value.trim(),
+      tiktokLogoUrl:   document.getElementById('sTiktokLogo')?.value.trim(),
       minOrderARS:     parseFloat(document.getElementById('sMinOrderARS')?.value) || null,
       logoUrl:         document.getElementById('sLogoUrl')?.value.trim(),
       ellasLogoUrl:    document.getElementById('sEllasLogoUrl')?.value.trim(),
