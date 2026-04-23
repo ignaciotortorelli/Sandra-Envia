@@ -480,6 +480,13 @@ function saveCartToStorage() {
   localStorage.setItem('se_cart', JSON.stringify(cart));
 }
 
+function effectivePrice(item) {
+  if (item.price == null) return null;
+  if (item.bulkMinQty && item.bulkPrice && item.qty >= item.bulkMinQty) return item.bulkPrice;
+  if (item.discount > 0) return Math.round(item.price * (1 - item.discount / 100));
+  return item.price;
+}
+
 window.addToCart = function(id) {
   const prod = window._productMap?.[id];
   if (!prod) return;
@@ -487,14 +494,18 @@ window.addToCart = function(id) {
   if (existing) {
     existing.qty += 1;
   } else {
+    const minQty = prod.minOrder ?? 1;
     cart.push({
       id:           prod.id,
       name:         prod.name,
-      price:        prod.price ?? null,
+      price:        prod.price      ?? null,
+      discount:     prod.discount   ?? null,
+      bulkMinQty:   prod.bulkMinQty ?? null,
+      bulkPrice:    prod.bulkPrice  ?? null,
       image:        driveImgUrl(prod.images?.[0]) ?? null,
       categoryName: window._categoryMap?.[prod.categoryId]?.name ?? null,
-      minOrder:     prod.minOrder ?? null,
-      qty:          1,
+      minOrder:     minQty,
+      qty:          minQty,
     });
   }
   saveCartToStorage();
@@ -513,7 +524,8 @@ window.removeFromCart = function(id) {
 window.updateCartQty = function(id, delta) {
   const item = cart.find(i => i.id === id);
   if (!item) return;
-  item.qty = Math.max(1, item.qty + delta);
+  const min = item.minOrder ?? 1;
+  item.qty = Math.max(min, item.qty + delta);
   saveCartToStorage();
   updateCartBadge();
   renderCart();
@@ -559,30 +571,45 @@ function renderCart() {
     return;
   }
 
-  container.innerHTML = cart.map(item => `
+  container.innerHTML = cart.map(item => {
+    const eff    = effectivePrice(item);
+    const min    = item.minOrder ?? 1;
+    const isBulk = item.bulkMinQty && item.bulkPrice && item.qty >= item.bulkMinQty;
+    const isDisc = item.discount > 0 && !isBulk;
+    const priceHtml = eff != null
+      ? `<p class="cart-item-price">
+           ${fmtARS(eff)}
+           ${isBulk ? `<span class="cart-price-note">precio por mayor</span>` : ''}
+           ${isDisc ? `<span class="cart-price-note">−${item.discount}%</span>` : ''}
+         </p>`
+      : `<p class="cart-item-price cart-item-price--consult">A consultar</p>`;
+    const bulkHint = (item.bulkMinQty && item.bulkPrice && item.qty < item.bulkMinQty)
+      ? `<p class="cart-bulk-hint">×${item.bulkMinQty} u. → ${fmtARS(item.bulkPrice)} c/u</p>`
+      : '';
+    return `
     <div class="cart-item">
       <div class="cart-item-img">
-        ${item.image
-          ? `<img src="${item.image}" alt="${item.name}" loading="lazy">`
-          : `<span>👗</span>`}
+        ${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy">` : `<span>👗</span>`}
       </div>
       <div class="cart-item-info">
         <p class="cart-item-name">${item.name}</p>
         ${item.categoryName ? `<p class="cart-item-cat">${item.categoryName}</p>` : ''}
-        <p class="cart-item-price">${item.price != null ? fmtARS(item.price) : 'A consultar'}</p>
+        ${priceHtml}${bulkHint}
       </div>
       <div class="cart-item-controls">
-        <button class="qty-btn" onclick="updateCartQty('${item.id}',-1)" aria-label="Restar">−</button>
+        <button class="qty-btn" onclick="updateCartQty('${item.id}',-1)"
+                ${item.qty <= min ? 'disabled' : ''} aria-label="Restar">−</button>
         <span class="qty-val">${item.qty}</span>
         <button class="qty-btn" onclick="updateCartQty('${item.id}',1)" aria-label="Sumar">+</button>
         <button class="cart-remove" onclick="removeFromCart('${item.id}')" aria-label="Eliminar">✕</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
-  const totalUnits = cart.reduce((s, i) => s + i.qty, 0);
-  const totalItems = cart.length;
-  const allHavePrice = cart.every(i => i.price != null);
-  const totalPrice  = cart.reduce((s, i) => s + (i.price ?? 0) * i.qty, 0);
+  const totalUnits   = cart.reduce((s, i) => s + i.qty, 0);
+  const totalItems   = cart.length;
+  const allHavePrice = cart.every(i => effectivePrice(i) != null);
+  const totalPrice   = cart.reduce((s, i) => s + (effectivePrice(i) ?? 0) * i.qty, 0);
 
   footer.innerHTML = `
     <div class="cart-totals">
@@ -616,13 +643,18 @@ function renderCart() {
 
 function sendCartWhatsApp() {
   const lines = cart.map(i => {
-    const price = i.price != null ? ` — ${fmtARS(i.price)} c/u` : '';
-    return `• ${i.qty} u. de *${i.name}*${price}`;
+    const eff    = effectivePrice(i);
+    const isBulk = i.bulkMinQty && i.bulkPrice && i.qty >= i.bulkMinQty;
+    const isDisc = i.discount > 0 && !isBulk;
+    let priceStr = eff != null ? ` — ${fmtARS(eff)} c/u` : '';
+    if (isBulk) priceStr += ' (precio por mayor)';
+    else if (isDisc) priceStr += ` (−${i.discount}%)`;
+    return `• ${i.qty} u. de *${i.name}*${priceStr}`;
   });
 
-  const totalUnits = cart.reduce((s, i) => s + i.qty, 0);
-  const allHavePrice = cart.every(i => i.price != null);
-  const totalPrice   = cart.reduce((s, i) => s + (i.price ?? 0) * i.qty, 0);
+  const totalUnits   = cart.reduce((s, i) => s + i.qty, 0);
+  const allHavePrice = cart.every(i => effectivePrice(i) != null);
+  const totalPrice   = cart.reduce((s, i) => s + (effectivePrice(i) ?? 0) * i.qty, 0);
   const totalLine    = allHavePrice ? `*Total: ${totalUnits} unidades · ${fmtARS(totalPrice)}*` : `*Total: ${totalUnits} unidades*`;
 
   const msg = [
