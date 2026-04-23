@@ -942,24 +942,33 @@ function setupThemeToggle() {
   });
 }
 
-// ── Avisos ─────────────────────────────────────────────────
+// ── Avisos — carousel 2D ───────────────────────────────────
 function renderNotices(notices) {
   const section = document.getElementById('avisos');
   const grid    = document.getElementById('avisosGrid');
   if (!section || !grid) return;
   if (!notices.length) { section.style.display = 'none'; return; }
   section.style.display = '';
-  const ICON  = { info: 'ℹ️', promo: '🎉', warning: '⚠️' };
-  const CLASS = { info: 'aviso-info', promo: 'aviso-promo', warning: 'aviso-warning' };
-  grid.innerHTML = notices.map(n => `
-    <div class="aviso-card ${CLASS[n.type] ?? 'aviso-info'} reveal">
-      <span class="aviso-icon" aria-hidden="true">${ICON[n.type] ?? 'ℹ️'}</span>
-      <div class="aviso-content">
-        <strong class="aviso-title">${n.title}</strong>
-        ${n.body ? `<p class="aviso-body">${n.body}</p>` : ''}
+
+  const ICON = { info: 'ℹ️', promo: '🎉', warning: '⚠️' };
+  const qty  = notices.length;
+
+  const items = notices.map((n, i) => `
+    <div class="item" style="--position: ${i + 1}">
+      <div class="aviso-2d aviso-${n.type ?? 'info'}">
+        <span class="aviso-2d-icon" aria-hidden="true">${ICON[n.type] ?? 'ℹ️'}</span>
+        <div class="aviso-2d-content">
+          <strong class="aviso-2d-title">${n.title}</strong>
+          ${n.body ? `<p class="aviso-2d-body">${n.body}</p>` : ''}
+        </div>
+        ${n.image ? `<img src="${driveImgUrl(n.image)}" class="aviso-2d-img" alt="" loading="lazy">` : ''}
       </div>
-      ${n.image ? `<img src="${driveImgUrl(n.image)}" alt="" class="aviso-img" loading="lazy">` : ''}
     </div>`).join('');
+
+  grid.innerHTML = `
+    <div class="t-slider" style="--quantity:${qty}; --width:220px; --height:70px; --dur:12s">
+      <div class="t-list">${items}</div>
+    </div>`;
 }
 
 // ── Testimonios carousel (CSS-only infinite ticker) ────────
