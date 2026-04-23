@@ -413,6 +413,7 @@ function renderModalControls() {
 }
 
 function renderModalProducts() {
+  const searchWasFocused = document.activeElement?.classList.contains('mctrl-search-input');
   const allProds = Object.values(window._productMap ?? {});
   const q = modalSearch.toLowerCase().trim();
 
@@ -455,12 +456,10 @@ function renderModalProducts() {
     attachCarouselAuto(card, prod.id);
   });
 
-  // Refocus search input if it has focus
-  const inp = document.querySelector('.mctrl-search-input');
-  if (inp && document.activeElement?.classList.contains('mctrl-search-input')) {
-    const val = inp.value;
-    inp.focus();
-    inp.setSelectionRange(val.length, val.length);
+  // Restore search focus if it was active before re-render
+  if (searchWasFocused) {
+    const inp = document.querySelector('.mctrl-search-input');
+    if (inp) { inp.focus(); inp.setSelectionRange(modalSearch.length, modalSearch.length); }
   }
 }
 
