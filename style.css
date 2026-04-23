@@ -1692,8 +1692,10 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 .aviso-promo   { border-color: var(--pink); background: rgba(247,37,133,.06); }
 .aviso-warning { border-color: #FF9A3C; background: rgba(255,154,60,.06); }
 .aviso-icon    { font-size: 1.15rem; flex-shrink: 0; line-height: 1.4; }
+.aviso-content { flex: 1; }
 .aviso-title   { display: block; font-size: .875rem; font-weight: 600; color: var(--black); }
 .aviso-body    { font-size: .8rem; color: var(--text-muted); margin-top: .2rem; line-height: 1.5; }
+.aviso-img     { width: 72px; height: 72px; object-fit: cover; border-radius: var(--r-md); flex-shrink: 0; align-self: center; }
 
 [data-theme="dark"] .avisos-section   { background: #1A1A2E; border-bottom-color: rgba(255,255,255,.07); }
 [data-theme="dark"] .aviso-info       { background: rgba(9,132,227,.1); }

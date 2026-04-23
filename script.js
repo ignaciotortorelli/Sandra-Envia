@@ -720,24 +720,32 @@ function renderNotices(notices) {
         <strong class="aviso-title">${n.title}</strong>
         ${n.body ? `<p class="aviso-body">${n.body}</p>` : ''}
       </div>
+      ${n.image ? `<img src="${driveImgUrl(n.image)}" alt="" class="aviso-img" loading="lazy">` : ''}
     </div>`).join('');
 }
 
-// ── Referencias ────────────────────────────────────────────
+// ── Testimonios ────────────────────────────────────────────
 function renderRefs(refs) {
-  const section = document.getElementById('referencias');
-  const grid    = document.getElementById('referenciasGrid');
+  const section = document.getElementById('testimonios');
+  const grid    = document.getElementById('testimoniosGrid');
   if (!section || !grid) return;
   if (!refs.length) { section.style.display = 'none'; return; }
   section.style.display = '';
   grid.innerHTML = refs.map(r => `
-    <article class="ref-card reveal">
-      ${r.image ? `<div class="ref-img"><img src="${driveImgUrl(r.image)}" alt="${r.title}" loading="lazy"></div>` : ''}
-      <div class="ref-body">
-        <h3 class="ref-title">${r.title}</h3>
-        ${r.body ? `<p class="ref-content">${r.body}</p>` : ''}
-        ${r.link ? `<a href="${r.link}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost ref-link">Ver más →</a>` : ''}
-      </div>
+    <article class="testimonial reveal">
+      <div class="t-stars" aria-hidden="true">⭐⭐⭐⭐⭐</div>
+      <blockquote>${r.body ?? ''}</blockquote>
+      <footer class="t-author">
+        <div class="t-avatar" aria-hidden="true">
+          ${r.image
+            ? `<img src="${driveImgUrl(r.image)}" alt="${r.title}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+            : '👩'}
+        </div>
+        <div>
+          <strong>${r.title ?? ''}</strong>
+          ${r.link ? `<a href="${r.link}" target="_blank" rel="noopener noreferrer" style="color:var(--pink);font-size:.75rem">Ver perfil</a>` : ''}
+        </div>
+      </footer>
     </article>`).join('');
 }
 

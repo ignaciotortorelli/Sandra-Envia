@@ -21,7 +21,7 @@ const db  = getFirestore(app);
 let categories = [];
 let products   = [];
 let notices    = [];
-let references = [];
+let testimonios = [];
 let pendingImages = []; // { file, url } during product form
 
 let productSort  = { field: 'name', dir: 1 };
@@ -46,14 +46,14 @@ async function loadData() {
       getDocs(collection(db, 'categories')),
       getDocs(collection(db, 'products')),
       getDocs(collection(db, 'notices')),
-      getDocs(collection(db, 'references')),
+      getDocs(collection(db, 'testimonios')),
     ]);
     categories = catSnap.docs.map(d => ({ id: d.id, ...d.data() }))
                              .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
     products   = prodSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     notices    = noticeSnap.docs.map(d => ({ id: d.id, ...d.data() }))
                                 .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
-    references = refSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+    testimonios = refSnap.docs.map(d => ({ id: d.id, ...d.data() }))
                               .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
     setStatus('ok');
   } catch (e) {
@@ -71,7 +71,7 @@ const ROUTES = {
   '/productos':  renderProducts,
   '/categorias': renderCategories,
   '/avisos':     renderAvisos,
-  '/referencias':renderReferencias,
+  '/testimonios': renderTestimonios,
 };
 
 function router() {
@@ -82,7 +82,7 @@ function router() {
     a.classList.toggle('active', a.getAttribute('href') === '#' + hash);
   });
 
-  const titles = { '/': 'Dashboard', '/productos': 'Productos', '/categorias': 'Categorías', '/avisos': 'Avisos', '/referencias': 'Referencias' };
+  const titles = { '/': 'Dashboard', '/productos': 'Productos', '/categorias': 'Categorías', '/avisos': 'Avisos', '/testimonios': 'Testimonios' };
   document.getElementById('topbarTitle').textContent = titles[hash] ?? 'Admin';
   document.getElementById('topbarActions').innerHTML = '';
   searchQuery = '';
@@ -168,10 +168,10 @@ const SEED_NOTICES = [
   { title: 'Horario de atención', body: 'Lunes a viernes de 9 a 18 h · Sábados de 9 a 13 h · Consultas por WhatsApp en cualquier momento.', type: 'info', active: true, order: 3 },
 ];
 
-const SEED_REFS = [
-  { title: 'Talles disponibles', body: 'Trabajamos con talles S, M, L, XL y XXL en la mayoría de los artículos. Consultá disponibilidad de talles especiales por WhatsApp.', image: null, link: null, active: true, order: 1 },
-  { title: 'Medios de pago', body: 'Aceptamos transferencia bancaria, Mercado Pago y efectivo. Consultá disponibilidad de otras opciones.', image: null, link: null, active: true, order: 2 },
-  { title: 'Política de cambios', body: 'Realizamos cambios por defecto de fabricación dentro de los 7 días de recibido el pedido. Coordiná por WhatsApp con foto del defecto.', image: null, link: null, active: true, order: 3 },
+const SEED_TESTIMONIOS = [
+  { title: 'María L. — Buenos Aires', body: '"Excelente atención y muy buena calidad. Los talles son exactos y el envío llegó en tiempo y forma. ¡Muy recomendable!"', image: null, link: null, active: true, order: 1 },
+  { title: 'Romina G. — Córdoba',     body: '"La mejor distribuidora mayorista con la que trabajé. Precios justos, variedad increíble y responden rápido por WhatsApp."', image: null, link: null, active: true, order: 2 },
+  { title: 'Valeria M. — Rosario',    body: '"Compro hace más de un año y nunca tuve problemas. El trato es muy personalizado y siempre tienen novedades."', image: null, link: null, active: true, order: 3 },
 ];
 
 window.seedTestData = () => {
@@ -182,7 +182,7 @@ window.seedTestData = () => {
       <li><strong>${SEED_CATS.length} categorías</strong> — ${SEED_CATS.map(c => c.emoji + ' ' + c.name).join(', ')}</li>
       <li><strong>${SEED_PRODS.length} productos</strong> con fotos de ropa subidas a Google Drive</li>
       <li><strong>${SEED_NOTICES.length} avisos</strong> de ejemplo</li>
-      <li><strong>${SEED_REFS.length} referencias</strong> de ejemplo</li>
+      <li><strong>${SEED_TESTIMONIOS.length} testimonios</strong> de ejemplo</li>
     </ul>
     <p class="seed-note">Se descargarán ${SEED_TOTAL_IMGS} fotos de Unsplash y se subirán a Drive. Puede tardar ~1 minuto. Podés borrar todo luego con la selección múltiple.</p>
     <div id="seedProgress" style="display:none;text-align:center;margin-top:1.25rem">
@@ -273,13 +273,13 @@ async function runSeed() {
     }
 
     // Step 5 — Create references
-    for (let i = 0; i < SEED_REFS.length; i++) {
-      progText.textContent = `Creando referencia ${i + 1}/${SEED_REFS.length}…`;
-      await addDoc(collection(db, 'references'), { ...SEED_REFS[i], createdAt: serverTimestamp() });
+    for (let i = 0; i < SEED_TESTIMONIOS.length; i++) {
+      progText.textContent = `Creando referencia ${i + 1}/${SEED_TESTIMONIOS.length}…`;
+      await addDoc(collection(db, 'testimonios'), { ...SEED_TESTIMONIOS[i], createdAt: serverTimestamp() });
     }
 
     closeModal();
-    toast(`✓ Seed completo: ${SEED_CATS.length} categorías, ${SEED_PRODS.length} productos, ${SEED_NOTICES.length} avisos, ${SEED_REFS.length} referencias`, 'success');
+    toast(`✓ Seed completo: ${SEED_CATS.length} categorías, ${SEED_PRODS.length} productos, ${SEED_NOTICES.length} avisos, ${SEED_TESTIMONIOS.length} testimonios`, 'success');
     await loadData();
     renderDashboard();
   } catch (e) {
@@ -320,8 +320,8 @@ function renderDashboard() {
         <div class="stat-lbl">Avisos</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num">${references.length}</div>
-        <div class="stat-lbl">Referencias</div>
+        <div class="stat-num">${testimonios.length}</div>
+        <div class="stat-lbl">Testimonios</div>
       </div>
     </div>
     <div class="quick-links">
@@ -337,9 +337,9 @@ function renderDashboard() {
         <div class="quick-card-icon">📢</div><h3>Avisos</h3>
         <p>Gestioná los avisos y anuncios del sitio.</p>
       </div>
-      <div class="quick-card" onclick="location.hash='#/referencias'">
-        <div class="quick-card-icon">📌</div><h3>Referencias</h3>
-        <p>Gestioná las referencias e información útil.</p>
+      <div class="quick-card" onclick="location.hash='#/testimonios'">
+        <div class="quick-card-icon">⭐</div><h3>Testimonios</h3>
+        <p>Gestioná los testimonios de las clientas.</p>
       </div>
       <div class="quick-card" onclick="window.open('../', '_blank')">
         <div class="quick-card-icon">🌐</div><h3>Ver Sitio</h3>
@@ -350,7 +350,7 @@ function renderDashboard() {
       <div class="seed-zone-inner">
         <div>
           <p class="seed-zone-title">🧪 Datos de prueba</p>
-          <p class="seed-zone-desc">Generá ${SEED_CATS.length} categorías, ${SEED_PRODS.length} productos, ${SEED_NOTICES.length} avisos y ${SEED_REFS.length} referencias de ejemplo.</p>
+          <p class="seed-zone-desc">Generá ${SEED_CATS.length} categorías, ${SEED_PRODS.length} productos, ${SEED_NOTICES.length} avisos y ${SEED_TESTIMONIOS.length} testimonios de ejemplo.</p>
         </div>
         <button class="btn btn-ghost seed-btn" onclick="seedTestData()">Generar datos de prueba</button>
       </div>
@@ -383,7 +383,7 @@ function renderDashboard() {
     }).join('');
     const mNotices = notices.filter(n =>
       n.title?.toLowerCase().includes(q) || n.body?.toLowerCase().includes(q));
-    const mRefs = references.filter(r =>
+    const mRefs = testimonios.filter(r =>
       r.title?.toLowerCase().includes(q) || r.body?.toLowerCase().includes(q));
     const noticeRows = mNotices.map(n => `
       <div class="search-result-item" onclick="openAvisoModal('${n.id}')">
@@ -392,17 +392,17 @@ function renderDashboard() {
         <span class="search-result-tag">Aviso</span>
       </div>`).join('');
     const refRows = mRefs.map(r => `
-      <div class="search-result-item" onclick="openReferenciaModal('${r.id}')">
+      <div class="search-result-item" onclick="openTestimonioModal('${r.id}')">
         <div class="search-result-thumb">${r.image ? `<img src="${r.image}" alt="">` : '📌'}</div>
         <div class="search-result-info"><span class="search-result-name">${r.title ?? '—'}</span></div>
-        <span class="search-result-tag">Referencia</span>
+        <span class="search-result-tag">Testimonio</span>
       </div>`).join('');
     const hasAny = mCats.length || mProds.length || mNotices.length || mRefs.length;
     resultsHtml = `<div class="search-results">
       ${mCats.length    ? `<p class="search-group-title">📂 Categorías (${mCats.length})</p>${catRows}` : ''}
       ${mProds.length   ? `<p class="search-group-title">👗 Productos (${mProds.length})</p>${prodRows}` : ''}
       ${mNotices.length ? `<p class="search-group-title">📢 Avisos (${mNotices.length})</p>${noticeRows}` : ''}
-      ${mRefs.length    ? `<p class="search-group-title">📌 Referencias (${mRefs.length})</p>${refRows}` : ''}
+      ${mRefs.length    ? `<p class="search-group-title">⭐ Testimonios (${mRefs.length})</p>${refRows}` : ''}
       ${!hasAny ? `<div class="search-empty"><div class="empty-icon">🔍</div><p>Sin resultados para "<strong>${searchQuery}</strong>"</p></div>` : ''}
     </div>`;
   }
@@ -664,8 +664,9 @@ function renderAvisos() {
   const TYPE_BADGE = { info: 'badge-blue', promo: 'badge-pink', warning: 'badge-orange' };
   const rows = filtered.map(n => `
     <tr>
+      <td>${n.image ? `<img class="thumb" src="${n.image}" alt="" loading="lazy">` : '<div class="thumb-placeholder">📢</div>'}</td>
       <td><strong>${n.title ?? '—'}</strong></td>
-      <td class="td-body-preview">${n.body ? n.body.substring(0,90) + (n.body.length > 90 ? '…' : '') : '—'}</td>
+      <td class="td-body-preview">${n.body ? n.body.substring(0,80) + (n.body.length > 80 ? '…' : '') : '—'}</td>
       <td><span class="badge ${TYPE_BADGE[n.type] ?? 'badge-gray'}">${TYPE_LABEL[n.type] ?? n.type ?? '—'}</span></td>
       <td>${n.order ?? 0}</td>
       <td><span class="badge ${n.active !== false ? 'badge-green' : 'badge-gray'} badge-toggle"
@@ -679,32 +680,32 @@ function renderAvisos() {
   content.innerHTML = searchBarHtml('Buscar avisos…') + `
     <div class="table-wrap"><table class="data-table">
       <thead><tr>
-        <th>Título</th><th>Mensaje</th><th>Tipo</th><th>Orden</th><th>Estado</th><th>Acciones</th>
+        <th>Imagen</th><th>Título</th><th>Mensaje</th><th>Tipo</th><th>Orden</th><th>Estado</th><th>Acciones</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table></div>`;
 }
 
-// ── Referencias ───────────────────────────
-function renderReferencias() {
+// ── Testimonios ───────────────────────────
+function renderTestimonios() {
   const actions = document.getElementById('topbarActions');
-  actions.innerHTML = `<button class="btn btn-primary" id="btnNewRef">+ Nueva Referencia</button>`;
-  document.getElementById('btnNewRef').onclick = () => openReferenciaModal();
+  actions.innerHTML = `<button class="btn btn-primary" id="btnNewRef">+ Nuevo Testimonio</button>`;
+  document.getElementById('btnNewRef').onclick = () => openTestimonioModal();
   const content = document.getElementById('appContent');
   const q = searchQuery.toLowerCase().trim();
-  const filtered = q ? references.filter(r =>
-    r.title?.toLowerCase().includes(q) || r.body?.toLowerCase().includes(q)) : references;
+  const filtered = q ? testimonios.filter(r =>
+    r.title?.toLowerCase().includes(q) || r.body?.toLowerCase().includes(q)) : testimonios;
 
-  if (!references.length) {
-    content.innerHTML = searchBarHtml('Buscar referencias…') + `
+  if (!testimonios.length) {
+    content.innerHTML = searchBarHtml('Buscar testimonios…') + `
       <div class="empty-state"><div class="empty-icon">📌</div>
-        <p>Todavía no hay referencias.</p>
-        <button class="btn btn-primary" onclick="document.getElementById('btnNewRef').click()">+ Nueva Referencia</button>
+        <p>Todavía no hay testimonios.</p>
+        <button class="btn btn-primary" onclick="document.getElementById('btnNewRef').click()">+ Nueva Testimonio</button>
       </div>`;
     return;
   }
   if (q && !filtered.length) {
-    content.innerHTML = searchBarHtml('Buscar referencias…') + `
+    content.innerHTML = searchBarHtml('Buscar testimonios…') + `
       <div class="empty-state"><div class="empty-icon">🔍</div>
         <p>Sin resultados para "<strong>${searchQuery}</strong>"</p>
         <button class="btn btn-ghost" onclick="onSearchInput('')">Limpiar búsqueda</button>
@@ -719,14 +720,14 @@ function renderReferencias() {
       <td>${r.link ? `<a href="${r.link}" target="_blank" rel="noopener" style="color:var(--pink);font-size:.8rem">Ver enlace</a>` : '—'}</td>
       <td>${r.order ?? 0}</td>
       <td><span class="badge ${r.active !== false ? 'badge-green' : 'badge-gray'} badge-toggle"
-               onclick="toggleRefActive('${r.id}',${r.active !== false})" title="Click para cambiar">
+               onclick="toggleTestimonioActive('${r.id}',${r.active !== false})" title="Click para cambiar">
             ${r.active !== false ? 'Activa' : 'Inactiva'}</span></td>
       <td><div class="actions-cell">
-        <button class="btn-icon edit"   onclick="openReferenciaModal('${r.id}')" title="Editar">✏️</button>
-        <button class="btn-icon delete" onclick="confirmDelete('reference','${r.id}','${r.title?.replace(/'/g,"\\'")}')" title="Eliminar">🗑️</button>
+        <button class="btn-icon edit"   onclick="openTestimonioModal('${r.id}')" title="Editar">✏️</button>
+        <button class="btn-icon delete" onclick="confirmDelete('testimonio','${r.id}','${r.title?.replace(/'/g,"\\'")}')" title="Eliminar">🗑️</button>
       </div></td>
     </tr>`).join('');
-  content.innerHTML = searchBarHtml('Buscar referencias…') + `
+  content.innerHTML = searchBarHtml('Buscar testimonios…') + `
     <div class="table-wrap"><table class="data-table">
       <thead><tr>
         <th>Imagen</th><th>Título</th><th>Contenido</th><th>Enlace</th><th>Orden</th><th>Estado</th><th>Acciones</th>
@@ -1357,6 +1358,7 @@ async function saveCategory(id) {
 // ── Aviso modal ───────────────────────────
 function openAvisoModal(id) {
   const n = id ? notices.find(x => x.id === id) : null;
+  pendingImages = n?.image ? [{ url: n.image, file: null }] : [];
   document.getElementById('modalTitle').textContent = n ? 'Editar Aviso' : 'Nuevo Aviso';
   document.getElementById('modalBody').innerHTML = `
     <div class="form-grid">
@@ -1389,7 +1391,20 @@ function openAvisoModal(id) {
           <option value="false" ${n?.active === false  ? 'selected' : ''}>Inactivo</option>
         </select>
       </div>
+      <div class="form-group">
+        <label class="form-label">Imagen (opcional)</label>
+        <div style="margin-bottom:.6rem">
+          <label class="btn btn-ghost" style="cursor:pointer;display:inline-flex;align-items:center;gap:.4rem">
+            📁 Seleccionar imagen
+            <input type="file" id="imgInput" accept="image/*" style="display:none">
+          </label>
+          <span style="font-size:.8rem;color:var(--muted);margin-left:.8rem">Se subirá a Google Drive al guardar</span>
+        </div>
+        <div class="image-previews" id="imagePreviews"></div>
+        <div class="upload-progress" id="uploadProgress"></div>
+      </div>
     </div>`;
+  renderPreviews(); setupFileInput();
   document.getElementById('modalFooter').innerHTML = `
     <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
     <button class="btn btn-primary" id="modalSave">Guardar</button>`;
@@ -1405,11 +1420,13 @@ async function saveAviso(id) {
   const saveBtn = document.getElementById('modalSave');
   saveBtn.textContent = 'Guardando…'; saveBtn.disabled = true;
   try {
+    const imageUrls = await uploadImages();
     const data = {
       title, body:   document.getElementById('nBody')?.value.trim() || null,
       type:   document.getElementById('nType')?.value || 'info',
       order:  parseInt(document.getElementById('nOrder')?.value) || 0,
       active: document.getElementById('nActive')?.value !== 'false',
+      image:  imageUrls[0] ?? null,
       updatedAt: serverTimestamp(),
     };
     if (id) { await updateDoc(doc(db, 'notices', id), data); toast('Aviso actualizado ✓', 'success'); }
@@ -1418,11 +1435,11 @@ async function saveAviso(id) {
   } catch (e) { console.error(e); toast('Error al guardar: ' + e.message, 'error'); saveBtn.textContent = 'Guardar'; saveBtn.disabled = false; }
 }
 
-// ── Referencia modal ──────────────────────
-function openReferenciaModal(id) {
-  const r = id ? references.find(x => x.id === id) : null;
+// ── Testimonio modal ──────────────────────
+function openTestimonioModal(id) {
+  const r = id ? testimonios.find(x => x.id === id) : null;
   pendingImages = r?.image ? [{ url: r.image, file: null }] : [];
-  document.getElementById('modalTitle').textContent = r ? 'Editar Referencia' : 'Nueva Referencia';
+  document.getElementById('modalTitle').textContent = r ? 'Editar Testimonio' : 'Nueva Testimonio';
   document.getElementById('modalBody').innerHTML = `
     <div class="form-grid">
       <div class="form-group">
@@ -1468,12 +1485,12 @@ function openReferenciaModal(id) {
     <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
     <button class="btn btn-primary" id="modalSave">Guardar</button>`;
   document.getElementById('modalCancel').onclick = closeModal;
-  document.getElementById('modalSave').onclick   = () => saveReferencia(id);
+  document.getElementById('modalSave').onclick   = () => saveTestimonio(id);
   openModal();
 }
-window.openReferenciaModal = openReferenciaModal;
+window.openTestimonioModal = openTestimonioModal;
 
-async function saveReferencia(id) {
+async function saveTestimonio(id) {
   const title = document.getElementById('rTitle')?.value.trim();
   if (!title) { toast('El título es obligatorio', 'error'); return; }
   const saveBtn = document.getElementById('modalSave');
@@ -1488,9 +1505,9 @@ async function saveReferencia(id) {
       active: document.getElementById('rActive')?.value !== 'false',
       updatedAt: serverTimestamp(),
     };
-    if (id) { await updateDoc(doc(db, 'references', id), data); toast('Referencia actualizada ✓', 'success'); }
-    else     { data.createdAt = serverTimestamp(); await addDoc(collection(db, 'references'), data); toast('Referencia creada ✓', 'success'); }
-    closeModal(); await loadData(); renderReferencias();
+    if (id) { await updateDoc(doc(db, 'testimonios', id), data); toast('Testimonio actualizada ✓', 'success'); }
+    else     { data.createdAt = serverTimestamp(); await addDoc(collection(db, 'testimonios'), data); toast('Testimonio creada ✓', 'success'); }
+    closeModal(); await loadData(); renderTestimonios();
   } catch (e) { console.error(e); toast('Error al guardar: ' + e.message, 'error'); saveBtn.textContent = 'Guardar'; saveBtn.disabled = false; }
 }
 
@@ -1647,18 +1664,23 @@ async function doDelete(type, id) {
       toast('Producto eliminado', 'success');
       await loadData(); renderProducts();
     } else if (type === 'notice') {
+      const notice = notices.find(x => x.id === id);
+      if (notice?.image) {
+        const fileId = driveFileIdFromUrl(notice.image);
+        if (fileId) { try { await deleteFileFromDrive(fileId); } catch (_) {} }
+      }
       await deleteDoc(doc(db, 'notices', id));
       toast('Aviso eliminado', 'success');
       await loadData(); renderAvisos();
-    } else if (type === 'reference') {
-      const ref = references.find(r => r.id === id);
+    } else if (type === 'testimonio') {
+      const ref = testimonios.find(r => r.id === id);
       if (ref?.image) {
         const fileId = driveFileIdFromUrl(ref.image);
         if (fileId) { try { await deleteFileFromDrive(fileId); } catch (_) {} }
       }
-      await deleteDoc(doc(db, 'references', id));
-      toast('Referencia eliminada', 'success');
-      await loadData(); renderReferencias();
+      await deleteDoc(doc(db, 'testimonios', id));
+      toast('Testimonio eliminada', 'success');
+      await loadData(); renderTestimonios();
     }
   } catch (e) {
     console.error(e);
@@ -1674,12 +1696,12 @@ window.toggleNoticeActive = async (id, current) => {
     renderAvisos();
   } catch (e) { toast('Error: ' + e.message, 'error'); }
 };
-window.toggleRefActive = async (id, current) => {
+window.toggleTestimonioActive = async (id, current) => {
   try {
-    await updateDoc(doc(db, 'references', id), { active: !current });
-    const r = references.find(x => x.id === id);
+    await updateDoc(doc(db, 'testimonios', id), { active: !current });
+    const r = testimonios.find(x => x.id === id);
     if (r) r.active = !current;
-    renderReferencias();
+    renderTestimonios();
   } catch (e) { toast('Error: ' + e.message, 'error'); }
 };
 
