@@ -32,9 +32,11 @@ async function loadCatalog() {
   if (!grid) return;
 
   try {
-    const [catSnap, prodSnap] = await Promise.all([
+    const [catSnap, prodSnap, noticeSnap, refSnap] = await Promise.all([
       getDocs(collection(db, 'categories')),
       getDocs(collection(db, 'products')),
+      getDocs(collection(db, 'notices')),
+      getDocs(collection(db, 'references')),
     ]);
 
     const categories = catSnap.docs
@@ -59,6 +61,14 @@ async function loadCatalog() {
     });
 
     renderAllProducts(products, categories);
+
+    const activeNotices = noticeSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(n => n.active !== false).sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+    const activeRefs = refSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(r => r.active !== false).sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+    renderNotices(activeNotices);
+    renderRefs(activeRefs);
+
     setupRevealObserver();
 
   } catch (err) {
@@ -692,6 +702,43 @@ function setupThemeToggle() {
     localStorage.setItem('se_theme', next);
     btn.setAttribute('aria-label', next === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro');
   });
+}
+
+// ── Avisos ─────────────────────────────────────────────────
+function renderNotices(notices) {
+  const section = document.getElementById('avisos');
+  const grid    = document.getElementById('avisosGrid');
+  if (!section || !grid) return;
+  if (!notices.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  const ICON  = { info: 'ℹ️', promo: '🎉', warning: '⚠️' };
+  const CLASS = { info: 'aviso-info', promo: 'aviso-promo', warning: 'aviso-warning' };
+  grid.innerHTML = notices.map(n => `
+    <div class="aviso-card ${CLASS[n.type] ?? 'aviso-info'} reveal">
+      <span class="aviso-icon" aria-hidden="true">${ICON[n.type] ?? 'ℹ️'}</span>
+      <div class="aviso-content">
+        <strong class="aviso-title">${n.title}</strong>
+        ${n.body ? `<p class="aviso-body">${n.body}</p>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+// ── Referencias ────────────────────────────────────────────
+function renderRefs(refs) {
+  const section = document.getElementById('referencias');
+  const grid    = document.getElementById('referenciasGrid');
+  if (!section || !grid) return;
+  if (!refs.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  grid.innerHTML = refs.map(r => `
+    <article class="ref-card reveal">
+      ${r.image ? `<div class="ref-img"><img src="${driveImgUrl(r.image)}" alt="${r.title}" loading="lazy"></div>` : ''}
+      <div class="ref-body">
+        <h3 class="ref-title">${r.title}</h3>
+        ${r.body ? `<p class="ref-content">${r.body}</p>` : ''}
+        ${r.link ? `<a href="${r.link}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost ref-link">Ver más →</a>` : ''}
+      </div>
+    </article>`).join('');
 }
 
 // ── Init ───────────────────────────────────────────────────

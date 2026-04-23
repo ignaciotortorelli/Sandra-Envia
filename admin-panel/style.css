@@ -414,6 +414,14 @@ img { display: block; max-width: 100%; }
 .badge-red    { background: #fde8e8; color: #c0303b; }
 .badge-gray   { background: var(--gray-bg); color: var(--muted); }
 .badge-orange { background: #fff0e0; color: #c0620a; }
+.badge-blue   { background: #e0f0ff; color: #0860c0; }
+.badge-pink   { background: #ffe0f0; color: #c0186a; }
+[data-theme="dark"] .badge-blue { background: rgba(9,132,227,.15); color: #74B9FF; }
+[data-theme="dark"] .badge-pink { background: rgba(247,37,133,.15); color: #FF85A1; }
+
+.td-body-preview { max-width: 260px; font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat-card.blue .stat-num { color: #0860c0; }
+[data-theme="dark"] .stat-card.blue .stat-num { color: #74B9FF; }
 .badge-toggle { cursor: pointer; transition: filter var(--ease); }
 .badge-toggle:hover { filter: brightness(.88); }
 [data-theme="dark"] .badge-orange { background: rgba(255,154,60,.15); color: #FF9A3C; }

@@ -20,6 +20,8 @@ const db  = getFirestore(app);
 // ── State ──────────────────────────────────────────────────
 let categories = [];
 let products   = [];
+let notices    = [];
+let references = [];
 let pendingImages = []; // { file, url } during product form
 
 let productSort  = { field: 'name', dir: 1 };
@@ -40,13 +42,19 @@ function setStatus(state) {
 // ── Load data from Firestore ───────────────────────────────
 async function loadData() {
   try {
-    const [catSnap, prodSnap] = await Promise.all([
+    const [catSnap, prodSnap, noticeSnap, refSnap] = await Promise.all([
       getDocs(collection(db, 'categories')),
       getDocs(collection(db, 'products')),
+      getDocs(collection(db, 'notices')),
+      getDocs(collection(db, 'references')),
     ]);
     categories = catSnap.docs.map(d => ({ id: d.id, ...d.data() }))
                              .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
     products   = prodSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    notices    = noticeSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+                                .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+    references = refSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+                              .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
     setStatus('ok');
   } catch (e) {
     console.error(e);
@@ -62,6 +70,8 @@ const ROUTES = {
   '/':           renderDashboard,
   '/productos':  renderProducts,
   '/categorias': renderCategories,
+  '/avisos':     renderAvisos,
+  '/referencias':renderReferencias,
 };
 
 function router() {
@@ -72,7 +82,7 @@ function router() {
     a.classList.toggle('active', a.getAttribute('href') === '#' + hash);
   });
 
-  const titles = { '/': 'Dashboard', '/productos': 'Productos', '/categorias': 'Categorías' };
+  const titles = { '/': 'Dashboard', '/productos': 'Productos', '/categorias': 'Categorías', '/avisos': 'Avisos', '/referencias': 'Referencias' };
   document.getElementById('topbarTitle').textContent = titles[hash] ?? 'Admin';
   document.getElementById('topbarActions').innerHTML = '';
   searchQuery = '';
@@ -152,6 +162,18 @@ const SEED_IMG_POOLS = [
 ];
 const SEED_TOTAL_IMGS = SEED_IMG_POOLS.reduce((s, p) => s + p.length, 0);
 
+const SEED_NOTICES = [
+  { title: 'Envíos a todo el país', body: 'Despachamos a cualquier punto del país por OCA, Andreani y Correo Argentino. Consultá el costo según tu zona.', type: 'info', active: true, order: 1 },
+  { title: 'Oferta de temporada', body: '¡Descuentos especiales en toda la colección! Aprovechá antes que se agoten los talles.', type: 'promo', active: true, order: 2 },
+  { title: 'Horario de atención', body: 'Lunes a viernes de 9 a 18 h · Sábados de 9 a 13 h · Consultas por WhatsApp en cualquier momento.', type: 'info', active: true, order: 3 },
+];
+
+const SEED_REFS = [
+  { title: 'Talles disponibles', body: 'Trabajamos con talles S, M, L, XL y XXL en la mayoría de los artículos. Consultá disponibilidad de talles especiales por WhatsApp.', image: null, link: null, active: true, order: 1 },
+  { title: 'Medios de pago', body: 'Aceptamos transferencia bancaria, Mercado Pago y efectivo. Consultá disponibilidad de otras opciones.', image: null, link: null, active: true, order: 2 },
+  { title: 'Política de cambios', body: 'Realizamos cambios por defecto de fabricación dentro de los 7 días de recibido el pedido. Coordiná por WhatsApp con foto del defecto.', image: null, link: null, active: true, order: 3 },
+];
+
 window.seedTestData = () => {
   document.getElementById('modalTitle').textContent = '🧪 Datos de prueba';
   document.getElementById('modalBody').innerHTML = `
@@ -159,6 +181,8 @@ window.seedTestData = () => {
     <ul class="seed-summary">
       <li><strong>${SEED_CATS.length} categorías</strong> — ${SEED_CATS.map(c => c.emoji + ' ' + c.name).join(', ')}</li>
       <li><strong>${SEED_PRODS.length} productos</strong> con fotos de ropa subidas a Google Drive</li>
+      <li><strong>${SEED_NOTICES.length} avisos</strong> de ejemplo</li>
+      <li><strong>${SEED_REFS.length} referencias</strong> de ejemplo</li>
     </ul>
     <p class="seed-note">Se descargarán ${SEED_TOTAL_IMGS} fotos de Unsplash y se subirán a Drive. Puede tardar ~1 minuto. Podés borrar todo luego con la selección múltiple.</p>
     <div id="seedProgress" style="display:none;text-align:center;margin-top:1.25rem">
@@ -242,8 +266,20 @@ async function runSeed() {
       });
     }
 
+    // Step 4 — Create notices
+    for (let i = 0; i < SEED_NOTICES.length; i++) {
+      progText.textContent = `Creando aviso ${i + 1}/${SEED_NOTICES.length}…`;
+      await addDoc(collection(db, 'notices'), { ...SEED_NOTICES[i], createdAt: serverTimestamp() });
+    }
+
+    // Step 5 — Create references
+    for (let i = 0; i < SEED_REFS.length; i++) {
+      progText.textContent = `Creando referencia ${i + 1}/${SEED_REFS.length}…`;
+      await addDoc(collection(db, 'references'), { ...SEED_REFS[i], createdAt: serverTimestamp() });
+    }
+
     closeModal();
-    toast(`✓ ${SEED_CATS.length} categorías y ${SEED_PRODS.length} productos creados con fotos en Drive`, 'success');
+    toast(`✓ Seed completo: ${SEED_CATS.length} categorías, ${SEED_PRODS.length} productos, ${SEED_NOTICES.length} avisos, ${SEED_REFS.length} referencias`, 'success');
     await loadData();
     renderDashboard();
   } catch (e) {
@@ -279,6 +315,14 @@ function renderDashboard() {
         <div class="stat-num">${outOfStock}</div>
         <div class="stat-lbl">Sin stock</div>
       </div>
+      <div class="stat-card blue">
+        <div class="stat-num">${notices.length}</div>
+        <div class="stat-lbl">Avisos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${references.length}</div>
+        <div class="stat-lbl">Referencias</div>
+      </div>
     </div>
     <div class="quick-links">
       <div class="quick-card" onclick="location.hash='#/productos'">
@@ -289,6 +333,14 @@ function renderDashboard() {
         <div class="quick-card-icon">📂</div><h3>Categorías</h3>
         <p>Gestioná las categorías del sitio.</p>
       </div>
+      <div class="quick-card" onclick="location.hash='#/avisos'">
+        <div class="quick-card-icon">📢</div><h3>Avisos</h3>
+        <p>Gestioná los avisos y anuncios del sitio.</p>
+      </div>
+      <div class="quick-card" onclick="location.hash='#/referencias'">
+        <div class="quick-card-icon">📌</div><h3>Referencias</h3>
+        <p>Gestioná las referencias e información útil.</p>
+      </div>
       <div class="quick-card" onclick="window.open('../', '_blank')">
         <div class="quick-card-icon">🌐</div><h3>Ver Sitio</h3>
         <p>Abrí el sitio público para verificar los cambios.</p>
@@ -298,7 +350,7 @@ function renderDashboard() {
       <div class="seed-zone-inner">
         <div>
           <p class="seed-zone-title">🧪 Datos de prueba</p>
-          <p class="seed-zone-desc">Generá ${SEED_CATS.length} categorías y ${SEED_PRODS.length} productos de ejemplo para testear el sistema.</p>
+          <p class="seed-zone-desc">Generá ${SEED_CATS.length} categorías, ${SEED_PRODS.length} productos, ${SEED_NOTICES.length} avisos y ${SEED_REFS.length} referencias de ejemplo.</p>
         </div>
         <button class="btn btn-ghost seed-btn" onclick="seedTestData()">Generar datos de prueba</button>
       </div>
@@ -329,10 +381,29 @@ function renderDashboard() {
         <span class="search-result-tag">Producto</span>
       </div>`;
     }).join('');
+    const mNotices = notices.filter(n =>
+      n.title?.toLowerCase().includes(q) || n.body?.toLowerCase().includes(q));
+    const mRefs = references.filter(r =>
+      r.title?.toLowerCase().includes(q) || r.body?.toLowerCase().includes(q));
+    const noticeRows = mNotices.map(n => `
+      <div class="search-result-item" onclick="openAvisoModal('${n.id}')">
+        <div class="search-result-thumb" style="font-size:1.3rem">${{info:'ℹ️',promo:'🎉',warning:'⚠️'}[n.type]??'📢'}</div>
+        <div class="search-result-info"><span class="search-result-name">${n.title ?? '—'}</span></div>
+        <span class="search-result-tag">Aviso</span>
+      </div>`).join('');
+    const refRows = mRefs.map(r => `
+      <div class="search-result-item" onclick="openReferenciaModal('${r.id}')">
+        <div class="search-result-thumb">${r.image ? `<img src="${r.image}" alt="">` : '📌'}</div>
+        <div class="search-result-info"><span class="search-result-name">${r.title ?? '—'}</span></div>
+        <span class="search-result-tag">Referencia</span>
+      </div>`).join('');
+    const hasAny = mCats.length || mProds.length || mNotices.length || mRefs.length;
     resultsHtml = `<div class="search-results">
-      ${mCats.length  ? `<p class="search-group-title">📂 Categorías (${mCats.length})</p>${catRows}` : ''}
-      ${mProds.length ? `<p class="search-group-title">👗 Productos (${mProds.length})</p>${prodRows}` : ''}
-      ${!mCats.length && !mProds.length ? `<div class="search-empty"><div class="empty-icon">🔍</div><p>Sin resultados para "<strong>${searchQuery}</strong>"</p></div>` : ''}
+      ${mCats.length    ? `<p class="search-group-title">📂 Categorías (${mCats.length})</p>${catRows}` : ''}
+      ${mProds.length   ? `<p class="search-group-title">👗 Productos (${mProds.length})</p>${prodRows}` : ''}
+      ${mNotices.length ? `<p class="search-group-title">📢 Avisos (${mNotices.length})</p>${noticeRows}` : ''}
+      ${mRefs.length    ? `<p class="search-group-title">📌 Referencias (${mRefs.length})</p>${refRows}` : ''}
+      ${!hasAny ? `<div class="search-empty"><div class="empty-icon">🔍</div><p>Sin resultados para "<strong>${searchQuery}</strong>"</p></div>` : ''}
     </div>`;
   }
 
@@ -561,6 +632,107 @@ function renderCategories() {
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+}
+
+// ── Avisos ────────────────────────────────
+function renderAvisos() {
+  const actions = document.getElementById('topbarActions');
+  actions.innerHTML = `<button class="btn btn-primary" id="btnNewAviso">+ Nuevo Aviso</button>`;
+  document.getElementById('btnNewAviso').onclick = () => openAvisoModal();
+  const content = document.getElementById('appContent');
+  const q = searchQuery.toLowerCase().trim();
+  const filtered = q ? notices.filter(n =>
+    n.title?.toLowerCase().includes(q) || n.body?.toLowerCase().includes(q)) : notices;
+
+  if (!notices.length) {
+    content.innerHTML = searchBarHtml('Buscar avisos…') + `
+      <div class="empty-state"><div class="empty-icon">📢</div>
+        <p>Todavía no hay avisos.</p>
+        <button class="btn btn-primary" onclick="document.getElementById('btnNewAviso').click()">+ Nuevo Aviso</button>
+      </div>`;
+    return;
+  }
+  if (q && !filtered.length) {
+    content.innerHTML = searchBarHtml('Buscar avisos…') + `
+      <div class="empty-state"><div class="empty-icon">🔍</div>
+        <p>Sin resultados para "<strong>${searchQuery}</strong>"</p>
+        <button class="btn btn-ghost" onclick="onSearchInput('')">Limpiar búsqueda</button>
+      </div>`;
+    return;
+  }
+  const TYPE_LABEL = { info: 'ℹ️ Info', promo: '🎉 Promo', warning: '⚠️ Aviso' };
+  const TYPE_BADGE = { info: 'badge-blue', promo: 'badge-pink', warning: 'badge-orange' };
+  const rows = filtered.map(n => `
+    <tr>
+      <td><strong>${n.title ?? '—'}</strong></td>
+      <td class="td-body-preview">${n.body ? n.body.substring(0,90) + (n.body.length > 90 ? '…' : '') : '—'}</td>
+      <td><span class="badge ${TYPE_BADGE[n.type] ?? 'badge-gray'}">${TYPE_LABEL[n.type] ?? n.type ?? '—'}</span></td>
+      <td>${n.order ?? 0}</td>
+      <td><span class="badge ${n.active !== false ? 'badge-green' : 'badge-gray'} badge-toggle"
+               onclick="toggleNoticeActive('${n.id}',${n.active !== false})" title="Click para cambiar">
+            ${n.active !== false ? 'Activo' : 'Inactivo'}</span></td>
+      <td><div class="actions-cell">
+        <button class="btn-icon edit"   onclick="openAvisoModal('${n.id}')" title="Editar">✏️</button>
+        <button class="btn-icon delete" onclick="confirmDelete('notice','${n.id}','${n.title?.replace(/'/g,"\\'")}')" title="Eliminar">🗑️</button>
+      </div></td>
+    </tr>`).join('');
+  content.innerHTML = searchBarHtml('Buscar avisos…') + `
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr>
+        <th>Título</th><th>Mensaje</th><th>Tipo</th><th>Orden</th><th>Estado</th><th>Acciones</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+// ── Referencias ───────────────────────────
+function renderReferencias() {
+  const actions = document.getElementById('topbarActions');
+  actions.innerHTML = `<button class="btn btn-primary" id="btnNewRef">+ Nueva Referencia</button>`;
+  document.getElementById('btnNewRef').onclick = () => openReferenciaModal();
+  const content = document.getElementById('appContent');
+  const q = searchQuery.toLowerCase().trim();
+  const filtered = q ? references.filter(r =>
+    r.title?.toLowerCase().includes(q) || r.body?.toLowerCase().includes(q)) : references;
+
+  if (!references.length) {
+    content.innerHTML = searchBarHtml('Buscar referencias…') + `
+      <div class="empty-state"><div class="empty-icon">📌</div>
+        <p>Todavía no hay referencias.</p>
+        <button class="btn btn-primary" onclick="document.getElementById('btnNewRef').click()">+ Nueva Referencia</button>
+      </div>`;
+    return;
+  }
+  if (q && !filtered.length) {
+    content.innerHTML = searchBarHtml('Buscar referencias…') + `
+      <div class="empty-state"><div class="empty-icon">🔍</div>
+        <p>Sin resultados para "<strong>${searchQuery}</strong>"</p>
+        <button class="btn btn-ghost" onclick="onSearchInput('')">Limpiar búsqueda</button>
+      </div>`;
+    return;
+  }
+  const rows = filtered.map(r => `
+    <tr>
+      <td>${r.image ? `<img class="thumb" src="${r.image}" alt="" loading="lazy">` : '<div class="thumb-placeholder">📌</div>'}</td>
+      <td><strong>${r.title ?? '—'}</strong></td>
+      <td class="td-body-preview">${r.body ? r.body.substring(0,80) + (r.body.length > 80 ? '…' : '') : '—'}</td>
+      <td>${r.link ? `<a href="${r.link}" target="_blank" rel="noopener" style="color:var(--pink);font-size:.8rem">Ver enlace</a>` : '—'}</td>
+      <td>${r.order ?? 0}</td>
+      <td><span class="badge ${r.active !== false ? 'badge-green' : 'badge-gray'} badge-toggle"
+               onclick="toggleRefActive('${r.id}',${r.active !== false})" title="Click para cambiar">
+            ${r.active !== false ? 'Activa' : 'Inactiva'}</span></td>
+      <td><div class="actions-cell">
+        <button class="btn-icon edit"   onclick="openReferenciaModal('${r.id}')" title="Editar">✏️</button>
+        <button class="btn-icon delete" onclick="confirmDelete('reference','${r.id}','${r.title?.replace(/'/g,"\\'")}')" title="Eliminar">🗑️</button>
+      </div></td>
+    </tr>`).join('');
+  content.innerHTML = searchBarHtml('Buscar referencias…') + `
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr>
+        <th>Imagen</th><th>Título</th><th>Contenido</th><th>Enlace</th><th>Orden</th><th>Estado</th><th>Acciones</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
 }
 
 // ══════════════════════════════════════════
@@ -1182,6 +1354,146 @@ async function saveCategory(id) {
   }
 }
 
+// ── Aviso modal ───────────────────────────
+function openAvisoModal(id) {
+  const n = id ? notices.find(x => x.id === id) : null;
+  document.getElementById('modalTitle').textContent = n ? 'Editar Aviso' : 'Nuevo Aviso';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Título *</label>
+        <input class="form-input" id="nTitle" value="${n?.title ?? ''}" placeholder="Ej: Oferta especial">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mensaje <span class="form-hint">— visible en el sitio junto al título</span></label>
+        <textarea class="form-input form-textarea" id="nBody" rows="3" placeholder="Texto del aviso…">${n?.body ?? ''}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" id="nType">
+            <option value="info"    ${(n?.type ?? 'info') === 'info'    ? 'selected' : ''}>ℹ️ Info</option>
+            <option value="promo"   ${n?.type === 'promo'   ? 'selected' : ''}>🎉 Promo</option>
+            <option value="warning" ${n?.type === 'warning' ? 'selected' : ''}>⚠️ Aviso</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Orden</label>
+          <input class="form-input" id="nOrder" type="number" min="0" value="${n?.order ?? 0}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <select class="form-select" id="nActive">
+          <option value="true"  ${n?.active !== false ? 'selected' : ''}>Activo</option>
+          <option value="false" ${n?.active === false  ? 'selected' : ''}>Inactivo</option>
+        </select>
+      </div>
+    </div>`;
+  document.getElementById('modalFooter').innerHTML = `
+    <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
+    <button class="btn btn-primary" id="modalSave">Guardar</button>`;
+  document.getElementById('modalCancel').onclick = closeModal;
+  document.getElementById('modalSave').onclick   = () => saveAviso(id);
+  openModal();
+}
+window.openAvisoModal = openAvisoModal;
+
+async function saveAviso(id) {
+  const title = document.getElementById('nTitle')?.value.trim();
+  if (!title) { toast('El título es obligatorio', 'error'); return; }
+  const saveBtn = document.getElementById('modalSave');
+  saveBtn.textContent = 'Guardando…'; saveBtn.disabled = true;
+  try {
+    const data = {
+      title, body:   document.getElementById('nBody')?.value.trim() || null,
+      type:   document.getElementById('nType')?.value || 'info',
+      order:  parseInt(document.getElementById('nOrder')?.value) || 0,
+      active: document.getElementById('nActive')?.value !== 'false',
+      updatedAt: serverTimestamp(),
+    };
+    if (id) { await updateDoc(doc(db, 'notices', id), data); toast('Aviso actualizado ✓', 'success'); }
+    else     { data.createdAt = serverTimestamp(); await addDoc(collection(db, 'notices'), data); toast('Aviso creado ✓', 'success'); }
+    closeModal(); await loadData(); renderAvisos();
+  } catch (e) { console.error(e); toast('Error al guardar: ' + e.message, 'error'); saveBtn.textContent = 'Guardar'; saveBtn.disabled = false; }
+}
+
+// ── Referencia modal ──────────────────────
+function openReferenciaModal(id) {
+  const r = id ? references.find(x => x.id === id) : null;
+  pendingImages = r?.image ? [{ url: r.image, file: null }] : [];
+  document.getElementById('modalTitle').textContent = r ? 'Editar Referencia' : 'Nueva Referencia';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Título *</label>
+        <input class="form-input" id="rTitle" value="${r?.title ?? ''}" placeholder="Ej: Talles disponibles">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contenido <span class="form-hint">— descripción o información</span></label>
+        <textarea class="form-input form-textarea" id="rBody" rows="3" placeholder="Descripción…">${r?.body ?? ''}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Enlace (opcional)</label>
+        <input class="form-input" id="rLink" type="url" value="${r?.link ?? ''}" placeholder="https://…">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Orden</label>
+          <input class="form-input" id="rOrder" type="number" min="0" value="${r?.order ?? 0}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select class="form-select" id="rActive">
+            <option value="true"  ${r?.active !== false ? 'selected' : ''}>Activa</option>
+            <option value="false" ${r?.active === false  ? 'selected' : ''}>Inactiva</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Imagen (opcional)</label>
+        <div style="margin-bottom:.6rem">
+          <label class="btn btn-ghost" style="cursor:pointer;display:inline-flex;align-items:center;gap:.4rem">
+            📁 Seleccionar imagen
+            <input type="file" id="imgInput" accept="image/*" style="display:none">
+          </label>
+          <span style="font-size:.8rem;color:var(--muted);margin-left:.8rem">Se subirá a Google Drive al guardar</span>
+        </div>
+        <div class="image-previews" id="imagePreviews"></div>
+        <div class="upload-progress" id="uploadProgress"></div>
+      </div>
+    </div>`;
+  renderPreviews(); setupFileInput();
+  document.getElementById('modalFooter').innerHTML = `
+    <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
+    <button class="btn btn-primary" id="modalSave">Guardar</button>`;
+  document.getElementById('modalCancel').onclick = closeModal;
+  document.getElementById('modalSave').onclick   = () => saveReferencia(id);
+  openModal();
+}
+window.openReferenciaModal = openReferenciaModal;
+
+async function saveReferencia(id) {
+  const title = document.getElementById('rTitle')?.value.trim();
+  if (!title) { toast('El título es obligatorio', 'error'); return; }
+  const saveBtn = document.getElementById('modalSave');
+  saveBtn.textContent = 'Guardando…'; saveBtn.disabled = true;
+  try {
+    const imageUrls = await uploadImages();
+    const data = {
+      title, body:   document.getElementById('rBody')?.value.trim() || null,
+      link:   document.getElementById('rLink')?.value.trim() || null,
+      image:  imageUrls[0] ?? null,
+      order:  parseInt(document.getElementById('rOrder')?.value) || 0,
+      active: document.getElementById('rActive')?.value !== 'false',
+      updatedAt: serverTimestamp(),
+    };
+    if (id) { await updateDoc(doc(db, 'references', id), data); toast('Referencia actualizada ✓', 'success'); }
+    else     { data.createdAt = serverTimestamp(); await addDoc(collection(db, 'references'), data); toast('Referencia creada ✓', 'success'); }
+    closeModal(); await loadData(); renderReferencias();
+  } catch (e) { console.error(e); toast('Error al guardar: ' + e.message, 'error'); saveBtn.textContent = 'Guardar'; saveBtn.disabled = false; }
+}
+
 // ══════════════════════════════════════════
 //  DELETE
 // ══════════════════════════════════════════
@@ -1333,14 +1645,43 @@ async function doDelete(type, id) {
       const driveErrors = await deleteSingleProduct(id);
       if (driveErrors) toast(`Advertencia: ${driveErrors} imagen(es) no se pudieron borrar de Drive`, 'error');
       toast('Producto eliminado', 'success');
-      await loadData();
-      renderProducts();
+      await loadData(); renderProducts();
+    } else if (type === 'notice') {
+      await deleteDoc(doc(db, 'notices', id));
+      toast('Aviso eliminado', 'success');
+      await loadData(); renderAvisos();
+    } else if (type === 'reference') {
+      const ref = references.find(r => r.id === id);
+      if (ref?.image) {
+        const fileId = driveFileIdFromUrl(ref.image);
+        if (fileId) { try { await deleteFileFromDrive(fileId); } catch (_) {} }
+      }
+      await deleteDoc(doc(db, 'references', id));
+      toast('Referencia eliminada', 'success');
+      await loadData(); renderReferencias();
     }
   } catch (e) {
     console.error(e);
     toast('Error al eliminar: ' + e.message, 'error');
   }
 }
+
+window.toggleNoticeActive = async (id, current) => {
+  try {
+    await updateDoc(doc(db, 'notices', id), { active: !current });
+    const n = notices.find(x => x.id === id);
+    if (n) n.active = !current;
+    renderAvisos();
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+};
+window.toggleRefActive = async (id, current) => {
+  try {
+    await updateDoc(doc(db, 'references', id), { active: !current });
+    const r = references.find(x => x.id === id);
+    if (r) r.active = !current;
+    renderReferencias();
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+};
 
 // ══════════════════════════════════════════
 //  TOAST
