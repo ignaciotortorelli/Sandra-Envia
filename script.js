@@ -91,16 +91,20 @@ function applySettings(s) {
   // Social logos
   if (s.facebookLogoUrl) {
     const el = document.getElementById('fbLogoImg');
-    if (el) el.src = s.facebookLogoUrl;
+    if (el) el.src = driveImgUrl(s.facebookLogoUrl) || s.facebookLogoUrl;
   }
-  if (s.instagramLogoUrl) {
-    const el = document.getElementById('igLogoArea');
-    if (el) el.innerHTML = `<img src="${s.instagramLogoUrl}" alt="Instagram" style="width:48px;height:48px;object-fit:contain;border-radius:8px">`;
-  }
-  if (s.tiktokLogoUrl) {
-    const el = document.getElementById('ttLogoArea');
-    if (el) el.innerHTML = `<img src="${s.tiktokLogoUrl}" alt="TikTok" style="width:48px;height:48px;object-fit:contain;border-radius:8px">`;
-  }
+  const setSocialLogo = (spanId, url, alt) => {
+    const el = document.getElementById(spanId);
+    if (!el || !url) return;
+    const src = driveImgUrl(url) || url;
+    el.textContent = '';
+    const img = document.createElement('img');
+    img.src = src; img.alt = alt; img.className = 'social-custom-logo';
+    el.appendChild(img);
+    el.classList.add('has-logo');
+  };
+  setSocialLogo('igLogoArea', s.instagramLogoUrl, 'Instagram');
+  setSocialLogo('ttLogoArea', s.tiktokLogoUrl,    'TikTok');
 
   // Logos
   if (s.logoUrl) {
