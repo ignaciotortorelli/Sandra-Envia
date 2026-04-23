@@ -1145,7 +1145,7 @@ function initTickerDrag(sliderEl) {
   sliderEl.addEventListener('touchend',   e => onEnd(e.changedTouches[0].clientX),  { passive: true });
 }
 
-// ── 3D carousel: drag + click-to-center ───────────────────
+// ── 3D carousel: drag + momentum + click-to-center ────────
 let _c3dRaf = null;
 function initCarousel3d() {
   const wrapEl   = document.querySelector('.carousel-3d-wrap');
@@ -1156,16 +1156,19 @@ function initCarousel3d() {
   const items = [...carousel.querySelectorAll(':scope > div')];
   if (!items.length) return;
 
-  const N      = items.length;
-  const degPer = 360 / N;
-  const SPEED  = -360 / 25; // deg/sec
+  const N       = items.length;
+  const degPer  = 360 / N;
+  const NATURAL = -360 / 25; // deg/sec — the "resting" rotation speed
+  const DAMPING = 1.2;        // how quickly momentum decays back to natural speed
 
-  let angle = 0, paused = false, lastTs = null;
+  let angle = 0, lastTs = null;
+  let velocity = NATURAL;     // current deg/sec (starts at natural)
+  let paused = false;
   let dragState = null, selectedIdx = null, pauseTimer = null;
+  let velTrack = [];           // [{x, t}] for velocity sampling
 
   if (_c3dRaf) cancelAnimationFrame(_c3dRaf);
 
-  // Remove CSS animation; items keep their CSS positional transforms
   carousel.style.animation = 'none';
   items.forEach(it => { it.style.animation = 'none'; it.style.filter = ''; });
 
@@ -1180,18 +1183,40 @@ function initCarousel3d() {
 
   function loop(ts) {
     if (lastTs !== null && !paused && !dragState) {
-      setAngle(angle + SPEED * (ts - lastTs) / 1000);
+      const dt = (ts - lastTs) / 1000;
+      // Exponentially decay velocity toward natural speed
+      velocity += (NATURAL - velocity) * (1 - Math.exp(-DAMPING * dt));
+      setAngle(angle + velocity * dt);
     }
     lastTs = ts;
     _c3dRaf = requestAnimationFrame(loop);
   }
   _c3dRaf = requestAnimationFrame(loop);
 
-  // Drag
+  // Drag — with velocity sampling for momentum
   const SENS = 0.5;
-  function dragStart(x) { dragState = { x0: x, a0: angle }; deselect(); }
-  function dragMove(x)  { if (!dragState) return; setAngle(dragState.a0 + (x - dragState.x0) * SENS); }
-  function dragEnd()    { dragState = null; }
+  function dragStart(x) {
+    dragState = { x0: x, a0: angle };
+    velTrack = [{ x, t: performance.now() }];
+    deselect();
+  }
+  function dragMove(x) {
+    if (!dragState) return;
+    setAngle(dragState.a0 + (x - dragState.x0) * SENS);
+    velTrack.push({ x, t: performance.now() });
+    if (velTrack.length > 6) velTrack.shift();
+  }
+  function dragEnd() {
+    if (!dragState) return;
+    // Compute velocity from recent samples
+    if (velTrack.length >= 2) {
+      const a = velTrack[0], b = velTrack[velTrack.length - 1];
+      const dt = (b.t - a.t) / 1000;
+      if (dt > 0.01) velocity = ((b.x - a.x) * SENS) / dt;
+    }
+    dragState = null;
+    lastTs = performance.now(); // reset so loop doesn't jump
+  }
 
   wrapEl.addEventListener('mousedown',  e => { dragStart(e.clientX); e.preventDefault(); });
   document.addEventListener('mousemove',e => dragMove(e.clientX));
