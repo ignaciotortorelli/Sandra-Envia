@@ -14,8 +14,13 @@ const db  = getFirestore(app);
 // Convert any Drive URL to the embeddable thumbnail format
 function driveImgUrl(url) {
   if (!url) return null;
-  const m = url.match(/[?&]id=([^&]+)/);
-  return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800` : url;
+  // ?id=FILE_ID  (old export/open links)
+  let m = url.match(/[?&]id=([^&]+)/);
+  if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`;
+  // /file/d/FILE_ID/  (standard share links)
+  m = url.match(/\/file\/d\/([^/?]+)/);
+  if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`;
+  return url;
 }
 
 const fmtARS = n => n != null

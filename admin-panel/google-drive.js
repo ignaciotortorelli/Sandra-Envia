@@ -82,7 +82,10 @@ export async function getDriveUserInfo() {
 
 // ── Extract Drive file ID from stored URL ──────────────────
 export function driveFileIdFromUrl(url) {
-  const m = url?.match(/[?&]id=([^&]+)/);
+  if (!url) return null;
+  let m = url.match(/[?&]id=([^&]+)/);
+  if (m) return m[1];
+  m = url.match(/\/file\/d\/([^/?]+)/);
   return m ? m[1] : null;
 }
 
