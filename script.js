@@ -724,29 +724,56 @@ function renderNotices(notices) {
     </div>`).join('');
 }
 
-// ── Testimonios ────────────────────────────────────────────
+// ── Testimonios carousel ───────────────────────────────────
 function renderRefs(refs) {
   const section = document.getElementById('testimonios');
   const grid    = document.getElementById('testimoniosGrid');
   if (!section || !grid) return;
   if (!refs.length) { section.style.display = 'none'; return; }
   section.style.display = '';
-  grid.innerHTML = refs.map(r => `
-    <article class="testimonial reveal">
-      <div class="t-stars" aria-hidden="true">⭐⭐⭐⭐⭐</div>
-      <blockquote>${r.body ?? ''}</blockquote>
-      <footer class="t-author">
-        <div class="t-avatar" aria-hidden="true">
-          ${r.image
-            ? `<img src="${driveImgUrl(r.image)}" alt="${r.title}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
-            : '👩'}
-        </div>
-        <div>
-          <strong>${r.title ?? ''}</strong>
-          ${r.link ? `<a href="${r.link}" target="_blank" rel="noopener noreferrer" style="color:var(--pink);font-size:.75rem">Ver perfil</a>` : ''}
-        </div>
-      </footer>
-    </article>`).join('');
+
+  const slides = refs.map(r => `
+    <div class="testimonial-slide">
+      <div class="testimonial-img-wrap">
+        ${r.image
+          ? `<img src="${driveImgUrl(r.image)}" alt="${r.title ?? 'Testimonio'}" loading="lazy">`
+          : `<div style="height:200px;display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--pink-bg)">💬</div>`}
+      </div>
+      ${r.title ? `<p class="testimonial-caption">${r.title}</p>` : ''}
+    </div>`).join('');
+
+  grid.innerHTML = `
+    <div class="testimonios-carousel" aria-roledescription="carrusel" aria-label="Testimonios">
+      <div class="testimonios-track" id="testimoniosTrack">${slides}</div>
+    </div>`;
+
+  if (refs.length > 1) startTestimonioCarousel(refs.length);
+}
+
+function startTestimonioCarousel(total) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const track = document.getElementById('testimoniosTrack');
+  if (!track) return;
+
+  // Clone first slide for seamless infinite loop
+  const first = track.querySelector('.testimonial-slide');
+  if (first) track.appendChild(first.cloneNode(true));
+
+  let current = 0;
+  setInterval(() => {
+    current++;
+    track.style.transition = 'transform .7s cubic-bezier(.4,0,.2,1)';
+    track.style.transform  = `translateX(-${current * 100}%)`;
+
+    if (current >= total) {
+      // After the slide-out animation ends, silently jump back to real first
+      setTimeout(() => {
+        track.style.transition = 'none';
+        track.style.transform  = 'translateX(0)';
+        current = 0;
+      }, 750);
+    }
+  }, 4500);
 }
 
 // ── Init ───────────────────────────────────────────────────
