@@ -966,7 +966,7 @@ function renderNotices(notices) {
     </div>`).join('');
 
   grid.innerHTML = `
-    <div class="t-slider" style="--quantity:${qty}; --width:220px; --height:70px; --dur:12s">
+    <div class="t-slider" style="--quantity:${qty}; --width:220px; --height:110px; --dur:24s">
       <div class="t-list">${items}</div>
     </div>`;
 }

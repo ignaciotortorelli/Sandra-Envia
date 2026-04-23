@@ -1943,8 +1943,8 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 }
 .aviso-2d-icon    { font-size: .9rem; flex-shrink: 0; line-height: 1; }
 .aviso-2d-content { flex: 1; min-width: 0; }
-.aviso-2d-title   { display: block; font-size: .67rem; font-weight: 700; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.aviso-2d-body    { display: block; font-size: .6rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: .05rem; }
+.aviso-2d-title   { display: block; font-size: .68rem; font-weight: 700; color: var(--black); line-height: 1.3; }
+.aviso-2d-body    { display: block; font-size: .61rem; color: var(--text-muted); margin-top: .15rem; line-height: 1.45; }
 .aviso-2d-img     { width: 38px; height: 38px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
 
 [data-theme="dark"] .avisos-section  { background: #1A1A2E; border-bottom-color: rgba(255,255,255,.07); }
