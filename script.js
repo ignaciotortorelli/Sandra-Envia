@@ -340,6 +340,7 @@ window.openAllProductsModal = function() {
   } else {
     prods.forEach((prod, i) => {
       const card = buildProductCard(prod, i);
+      card.classList.add('visible');
       grid.appendChild(card);
       attachCarouselAuto(card, prod.id);
     });

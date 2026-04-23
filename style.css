@@ -656,8 +656,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .card-3d > div:nth-child(8)  { transform:translate(-50%,-50%) rotateY(252deg) translateZ(250px); animation-delay:-17.5s; }
 .card-3d > div:nth-child(9)  { transform:translate(-50%,-50%) rotateY(288deg) translateZ(250px); animation-delay:-20s; }
 .card-3d > div:nth-child(10) { transform:translate(-50%,-50%) rotateY(324deg) translateZ(250px); animation-delay:-22.5s; }
-.card-3d:hover,
-.card-3d:hover > div { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) {
   .card-3d, .card-3d > div { animation-play-state: paused !important; }
 }
