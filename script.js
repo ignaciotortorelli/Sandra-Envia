@@ -286,28 +286,68 @@ function buildProductCard(prod, index) {
   return card;
 }
 
-// ── Render all individual products ────────────────────────────
+// ── Render all individual products — 3D carousel ──────────────
 function renderAllProducts(products, categories) {
   window._productMap  = Object.fromEntries(products.map(p => [p.id, p]));
   window._categoryMap = Object.fromEntries(categories.map(c => [c.id, c]));
 
-  const grid = document.getElementById('allProductsGrid');
-  if (!grid) return;
+  const carousel = document.getElementById('carousel3d');
+  if (!carousel) return;
+  if (!products.length) return;
 
-  const sorted = [...products].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'es'));
+  // Always fill 10 slots — cycle through products if fewer than 10
+  const slots = Array.from({ length: 10 }, (_, i) => products[i % products.length]);
 
-  if (!sorted.length) {
-    grid.innerHTML = '<p style="color:var(--text-muted);font-size:.9rem;grid-column:1/-1">Próximamente.</p>';
-    return;
-  }
-  grid.innerHTML = '';
-  sorted.forEach((prod, i) => {
-    const card = buildProductCard(prod, i);
-    card.classList.add('visible');
-    grid.appendChild(card);
-    attachCarouselAuto(card, prod.id);
-  });
+  carousel.innerHTML = slots.map(prod => {
+    const cat      = window._categoryMap?.[prod.categoryId];
+    const img      = driveImgUrl(prod.images?.[0]);
+    const grad     = cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)';
+    const discPct  = prod.discount > 0 ? prod.discount : null;
+    const discPrice = (prod.price && discPct) ? Math.round(prod.price * (1 - discPct / 100)) : null;
+    const effPrice  = discPrice ?? prod.price;
+
+    const stockBadge = prod.inStock === false
+      ? '<span class="prod-badge-out">Sin stock</span>'
+      : '<span class="prod-badge-in">En stock</span>';
+    const discBadge = discPct ? `<span class="prod-badge-discount">−${discPct}%</span>` : '';
+    const bulkBadge = (prod.bulkMinQty && prod.bulkPrice)
+      ? `<span class="prod-badge-bulk">Mayor ×${prod.bulkMinQty}</span>` : '';
+
+    return `
+      <div>
+        <div class="prod-3d-img" style="background:${grad}">
+          ${img ? `<img src="${img}" alt="${prod.name ?? ''}" loading="lazy">` : `<span class="card-emoji">${cat?.emoji ?? '👗'}</span>`}
+          ${stockBadge}${discBadge}${bulkBadge}
+        </div>
+        <div class="prod-3d-body">
+          <p class="prod-3d-name">${prod.name ?? '—'}</p>
+          ${effPrice ? `<p class="prod-3d-price">${fmtARS(effPrice)}</p>` : ''}
+          <button class="prod-3d-btn" onclick="addToCart('${prod.id}')"
+                  ${prod.inStock === false ? 'disabled' : ''}>🛒 Agregar</button>
+        </div>
+      </div>`;
+  }).join('');
 }
+
+window.openAllProductsModal = function() {
+  const prods = Object.values(window._productMap ?? {})
+    .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'es'));
+  document.getElementById('catModalTitle').textContent = '👗 Todos los productos';
+  const grid = document.getElementById('catModalGrid');
+  grid.innerHTML = '';
+  if (!prods.length) {
+    grid.innerHTML = '<p style="grid-column:1/-1;color:var(--text-muted);text-align:center;padding:2rem">No hay productos todavía.</p>';
+  } else {
+    prods.forEach((prod, i) => {
+      const card = buildProductCard(prod, i);
+      grid.appendChild(card);
+      attachCarouselAuto(card, prod.id);
+    });
+  }
+  document.getElementById('catModalOverlay').setAttribute('aria-hidden', 'false');
+  document.getElementById('catModalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
 
 // ── Category products modal ────────────────────────────────
 window.openCategoryProducts = function(catId) {

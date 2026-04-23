@@ -201,14 +201,22 @@
     </section>
 
     <!-- ═══════════════════════ TODOS LOS PRODUCTOS ═══════════════════════ -->
-    <section id="productos" class="section section-gray" aria-labelledby="productos-titulo">
+    <section id="productos" class="section section-gray" aria-labelledby="productos-titulo" style="overflow:visible">
       <div class="container">
         <div class="section-header reveal">
           <span class="section-tag">Galería</span>
           <h2 id="productos-titulo" class="section-title">Todos los Productos</h2>
-          <p class="section-subtitle">Explorá cada artículo disponible y consultá por WhatsApp.</p>
+          <p class="section-subtitle">Explorá cada artículo disponible.</p>
         </div>
-        <div class="products-grid" id="allProductsGrid" role="list" aria-label="Todos los productos"></div>
+        <div class="carousel-3d-wrap">
+          <div class="card-3d" id="carousel3d"></div>
+        </div>
+        <div class="carousel-3d-cta">
+          <button class="btn btn-primary" onclick="openAllProductsModal()">
+            Todos los productos
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
       </div>
     </section>
 

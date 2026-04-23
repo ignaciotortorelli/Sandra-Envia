@@ -607,6 +607,95 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* ══════════════════════════════════════════
+   3D PRODUCT CAROUSEL
+   ══════════════════════════════════════════ */
+.carousel-3d-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 5rem 0 4rem;
+  overflow: visible;
+}
+@keyframes autoRun3d {
+  from { transform: perspective(900px) rotateY(-360deg); }
+  to   { transform: perspective(900px) rotateY(0deg); }
+}
+@keyframes animateBrightness {
+  10% { filter: brightness(1); }
+  50% { filter: brightness(0.12); }
+  90% { filter: brightness(1); }
+}
+.card-3d {
+  position: relative;
+  width: 160px;
+  height: 240px;
+  transform-style: preserve-3d;
+  transform: perspective(900px);
+  animation: autoRun3d 25s linear infinite;
+  will-change: transform;
+}
+.card-3d > div {
+  position: absolute;
+  width: 150px; height: 232px;
+  top: 50%; left: 50%;
+  transform-origin: center center;
+  animation: animateBrightness 25s linear infinite;
+  will-change: transform, filter;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: var(--white);
+  box-shadow: var(--sh-md);
+  display: flex; flex-direction: column;
+}
+.card-3d > div:nth-child(1)  { transform:translate(-50%,-50%) rotateY(0deg)   translateZ(250px); animation-delay:0s; }
+.card-3d > div:nth-child(2)  { transform:translate(-50%,-50%) rotateY(36deg)  translateZ(250px); animation-delay:-2.5s; }
+.card-3d > div:nth-child(3)  { transform:translate(-50%,-50%) rotateY(72deg)  translateZ(250px); animation-delay:-5s; }
+.card-3d > div:nth-child(4)  { transform:translate(-50%,-50%) rotateY(108deg) translateZ(250px); animation-delay:-7.5s; }
+.card-3d > div:nth-child(5)  { transform:translate(-50%,-50%) rotateY(144deg) translateZ(250px); animation-delay:-10s; }
+.card-3d > div:nth-child(6)  { transform:translate(-50%,-50%) rotateY(180deg) translateZ(250px); animation-delay:-12.5s; }
+.card-3d > div:nth-child(7)  { transform:translate(-50%,-50%) rotateY(216deg) translateZ(250px); animation-delay:-15s; }
+.card-3d > div:nth-child(8)  { transform:translate(-50%,-50%) rotateY(252deg) translateZ(250px); animation-delay:-17.5s; }
+.card-3d > div:nth-child(9)  { transform:translate(-50%,-50%) rotateY(288deg) translateZ(250px); animation-delay:-20s; }
+.card-3d > div:nth-child(10) { transform:translate(-50%,-50%) rotateY(324deg) translateZ(250px); animation-delay:-22.5s; }
+.card-3d:hover,
+.card-3d:hover > div { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+  .card-3d, .card-3d > div { animation-play-state: paused !important; }
+}
+.prod-3d-img {
+  width: 100%; height: 148px;
+  position: relative; overflow: hidden; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.prod-3d-img img { width:100%; height:100%; object-fit:cover; object-position:top center; display:block; }
+.prod-3d-img .card-emoji { font-size: 2.5rem; }
+.prod-3d-img .prod-badge-in,
+.prod-3d-img .prod-badge-out  { font-size:.52rem; padding:.15rem .4rem; top:.4rem; right:.4rem; }
+.prod-3d-img .prod-badge-discount { font-size:.52rem; padding:.15rem .4rem; top:.4rem; left:.4rem; }
+.prod-3d-img .prod-badge-bulk { font-size:.52rem; padding:.15rem .4rem; bottom:.4rem; left:.4rem; }
+.prod-3d-body {
+  flex:1; padding:.45rem .5rem .4rem;
+  display:flex; flex-direction:column; gap:.15rem;
+}
+.prod-3d-name  { font-size:.62rem; font-weight:600; line-height:1.3; color:var(--black); overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.prod-3d-price { font-size:.6rem; color:var(--text-muted); }
+.prod-3d-btn {
+  margin-top:auto; width:100%;
+  background:var(--black); color:var(--white);
+  border:none; border-radius:var(--r-sm);
+  font-size:.58rem; font-weight:600; padding:.28rem .3rem;
+  cursor:pointer; font-family:var(--ff-body);
+  transition:background var(--ease);
+}
+.prod-3d-btn:hover:not(:disabled) { background:var(--pink); }
+.prod-3d-btn:disabled { background:#bbb; cursor:default; }
+.carousel-3d-cta { text-align:center; margin-top:2rem; }
+
+[data-theme="dark"] .card-3d > div { background:#1A1A2E; box-shadow:0 4px 20px rgba(0,0,0,.5); }
+[data-theme="dark"] .prod-3d-name  { color:#F0EBFF; }
+[data-theme="dark"] .prod-3d-btn   { background:var(--pink); }
+[data-theme="dark"] .prod-3d-btn:hover:not(:disabled) { background:var(--pink-dark); }
+
+/* ══════════════════════════════════════════
    CÓMO COMPRAR
    ══════════════════════════════════════════ */
 .steps-grid {
