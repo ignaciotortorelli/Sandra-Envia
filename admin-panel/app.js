@@ -1869,6 +1869,40 @@ function renderAjustes() {
         </div>
       </div>
 
+      <div class="settings-section">
+        <h3 class="settings-section-title">📦 Opciones de envío</h3>
+        <p class="settings-note">Aparecen en el carrito y en la sección de Logística del sitio. Dejá el precio en 0 si es "a confirmar".</p>
+        ${[0,1,2].map(i => {
+          const c = (s.carriers ?? [])[i] ?? [
+            { name: 'OCA',              businessDays: 3 },
+            { name: 'Andreani',         businessDays: 4 },
+            { name: 'Correo Argentino', businessDays: 7 },
+          ][i];
+          return `
+          <div class="carrier-settings-row">
+            <div class="form-group">
+              <label class="form-label">Nombre</label>
+              <input class="form-input" id="c${i}name" value="${c?.name ?? ''}" placeholder="Ej: OCA">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Precio ($)</label>
+              <input class="form-input" id="c${i}price" type="number" min="0" value="${c?.price ?? 0}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Días hábiles</label>
+              <input class="form-input" id="c${i}days" type="number" min="1" value="${c?.businessDays ?? 3}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estado</label>
+              <select class="form-select" id="c${i}active">
+                <option value="true"  ${c?.active !== false ? 'selected' : ''}>Activo</option>
+                <option value="false" ${c?.active === false  ? 'selected' : ''}>Inactivo</option>
+              </select>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+
     </div>`;
 
   document.getElementById('btnSaveSettings').onclick = saveSettings;
@@ -1894,6 +1928,12 @@ async function saveSettings() {
       minOrderARS:     parseFloat(document.getElementById('sMinOrderARS')?.value) || null,
       logoUrl:         document.getElementById('sLogoUrl')?.value.trim(),
       ellasLogoUrl:    document.getElementById('sEllasLogoUrl')?.value.trim(),
+      carriers: [0,1,2].map(i => ({
+        name:         document.getElementById(`c${i}name`)?.value.trim(),
+        price:        parseFloat(document.getElementById(`c${i}price`)?.value) || 0,
+        businessDays: parseInt(document.getElementById(`c${i}days`)?.value)    || 3,
+        active:       document.getElementById(`c${i}active`)?.value !== 'false',
+      })).filter(c => c.name),
       updatedAt:       serverTimestamp(),
     };
     await setDoc(doc(db, 'settings', 'main'), data);

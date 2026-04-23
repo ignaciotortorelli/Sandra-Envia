@@ -1738,6 +1738,66 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
   text-decoration: underline;
 }
 .cart-clear-btn:hover { color: #e53e3e; }
+.cart-wa-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ── Cart: por curva note ── */
+.cart-curva-note {
+  display: flex; gap: .5rem; align-items: flex-start;
+  background: rgba(247,37,133,.06);
+  border-left: 3px solid var(--pink);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: .55rem .75rem;
+  margin-bottom: .85rem;
+  font-size: .71rem; color: var(--text-muted); line-height: 1.45;
+}
+.cart-curva-note span { flex-shrink: 0; line-height: 1.6; }
+.cart-curva-note strong { color: var(--black); }
+
+/* ── Cart: carrier selector ── */
+.cart-shipping { margin-bottom: .85rem; }
+.cart-section-label {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--text-muted); margin-bottom: .45rem;
+}
+.cart-carriers { display: flex; flex-direction: column; gap: .35rem; }
+.carrier-opt {
+  display: flex; align-items: center; gap: .65rem;
+  padding: .55rem .75rem;
+  border: 1.5px solid #e0e0e0;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.carrier-opt:hover { border-color: var(--pink); }
+.carrier-opt.selected { border-color: var(--pink); background: rgba(247,37,133,.05); }
+.carrier-opt input[type="radio"] { accent-color: var(--pink); flex-shrink: 0; }
+.carrier-opt-body strong { font-size: .8rem; display: block; }
+.carrier-opt-body span   { font-size: .69rem; color: var(--text-muted); }
+
+/* ── Cart: min purchase bar ── */
+.cart-min-purchase { margin-bottom: .6rem; }
+.cart-min-header {
+  display: flex; justify-content: space-between;
+  font-size: .72rem; margin-bottom: .3rem;
+}
+.cart-min-status { font-weight: 600; color: var(--text-muted); }
+.cart-min-status.met { color: #22a64a; }
+.cart-min-bar { height: 5px; background: #e8e8e8; border-radius: 99px; overflow: hidden; }
+.cart-min-fill { height: 100%; background: var(--pink); border-radius: 99px; transition: width .4s ease; }
+.cart-min-fill.met { background: #22a64a; }
+.cart-min-warning { font-size: .72rem; color: var(--pink-dark); text-align: center; margin-bottom: .5rem; font-weight: 600; }
+
+/* ── Shipping section: carrier with price/days ── */
+.carrier-price { font-size: .72rem; font-weight: 700; color: rgba(255,255,255,.95); display: block; margin-top: .2rem; }
+.carrier-days  { font-size: .67rem; color: rgba(255,255,255,.65); display: block; }
+.carrier-name  { display: block; }
+
+/* dark mode */
+[data-theme="dark"] .cart-curva-note { background: rgba(247,37,133,.1); }
+[data-theme="dark"] .cart-curva-note strong { color: #F0EBFF; }
+[data-theme="dark"] .carrier-opt { border-color: rgba(255,255,255,.15); }
+[data-theme="dark"] .carrier-opt.selected { background: rgba(247,37,133,.12); }
+[data-theme="dark"] .cart-min-bar { background: rgba(255,255,255,.1); }
 
 /* ══════════════════════════════════════════
    ELLAS ITUZAINGÓ BRANDING

@@ -1111,6 +1111,9 @@ tr.row-drag-over > td { background: rgba(247,37,133,.07) !important; box-shadow:
 .seed-note { font-size: .8rem; color: var(--muted); }
 
 [data-theme="dark"] .seed-zone { border-color: rgba(255,255,255,.1); }
+.carrier-settings-row { display: grid; grid-template-columns: 1fr 100px 100px 110px; gap: .75rem; margin-bottom: .75rem; padding-bottom: .75rem; border-bottom: 1px solid var(--gray-line); }
+.carrier-settings-row:last-of-type { border-bottom: none; margin-bottom: 0; }
+[data-theme="dark"] .carrier-settings-row { border-bottom-color: rgba(255,255,255,.07); }
 [data-theme="dark"] .seed-zone-title { color: #F0EBFF; }
 
 /* ── Settings page ── */

@@ -42,6 +42,22 @@ async function loadSettings() {
 
 function applySettings(s) {
   if (!s) return;
+  window._siteSettings = s;
+
+  // Update carriers in the shipping section
+  const carriersEl = document.getElementById('carriersGrid');
+  if (carriersEl && s.carriers?.length) {
+    const active = s.carriers.filter(c => c.active !== false && c.name);
+    if (active.length) {
+      carriersEl.innerHTML = active.map(c => `
+        <div class="carrier reveal" role="listitem">
+          <div class="carrier-badge">${c.name.replace(/\s+.*/, '').slice(0,3).toUpperCase()}</div>
+          <span class="carrier-name">${c.name}</span>
+          ${c.price       ? `<span class="carrier-price">${fmtARS(c.price)}</span>` : ''}
+          ${c.businessDays? `<span class="carrier-days">~${c.businessDays} días hábiles</span>` : ''}
+        </div>`).join('');
+    }
+  }
 
   // WhatsApp number — update module vars and all .wa-link hrefs
   if (s.waNumber) {
@@ -731,6 +747,24 @@ function setupFloating() {
 //  CART
 // ══════════════════════════════════════════
 let cart = [];
+let selectedCarrierId = null;
+
+window.selectCarrier = name => { selectedCarrierId = name; renderCart(); };
+
+function addBusinessDays(date, n) {
+  const d = new Date(date);
+  let added = 0;
+  while (added < n) {
+    d.setDate(d.getDate() + 1);
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) added++;
+  }
+  return d;
+}
+function deliveryDateStr(businessDays) {
+  return addBusinessDays(new Date(), businessDays)
+    .toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
+}
 
 function loadCartFromStorage() {
   try { cart = JSON.parse(localStorage.getItem('se_cart') ?? '[]'); } catch { cart = []; }
@@ -865,42 +899,87 @@ function renderCart() {
     </div>`;
   }).join('');
 
-  const totalUnits   = cart.reduce((s, i) => s + i.qty, 0);
-  const totalItems   = cart.length;
-  const allHavePrice = cart.every(i => effectivePrice(i) != null);
-  const totalPrice   = cart.reduce((s, i) => s + (effectivePrice(i) ?? 0) * i.qty, 0);
+  const totalUnits    = cart.reduce((s, i) => s + i.qty, 0);
+  const totalItems    = cart.length;
+  const allHavePrice  = cart.every(i => effectivePrice(i) != null);
+  const prodTotal     = cart.reduce((s, i) => s + (effectivePrice(i) ?? 0) * i.qty, 0);
+
+  const settings       = window._siteSettings ?? {};
+  const minPurchaseARS = settings.minOrderARS ?? null;
+  const activeCarriers = (settings.carriers ?? []).filter(c => c.active !== false && c.name);
+  const carrier        = activeCarriers.find(c => c.name === selectedCarrierId) ?? null;
+  const carrierPrice   = carrier?.price ?? 0;
+  const grandTotal     = prodTotal + carrierPrice;
+  const meetsMin       = !minPurchaseARS || !allHavePrice || prodTotal >= minPurchaseARS;
+  const remaining      = minPurchaseARS && allHavePrice ? Math.max(0, minPurchaseARS - prodTotal) : 0;
+  const minPct         = minPurchaseARS ? Math.min(100, (prodTotal / minPurchaseARS) * 100) : 100;
+
+  const WA_SVG = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`;
 
   footer.innerHTML = `
+    <div class="cart-curva-note">
+      <span>ℹ️</span>
+      <p><strong>Talles y colores surtidos (por curva).</strong> En compras mayoristas los artículos vienen en una mezcla de talles y/o colores según stock. Si necesitás una combinación específica, consultanos antes de confirmar.</p>
+    </div>
+
+    ${activeCarriers.length ? `
+    <div class="cart-shipping">
+      <p class="cart-section-label">Modalidad de envío</p>
+      <div class="cart-carriers">
+        ${activeCarriers.map(c => `
+          <label class="carrier-opt ${selectedCarrierId === c.name ? 'selected' : ''}">
+            <input type="radio" name="carrier" value="${c.name}"
+                   ${selectedCarrierId === c.name ? 'checked' : ''}
+                   onchange="selectCarrier('${c.name}')">
+            <div class="carrier-opt-body">
+              <strong>${c.name}</strong>
+              <span>${c.price ? fmtARS(c.price) : 'A consultar'} · ~${c.businessDays} días hábiles · est. ${deliveryDateStr(c.businessDays)}</span>
+            </div>
+          </label>`).join('')}
+      </div>
+    </div>` : ''}
+
     <div class="cart-totals">
-      <div class="cart-total-row">
-        <span>Productos</span>
-        <strong>${totalItems} artículo${totalItems !== 1 ? 's' : ''}</strong>
-      </div>
-      <div class="cart-total-row">
-        <span>Unidades</span>
-        <strong>${totalUnits} u.</strong>
-      </div>
+      <div class="cart-total-row"><span>Productos</span><strong>${totalItems} artículo${totalItems !== 1 ? 's' : ''}</strong></div>
+      <div class="cart-total-row"><span>Unidades</span><strong>${totalUnits} u.</strong></div>
+      ${carrier ? `<div class="cart-total-row"><span>Envío (${carrier.name})</span><strong>${carrier.price ? fmtARS(carrier.price) : 'A confirmar'}</strong></div>` : ''}
       <div class="cart-total-row cart-total-price">
-        <span>Total</span>
-        <strong>${allHavePrice ? fmtARS(totalPrice) : 'A consultar'}</strong>
+        <span>Total${carrier ? ' con envío' : ''}</span>
+        <strong>${allHavePrice ? fmtARS(grandTotal) : 'A consultar'}</strong>
       </div>
     </div>
-    <button class="btn btn-wa cart-wa-btn" id="cartSendWa">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      Enviar pedido por WhatsApp
+
+    ${minPurchaseARS ? `
+    <div class="cart-min-purchase">
+      <div class="cart-min-header">
+        <span>Compra mínima: ${fmtARS(minPurchaseARS)}</span>
+        <span class="cart-min-status ${meetsMin ? 'met' : ''}">${meetsMin ? '✓ Alcanzada' : `Faltan ${fmtARS(remaining)}`}</span>
+      </div>
+      <div class="cart-min-bar"><div class="cart-min-fill ${meetsMin ? 'met' : ''}" style="width:${minPct}%"></div></div>
+    </div>` : ''}
+
+    ${!meetsMin ? `<p class="cart-min-warning">Completá la compra mínima para enviar el pedido.</p>` : ''}
+
+    <button class="btn btn-wa cart-wa-btn" id="cartSendWa" ${!meetsMin ? 'disabled' : ''}>
+      ${WA_SVG} Enviar pedido por WhatsApp
     </button>
     <button class="cart-clear-btn" id="cartClear">Vaciar carrito</button>`;
 
   document.getElementById('cartSendWa').onclick = sendCartWhatsApp;
   document.getElementById('cartClear').onclick  = () => {
-    cart = [];
-    saveCartToStorage();
-    updateCartBadge();
-    renderCart();
+    cart = []; saveCartToStorage(); updateCartBadge(); renderCart();
   };
 }
 
 function sendCartWhatsApp() {
+  const settings     = window._siteSettings ?? {};
+  const carrier      = (settings.carriers ?? []).find(c => c.name === selectedCarrierId) ?? null;
+  const allHavePrice = cart.every(i => effectivePrice(i) != null);
+  const prodTotal    = cart.reduce((s, i) => s + (effectivePrice(i) ?? 0) * i.qty, 0);
+  const carrierPrice = carrier?.price ?? 0;
+  const grandTotal   = prodTotal + carrierPrice;
+  const totalUnits   = cart.reduce((s, i) => s + i.qty, 0);
+
   const lines = cart.map(i => {
     const eff    = effectivePrice(i);
     const isBulk = i.bulkMinQty && i.bulkPrice && i.qty >= i.bulkMinQty;
@@ -911,20 +990,27 @@ function sendCartWhatsApp() {
     return `• ${i.qty} u. de *${i.name}*${priceStr}`;
   });
 
-  const totalUnits   = cart.reduce((s, i) => s + i.qty, 0);
-  const allHavePrice = cart.every(i => effectivePrice(i) != null);
-  const totalPrice   = cart.reduce((s, i) => s + (effectivePrice(i) ?? 0) * i.qty, 0);
-  const totalLine    = allHavePrice ? `*Total: ${totalUnits} unidades · ${fmtARS(totalPrice)}*` : `*Total: ${totalUnits} unidades*`;
+  const totalBlock = allHavePrice
+    ? `*Subtotal productos: ${fmtARS(prodTotal)}*`
+      + (carrier ? `\n*Envío ${carrier.name}: ${carrier.price ? fmtARS(carrierPrice) : 'a confirmar'}*\n*Total: ${fmtARS(grandTotal)}*` : '')
+    : `*Total: ${totalUnits} unidades (precios a confirmar)*`;
+
+  const shipLine = carrier
+    ? `📦 Envío: ${carrier.name} (~${carrier.businessDays} días hábiles, est. ${deliveryDateStr(carrier.businessDays)})`
+    : '';
 
   const msg = [
     'Hola Sandra! Te hago el siguiente pedido 🛒',
     '',
     ...lines,
     '',
-    totalLine,
+    totalBlock,
+    shipLine,
     '',
-    '¿Podés confirmar disponibilidad y coordinar el envío?',
-  ].join('\n');
+    '_Nota: talles y colores surtidos por curva._',
+    '',
+    '¿Podés confirmar disponibilidad?',
+  ].filter(l => l !== '').join('\n');
 
   window.open(`https://wa.me/${WA_NUM}?text=${encodeURIComponent(msg)}`, '_blank');
 }
