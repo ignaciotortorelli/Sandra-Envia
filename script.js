@@ -352,6 +352,8 @@ function renderAllProducts(products, categories) {
         </div>
       </div>`;
   }).join('');
+
+  requestAnimationFrame(initCarousel3d);
 }
 
 window.openAllProductsModal = function() {
@@ -1064,6 +1066,7 @@ function renderNotices(notices) {
     <div class="t-slider" style="--quantity:${qty}; --width:220px; --height:110px; --dur:24s">
       <div class="t-list">${items}</div>
     </div>`;
+  initTickerDrag(grid.querySelector('.t-slider'));
 }
 
 // ── Testimonios carousel (CSS-only infinite ticker) ────────
@@ -1089,6 +1092,147 @@ function renderRefs(refs) {
     <div class="t-slider" style="--quantity: ${qty}">
       <div class="t-list">${items}</div>
     </div>`;
+  initTickerDrag(grid.querySelector('.t-slider'));
+}
+
+// ══════════════════════════════════════════
+//  CAROUSEL INTERACTIONS (drag + hover + click)
+// ══════════════════════════════════════════
+
+// ── 2D ticker: drag to scrub ───────────────────────────────
+function initTickerDrag(sliderEl) {
+  if (!sliderEl) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const items = [...sliderEl.querySelectorAll('.item')];
+  const list  = sliderEl.querySelector('.t-list');
+  if (!items.length || !list) return;
+
+  const cardW = parseFloat(getComputedStyle(sliderEl).getPropertyValue('--width')) || 200;
+  const dur   = parseFloat(getComputedStyle(sliderEl).getPropertyValue('--dur'))   || 16;
+
+  let dragging = false, startX = 0;
+
+  function pauseAll()  { items.forEach(it => it.style.animationPlayState = 'paused'); }
+  function resumeAll() { items.forEach(it => it.style.animationPlayState = 'running'); }
+
+  function commit(endX) {
+    const delta    = endX - startX;
+    const sliderW  = sliderEl.offsetWidth;
+    const totalD   = sliderW + cardW;
+    const sliderR  = sliderEl.getBoundingClientRect();
+    items.forEach(it => {
+      const curLeft = it.getBoundingClientRect().left - sliderR.left;
+      let prog = (sliderW - curLeft) / totalD;
+      prog = ((prog % 1) + 1) % 1;
+      it.style.animationDelay = -(prog * dur) + 's';
+    });
+    list.style.transform = '';
+    resumeAll();
+  }
+
+  function onStart(x) { dragging = true; startX = x; pauseAll(); }
+  function onMove(x)  { if (!dragging) return; list.style.transform = `translateX(${x - startX}px)`; }
+  function onEnd(x)   { if (!dragging) return; dragging = false; commit(x); }
+
+  sliderEl.style.cursor = 'grab';
+  sliderEl.addEventListener('mousedown', e => { onStart(e.clientX); e.preventDefault(); });
+  document.addEventListener('mousemove', e => onMove(e.clientX));
+  document.addEventListener('mouseup',   e => onEnd(e.clientX));
+
+  sliderEl.addEventListener('touchstart', e => onStart(e.touches[0].clientX),       { passive: true });
+  sliderEl.addEventListener('touchmove',  e => onMove(e.touches[0].clientX),        { passive: true });
+  sliderEl.addEventListener('touchend',   e => onEnd(e.changedTouches[0].clientX),  { passive: true });
+}
+
+// ── 3D carousel: drag + click-to-center ───────────────────
+let _c3dRaf = null;
+function initCarousel3d() {
+  const wrapEl   = document.querySelector('.carousel-3d-wrap');
+  const carousel = document.getElementById('carousel3d');
+  if (!wrapEl || !carousel) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const items = [...carousel.querySelectorAll(':scope > div')];
+  if (!items.length) return;
+
+  const N      = items.length;
+  const degPer = 360 / N;
+  const SPEED  = -360 / 25; // deg/sec
+
+  let angle = 0, paused = false, lastTs = null;
+  let dragState = null, selectedIdx = null, pauseTimer = null;
+
+  if (_c3dRaf) cancelAnimationFrame(_c3dRaf);
+
+  // Remove CSS animation; items keep their CSS positional transforms
+  carousel.style.animation = 'none';
+  items.forEach(it => { it.style.animation = 'none'; it.style.filter = ''; });
+
+  function setAngle(a) { angle = a; carousel.style.transform = `perspective(900px) rotateY(${a}deg)`; }
+
+  function deselect() {
+    selectedIdx = null;
+    items.forEach(it => it.classList.remove('c3d-selected'));
+    paused = false;
+    clearTimeout(pauseTimer);
+  }
+
+  function loop(ts) {
+    if (lastTs !== null && !paused && !dragState) {
+      setAngle(angle + SPEED * (ts - lastTs) / 1000);
+    }
+    lastTs = ts;
+    _c3dRaf = requestAnimationFrame(loop);
+  }
+  _c3dRaf = requestAnimationFrame(loop);
+
+  // Drag
+  const SENS = 0.5;
+  function dragStart(x) { dragState = { x0: x, a0: angle }; deselect(); }
+  function dragMove(x)  { if (!dragState) return; setAngle(dragState.a0 + (x - dragState.x0) * SENS); }
+  function dragEnd()    { dragState = null; }
+
+  wrapEl.addEventListener('mousedown',  e => { dragStart(e.clientX); e.preventDefault(); });
+  document.addEventListener('mousemove',e => dragMove(e.clientX));
+  document.addEventListener('mouseup',  () => dragEnd());
+  wrapEl.addEventListener('touchstart', e => dragStart(e.touches[0].clientX), { passive: true });
+  wrapEl.addEventListener('touchmove',  e => { if (dragState) dragMove(e.touches[0].clientX); }, { passive: true });
+  wrapEl.addEventListener('touchend',   () => dragEnd());
+
+  // Click to center
+  items.forEach((it, idx) => {
+    it.addEventListener('click', e => {
+      if (dragState) return;
+      e.stopPropagation();
+      if (selectedIdx === idx) { deselect(); return; }
+
+      const target = -(idx * degPer);
+      let diff = ((target - angle) % 360 + 540) % 360 - 180;
+      const a0 = angle, t0 = performance.now();
+      paused = true; lastTs = null;
+
+      (function snap(ts) {
+        const t = Math.min((ts - t0) / 450, 1);
+        const e = t < .5 ? 2*t*t : -1+(4-2*t)*t;
+        setAngle(a0 + diff * e);
+        if (t < 1) { requestAnimationFrame(snap); return; }
+        lastTs = performance.now();
+        selectedIdx = idx;
+        items.forEach((el, i) => el.classList.toggle('c3d-selected', i === idx));
+        clearTimeout(pauseTimer);
+        pauseTimer = setTimeout(deselect, 5000);
+      })(performance.now());
+    });
+  });
+
+  // Hover (mouse only — no touch)
+  items.forEach(it => {
+    it.addEventListener('mouseenter', () => { if (!dragState) it.classList.add('c3d-hover'); });
+    it.addEventListener('mouseleave', () => it.classList.remove('c3d-hover'));
+  });
+
+  wrapEl.style.cursor = 'grab';
 }
 
 // ── Init ───────────────────────────────────────────────────

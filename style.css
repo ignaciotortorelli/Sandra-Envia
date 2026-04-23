@@ -925,6 +925,17 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   .t-list .item { animation-play-state: paused; }
 }
 
+/* 2D ticker — hover lift (mouse only, no pause) */
+.t-list .item { transition: transform .25s ease; }
+.t-list .item:hover { transform: translateY(-10px) scale(1.04) !important; z-index: 10; filter: brightness(1) !important; }
+
+/* 3D carousel — hover glow + selected ring */
+.card-3d { cursor: grab; }
+.card-3d:active { cursor: grabbing; }
+.card-3d > div { transition: box-shadow .25s, filter .25s; cursor: pointer; }
+.card-3d > div.c3d-hover    { box-shadow: var(--sh-lg), 0 0 0 3px var(--pink); filter: brightness(1.06); z-index: 5; }
+.card-3d > div.c3d-selected { box-shadow: 0 0 0 3px var(--pink-dark), 0 12px 40px rgba(247,37,133,.4); z-index: 6; }
+
 /* Card inside each item */
 .t-screenshot {
   width: 100%;
