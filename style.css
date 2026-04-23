@@ -833,11 +833,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   from { left: 100%; }
   to   { left: calc(var(--width) * -1); }
 }
-.t-slider:hover .item {
-  animation-play-state: paused;
-  filter: grayscale(.55);
-}
-.t-slider .item:hover { filter: grayscale(0); }
 
 @media (prefers-reduced-motion: reduce) {
   .t-list .item { animation-play-state: paused; }
