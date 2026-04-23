@@ -160,6 +160,7 @@ function buildProductCard(prod, index) {
   const badge       = prod.inStock === false ? '<span class="prod-badge-out">Sin stock</span>' : '<span class="prod-badge-in">En stock</span>';
   const discPct     = prod.discount > 0 ? prod.discount : null;
   const discBadge   = discPct ? `<span class="prod-badge-discount">−${discPct}%</span>` : '';
+  const bulkBadge   = (prod.bulkMinQty && prod.bulkPrice) ? `<span class="prod-badge-bulk">Mayor ×${prod.bulkMinQty}</span>` : '';
   const discPrice   = (prod.price && discPct) ? Math.round(prod.price * (1 - discPct / 100)) : null;
   const price       = prod.price
     ? `<p class="card-note">${discPrice
@@ -178,7 +179,7 @@ function buildProductCard(prod, index) {
   card.innerHTML = `
     <div class="card-img card-img-carousel" style="background:${grad}"
          ${images.length ? `onclick="openProductLightbox('${cid}')"` : ''}>
-      ${imgHtml}${carouselControls}${badge}${discBadge}
+      ${imgHtml}${carouselControls}${badge}${discBadge}${bulkBadge}
     </div>
     <div class="card-body">
       <h3 class="card-name">${prod.name ?? '—'}</h3>
