@@ -414,6 +414,8 @@ img { display: block; max-width: 100%; }
 .badge-red    { background: #fde8e8; color: #c0303b; }
 .badge-gray   { background: var(--gray-bg); color: var(--muted); }
 .badge-orange { background: #fff0e0; color: #c0620a; }
+.badge-toggle { cursor: pointer; transition: filter var(--ease); }
+.badge-toggle:hover { filter: brightness(.88); }
 [data-theme="dark"] .badge-orange { background: rgba(255,154,60,.15); color: #FF9A3C; }
 
 .cell-note { font-size: .75rem; color: var(--muted); }

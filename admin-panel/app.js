@@ -347,7 +347,7 @@ function renderProducts() {
           ${p.bulkMinQty && p.bulkPrice ? `<br><span class="cell-note">×${p.bulkMinQty}: ${fmtARS(p.bulkPrice)}</span>` : ''}
         </td>
         <td>${p.minOrder ? p.minOrder + ' u.' : '—'}</td>
-        <td><span class="badge ${p.inStock ? 'badge-green' : 'badge-red'}">${p.inStock ? '✓ En stock' : '✗ Sin stock'}</span></td>
+        <td><span class="badge ${p.inStock ? 'badge-green' : 'badge-red'} badge-toggle" onclick="toggleStock('${p.id}',${p.inStock})" title="Click para cambiar">${p.inStock ? '✓ En stock' : '✗ Sin stock'}</span></td>
         <td>
           <div class="actions-cell">
             <button class="btn-icon edit"   onclick="openProductModal('${p.id}')" title="Editar">✏️</button>
@@ -422,7 +422,7 @@ function renderCategories() {
         <td><strong>${c.name}</strong></td>
         <td>${c.order ?? 0}</td>
         <td>${prodCount}</td>
-        <td><span class="badge ${c.active !== false ? 'badge-green' : 'badge-gray'}">${c.active !== false ? 'Activa' : 'Inactiva'}</span></td>
+        <td><span class="badge ${c.active !== false ? 'badge-green' : 'badge-gray'} badge-toggle" onclick="toggleActive('${c.id}',${c.active !== false})" title="Click para cambiar">${c.active !== false ? 'Activa' : 'Inactiva'}</span></td>
         <td>
           <div class="actions-cell">
             <button class="btn-icon edit"   onclick="openCategoryModal('${c.id}')" title="Editar">✏️</button>
@@ -517,6 +517,24 @@ window.toggleAllCats = (checked) => {
 };
 window.clearProdSelection = () => { selectedProds.clear(); renderProducts(); };
 window.clearCatSelection  = () => { selectedCats.clear(); renderCategories(); };
+
+window.toggleStock = async (id, current) => {
+  try {
+    await updateDoc(doc(db, 'products', id), { inStock: !current, updatedAt: serverTimestamp() });
+    const p = products.find(p => p.id === id);
+    if (p) p.inStock = !current;
+    renderProducts();
+  } catch (e) { toast('Error al actualizar stock: ' + e.message, 'error'); }
+};
+
+window.toggleActive = async (id, current) => {
+  try {
+    await updateDoc(doc(db, 'categories', id), { active: !current });
+    const c = categories.find(c => c.id === id);
+    if (c) c.active = !current;
+    renderCategories();
+  } catch (e) { toast('Error al actualizar categoría: ' + e.message, 'error'); }
+};
 
 window.bulkDeleteProds = () => {
   const ids = [...selectedProds];
