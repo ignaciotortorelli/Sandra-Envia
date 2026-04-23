@@ -562,7 +562,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   position: absolute;
   top: .6rem;
   left: .6rem;
-  background: #FF9A3C;
+  background: #16a34a;
   color: #fff;
   font-size: .65rem;
   font-weight: 700;
@@ -587,7 +587,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 .price-original   { color: var(--text-muted); text-decoration: line-through; margin-right: .2rem; font-size: .9em; }
-.price-discounted { color: var(--pink-dark); }
+.price-discounted { color: #16a34a; }
 .card-note-bulk   { color: #0984E3; font-weight: 500; }
 
 [data-theme="dark"] .card-note-bulk { color: #74B9FF; }
@@ -1653,6 +1653,10 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
   padding: .1rem .4rem;
   border-radius: var(--r-pill);
 }
+.cart-price-note--discount {
+  background: rgba(22,163,74,.12);
+  color: #15803d;
+}
 .cart-bulk-hint {
   font-size: .7rem;
   color: #0984E3;
@@ -1660,6 +1664,7 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 }
 [data-theme="dark"] .cart-bulk-hint { color: #74B9FF; }
 [data-theme="dark"] .cart-price-note { background: rgba(247,37,133,.18); color: #FF85A1; }
+[data-theme="dark"] .cart-price-note--discount { background: rgba(22,163,74,.18); color: #4ade80; }
 .qty-btn:disabled { opacity: .3; cursor: default; pointer-events: none; }
 
 .cart-item-controls {

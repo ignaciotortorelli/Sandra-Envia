@@ -873,7 +873,7 @@ function renderCart() {
       ? `<p class="cart-item-price">
            ${fmtARS(eff)}
            ${isBulk ? `<span class="cart-price-note">precio por mayor</span>` : ''}
-           ${isDisc ? `<span class="cart-price-note">−${item.discount}%</span>` : ''}
+           ${isDisc ? `<span class="cart-price-note cart-price-note--discount">−${item.discount}%</span>` : ''}
          </p>`
       : `<p class="cart-item-price cart-item-price--consult">A consultar</p>`;
     const bulkHint = (item.bulkMinQty && item.bulkPrice && item.qty < item.bulkMinQty)

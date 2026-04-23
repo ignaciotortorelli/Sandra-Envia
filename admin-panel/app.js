@@ -545,7 +545,7 @@ function renderProducts() {
         <td>${cat?.name ?? '—'}</td>
         <td>
           ${p.price != null ? fmtARS(p.price) : '—'}
-          ${p.discount ? `<br><span class="badge badge-orange">−${p.discount}%</span>` : ''}
+          ${p.discount ? `<br><span class="badge badge-discount">−${p.discount}%</span>` : ''}
           ${p.bulkMinQty && p.bulkPrice ? `<br><span class="cell-note">×${p.bulkMinQty}: ${fmtARS(p.bulkPrice)}</span>` : ''}
         </td>
         <td>${p.minOrder ? p.minOrder + ' u.' : '—'}</td>
