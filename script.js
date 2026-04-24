@@ -140,10 +140,9 @@ async function loadCatalog() {
   if (!grid) return;
 
   try {
-    const [catSnap, prodSnap, noticeSnap, refSnap] = await Promise.all([
+    const [catSnap, prodSnap, refSnap] = await Promise.all([
       getDocs(collection(db, 'categories')),
       getDocs(collection(db, 'products')),
-      getDocs(collection(db, 'notices')),
       getDocs(collection(db, 'references')),
     ]);
 
@@ -170,11 +169,8 @@ async function loadCatalog() {
 
     renderAllProducts(products, categories);
 
-    const activeNotices = noticeSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-      .filter(n => n.active !== false).sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
     const activeRefs = refSnap.docs.map(d => ({ id: d.id, ...d.data() }))
       .filter(r => r.active !== false).sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
-    renderNotices(activeNotices);
     renderRefs(activeRefs);
 
     setupRevealObserver();
@@ -1040,35 +1036,6 @@ function setupThemeToggle() {
 }
 
 // ── Avisos — carousel 2D ───────────────────────────────────
-function renderNotices(notices) {
-  const section = document.getElementById('avisos');
-  const grid    = document.getElementById('avisosGrid');
-  if (!section || !grid) return;
-  if (!notices.length) { section.style.display = 'none'; return; }
-  section.style.display = '';
-
-  const ICON = { info: 'ℹ️', promo: '🎉', warning: '⚠️' };
-  const qty  = notices.length;
-
-  const items = notices.map((n, i) => `
-    <div class="item" style="--position: ${i + 1}">
-      <div class="aviso-2d aviso-${n.type ?? 'info'}">
-        <span class="aviso-2d-icon" aria-hidden="true">${ICON[n.type] ?? 'ℹ️'}</span>
-        <div class="aviso-2d-content">
-          <strong class="aviso-2d-title">${n.title}</strong>
-          ${n.body ? `<p class="aviso-2d-body">${n.body}</p>` : ''}
-        </div>
-        ${n.image ? `<img src="${driveImgUrl(n.image)}" class="aviso-2d-img" alt="" loading="lazy">` : ''}
-      </div>
-    </div>`).join('');
-
-  grid.innerHTML = `
-    <div class="t-slider" style="--quantity:${qty}; --width:220px; --height:110px; --dur:24s">
-      <div class="t-list">${items}</div>
-    </div>`;
-  initTickerDrag(grid.querySelector('.t-slider'));
-}
-
 // ── Testimonios carousel (CSS-only infinite ticker) ────────
 function renderRefs(refs) {
   const section = document.getElementById('testimonios');
@@ -1128,7 +1095,7 @@ function initTickerDrag(sliderEl) {
     const captured = items.map(it => it.getBoundingClientRect().left - r.left);
     list.style.transform = '';
     items.forEach((it, i) => {
-      it.style.animation = 'none';
+      it.style.animationName = 'none';
       it.style.left = captured[i] + 'px';
     });
     lefts = captured;
@@ -1154,11 +1121,10 @@ function initTickerDrag(sliderEl) {
     items.forEach((it, i) => {
       let prog = (W - lefts[i]) / P;
       prog = ((prog % 1) + 1) % 1;
-      it.style.animationName = 'none';
-      void it.offsetWidth;
-      it.style.left      = '';
-      it.style.animation = '';
       it.style.animationDelay = -(prog * dur) + 's';
+      void it.offsetWidth;
+      it.style.left = '';
+      it.style.animationName = '';
     });
     jsMode = false;
   }
