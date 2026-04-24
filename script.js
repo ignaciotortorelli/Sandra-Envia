@@ -213,7 +213,7 @@ function buildCategoryCard(cat, catProducts, index) {
     <div class="carousel-dots">
       ${allImgs.map((_, i) => `<span class="carousel-dot${i===0?' active':''}" data-cid="${cid}" data-idx="${i}"></span>`).join('')}
     </div>
-    <div class="carousel-bar" data-cid="${cid}"></div>` : '';
+` : '';
 
   const priceRange = getPriceRange(catProducts);
   const stockBadge = catProducts.length === 0
@@ -273,7 +273,7 @@ function buildProductCard(prod, index) {
     <div class="carousel-dots">
       ${images.map((_, i) => `<span class="carousel-dot${i===0?' active':''}" data-cid="${cid}" data-idx="${i}"></span>`).join('')}
     </div>
-    <div class="carousel-bar" data-cid="${cid}"></div>` : '';
+` : '';
 
   const badge       = prod.inStock === false ? '<span class="prod-badge-out">Sin stock</span>' : '<span class="prod-badge-in">En stock</span>';
   const discPct     = prod.discount > 0 ? prod.discount : null;
@@ -556,25 +556,15 @@ window.carouselGo = function(event, cid, dir) {
   restartProgressBar(cid);
 };
 
-function restartProgressBar(cid) {
-  document.querySelectorAll(`.carousel-bar[data-cid="${cid}"]`).forEach(bar => {
-    bar.classList.remove('running');
-    void bar.offsetWidth;
-    bar.classList.add('running');
-  });
-}
-
 function startCarouselAuto(cid) {
   if (window._carouselTimers[cid]) return;
   if ((window._carouselImages[cid] ?? []).length <= 1) return;
-  restartProgressBar(cid);
   window._carouselTimers[cid] = setInterval(() => window.carouselGo(null, cid, 1), 3000);
 }
 
 function stopCarouselAuto(cid) {
   clearInterval(window._carouselTimers[cid]);
   delete window._carouselTimers[cid];
-  document.querySelectorAll(`.carousel-bar[data-cid="${cid}"]`).forEach(bar => bar.classList.remove('running'));
 }
 
 function attachCarouselAuto(card, cid) {

@@ -1251,23 +1251,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .carousel-dot.active { background: #fff; }
 .card-img-carousel[onclick] { cursor: zoom-in; }
 
-.carousel-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  width: 0;
-  background: rgba(255,255,255,.85);
-  z-index: 3;
-  border-radius: 0 2px 2px 0;
-}
-.carousel-bar.running {
-  animation: carousel-progress 3s linear forwards;
-}
-@keyframes carousel-progress {
-  from { width: 0; }
-  to   { width: 100%; }
-}
 
 /* ══════════════════════════════════════════
    CATEGORY PRODUCTS MODAL
