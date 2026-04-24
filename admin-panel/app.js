@@ -28,8 +28,10 @@ let pendingImages = []; // { file, url } during product form
 
 let productSort  = { field: 'name', dir: 1 };
 let categorySort = { field: 'order', dir: 1 };
-let selectedProds = new Set();
-let selectedCats  = new Set();
+let selectedProds       = new Set();
+let selectedCats        = new Set();
+let selectedAvisos      = new Set();
+let selectedTestimonios = new Set();
 let searchQuery   = '';
 
 // ── Firebase status indicator ──────────────────────────────
@@ -718,8 +720,11 @@ function renderAvisos() {
   }
   const TYPE_LABEL = { info: 'ℹ️ Info', promo: '🎉 Promo', warning: '⚠️ Aviso' };
   const TYPE_BADGE = { info: 'badge-blue', promo: 'badge-pink', warning: 'badge-orange' };
-  const rows = filtered.map(n => `
-    <tr>
+  const rows = filtered.map(n => {
+    const sel = selectedAvisos.has(n.id);
+    return `
+    <tr class="${sel ? 'row-checked' : ''}">
+      <td class="td-check"><input type="checkbox" class="row-check" ${sel ? 'checked' : ''} onchange="toggleAviso('${n.id}',this.checked)"></td>
       <td>${n.image ? `<img class="thumb" src="${n.image}" alt="" loading="lazy">` : '<div class="thumb-placeholder">📢</div>'}</td>
       <td><strong>${n.title ?? '—'}</strong></td>
       <td class="td-body-preview">${n.body ? n.body.substring(0,80) + (n.body.length > 80 ? '…' : '') : '—'}</td>
@@ -732,10 +737,23 @@ function renderAvisos() {
         <button class="btn-icon edit"   onclick="openAvisoModal('${n.id}')" title="Editar">✏️</button>
         <button class="btn-icon delete" onclick="confirmDelete('notice','${n.id}','${n.title?.replace(/'/g,"\\'")}')" title="Eliminar">🗑️</button>
       </div></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
+
+  const allCheckedAv = filtered.length > 0 && filtered.every(n => selectedAvisos.has(n.id));
+  const bulkBarAv = selectedAvisos.size ? `
+    <div class="bulk-bar">
+      <span>${selectedAvisos.size} aviso(s) seleccionado(s)</span>
+      <button class="btn btn-secondary btn-sm" onclick="bulkEditAvisos()">✏️ Editar seleccionados</button>
+      <button class="btn btn-danger btn-sm"    onclick="bulkDeleteAvisos()">🗑️ Eliminar seleccionados</button>
+      <button class="btn btn-ghost btn-sm"     onclick="clearAvisoSelection()">✕ Deseleccionar</button>
+    </div>` : '';
+
   content.innerHTML = searchBarHtml('Buscar avisos…') + `
+    ${bulkBarAv}
     <div class="table-wrap"><table class="data-table">
       <thead><tr>
+        <th class="td-check"><input type="checkbox" id="checkAllAvisos" ${allCheckedAv ? 'checked' : ''} onchange="toggleAllAvisos(this.checked)"></th>
         <th>Imagen</th><th>Título</th><th>Mensaje</th><th>Tipo</th><th>Orden</th><th>Estado</th><th>Acciones</th>
       </tr></thead>
       <tbody>${rows}</tbody>
@@ -768,8 +786,11 @@ function renderTestimonios() {
       </div>`;
     return;
   }
-  const rows = filtered.map(r => `
-    <tr>
+  const rows = filtered.map(r => {
+    const sel = selectedTestimonios.has(r.id);
+    return `
+    <tr class="${sel ? 'row-checked' : ''}">
+      <td class="td-check"><input type="checkbox" class="row-check" ${sel ? 'checked' : ''} onchange="toggleTestimonio('${r.id}',this.checked)"></td>
       <td>${r.image ? `<img class="thumb" src="${r.image}" alt="" loading="lazy">` : '<div class="thumb-placeholder">📌</div>'}</td>
       <td><strong>${r.title ?? '—'}</strong></td>
       <td class="td-body-preview">${r.body ? r.body.substring(0,80) + (r.body.length > 80 ? '…' : '') : '—'}</td>
@@ -782,10 +803,23 @@ function renderTestimonios() {
         <button class="btn-icon edit"   onclick="openTestimonioModal('${r.id}')" title="Editar">✏️</button>
         <button class="btn-icon delete" onclick="confirmDelete('testimonio','${r.id}','${r.title?.replace(/'/g,"\\'")}')" title="Eliminar">🗑️</button>
       </div></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
+
+  const allCheckedTe = filtered.length > 0 && filtered.every(r => selectedTestimonios.has(r.id));
+  const bulkBarTe = selectedTestimonios.size ? `
+    <div class="bulk-bar">
+      <span>${selectedTestimonios.size} testimonio(s) seleccionado(s)</span>
+      <button class="btn btn-secondary btn-sm" onclick="bulkEditTestimonios()">✏️ Editar seleccionados</button>
+      <button class="btn btn-danger btn-sm"    onclick="bulkDeleteTestimonios()">🗑️ Eliminar seleccionados</button>
+      <button class="btn btn-ghost btn-sm"     onclick="clearTestimonioSelection()">✕ Deseleccionar</button>
+    </div>` : '';
+
   content.innerHTML = searchBarHtml('Buscar testimonios…') + `
+    ${bulkBarTe}
     <div class="table-wrap"><table class="data-table">
       <thead><tr>
+        <th class="td-check"><input type="checkbox" id="checkAllTestimonios" ${allCheckedTe ? 'checked' : ''} onchange="toggleAllTestimonios(this.checked)"></th>
         <th>Imagen</th><th>Título</th><th>Contenido</th><th>Enlace</th><th>Orden</th><th>Estado</th><th>Acciones</th>
       </tr></thead>
       <tbody>${rows}</tbody>
@@ -843,6 +877,26 @@ window.toggleAllCats = (checked) => {
 };
 window.clearProdSelection = () => { selectedProds.clear(); renderProducts(); };
 window.clearCatSelection  = () => { selectedCats.clear(); renderCategories(); };
+
+window.toggleAviso = (id, checked) => {
+  if (checked) selectedAvisos.add(id); else selectedAvisos.delete(id);
+  renderAvisos();
+};
+window.toggleAllAvisos = (checked) => {
+  notices.forEach(n => checked ? selectedAvisos.add(n.id) : selectedAvisos.delete(n.id));
+  renderAvisos();
+};
+window.clearAvisoSelection = () => { selectedAvisos.clear(); renderAvisos(); };
+
+window.toggleTestimonio = (id, checked) => {
+  if (checked) selectedTestimonios.add(id); else selectedTestimonios.delete(id);
+  renderTestimonios();
+};
+window.toggleAllTestimonios = (checked) => {
+  testimonios.forEach(r => checked ? selectedTestimonios.add(r.id) : selectedTestimonios.delete(r.id));
+  renderTestimonios();
+};
+window.clearTestimonioSelection = () => { selectedTestimonios.clear(); renderTestimonios(); };
 
 // ── Bulk edit products ────────────────────
 window.bulkEditProds = () => {
@@ -948,6 +1002,148 @@ async function runBulkEdit(ids) {
     btn.textContent = 'Aplicar cambios'; btn.disabled = false;
   }
 }
+
+// ── Bulk avisos ───────────────────────────
+window.bulkDeleteAvisos = () => {
+  const ids = [...selectedAvisos];
+  if (!ids.length) return;
+  const overlay = document.getElementById('confirmOverlay');
+  document.getElementById('confirmTitle').textContent   = '¿Confirmar eliminación?';
+  document.getElementById('confirmMessage').textContent =
+    `¿Eliminar ${ids.length} aviso(s)? Esta acción no se puede deshacer.`;
+  overlay.classList.add('open'); overlay.setAttribute('aria-hidden', 'false');
+  document.getElementById('confirmCancel').onclick = () => {
+    overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true');
+  };
+  document.getElementById('confirmOk').onclick = async () => {
+    overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true');
+    selectedAvisos.clear();
+    for (const id of ids) {
+      try { await deleteDoc(doc(db, 'notices', id)); }
+      catch (e) { toast('Error al eliminar aviso: ' + e.message, 'error'); }
+    }
+    toast(`${ids.length} aviso(s) eliminado(s)`, 'success');
+    await loadData(); renderAvisos();
+  };
+};
+
+window.bulkEditAvisos = () => {
+  const ids = [...selectedAvisos];
+  if (!ids.length) return;
+  document.getElementById('modalTitle').textContent = `Editar ${ids.length} aviso(s)`;
+  document.getElementById('modalBody').innerHTML = `
+    <p class="bulk-edit-info">Solo se actualizan los campos activados.</p>
+    <div class="bulk-fields">
+      <div class="bulk-field">
+        <label class="bulk-toggle"><input type="checkbox" id="applyAvisoType"> Tipo</label>
+        <select class="form-select" id="bAvisoType" disabled>
+          <option value="info">ℹ️ Info</option>
+          <option value="promo">🎉 Promo</option>
+          <option value="warning">⚠️ Aviso</option>
+        </select>
+      </div>
+      <div class="bulk-field">
+        <label class="bulk-toggle"><input type="checkbox" id="applyAvisoActive"> Estado</label>
+        <select class="form-select" id="bAvisoActive" disabled>
+          <option value="yes">✓ Activo</option>
+          <option value="no">✗ Inactivo</option>
+        </select>
+      </div>
+    </div>`;
+  document.getElementById('modalFooter').innerHTML = `
+    <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
+    <button class="btn btn-primary" id="modalSave">Aplicar cambios</button>`;
+  document.getElementById('modalCancel').onclick = closeModal;
+  [['applyAvisoType', 'bAvisoType'], ['applyAvisoActive', 'bAvisoActive']].forEach(([ckId, inpId]) => {
+    const ck = document.getElementById(ckId);
+    const inp = document.getElementById(inpId);
+    ck?.addEventListener('change', () => { inp.disabled = !ck.checked; });
+  });
+  document.getElementById('modalSave').onclick = async () => {
+    const updates = {};
+    if (document.getElementById('applyAvisoType')?.checked)
+      updates.type = document.getElementById('bAvisoType')?.value;
+    if (document.getElementById('applyAvisoActive')?.checked)
+      updates.active = document.getElementById('bAvisoActive')?.value !== 'no';
+    if (!Object.keys(updates).length) { toast('Activá al menos un campo', 'error'); return; }
+    const btn = document.getElementById('modalSave');
+    btn.textContent = 'Guardando…'; btn.disabled = true;
+    try {
+      for (const id of ids) await updateDoc(doc(db, 'notices', id), updates);
+      closeModal(); toast(`${ids.length} aviso(s) actualizado(s) ✓`, 'success');
+      selectedAvisos.clear(); await loadData(); renderAvisos();
+    } catch (e) {
+      toast('Error: ' + e.message, 'error');
+      btn.textContent = 'Aplicar cambios'; btn.disabled = false;
+    }
+  };
+  openModal();
+};
+
+// ── Bulk testimonios ──────────────────────
+window.bulkDeleteTestimonios = () => {
+  const ids = [...selectedTestimonios];
+  if (!ids.length) return;
+  const overlay = document.getElementById('confirmOverlay');
+  document.getElementById('confirmTitle').textContent   = '¿Confirmar eliminación?';
+  document.getElementById('confirmMessage').textContent =
+    `¿Eliminar ${ids.length} testimonio(s)? Esta acción no se puede deshacer.`;
+  overlay.classList.add('open'); overlay.setAttribute('aria-hidden', 'false');
+  document.getElementById('confirmCancel').onclick = () => {
+    overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true');
+  };
+  document.getElementById('confirmOk').onclick = async () => {
+    overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true');
+    selectedTestimonios.clear();
+    for (const id of ids) {
+      try { await deleteDoc(doc(db, 'testimonios', id)); }
+      catch (e) { toast('Error al eliminar testimonio: ' + e.message, 'error'); }
+    }
+    toast(`${ids.length} testimonio(s) eliminado(s)`, 'success');
+    await loadData(); renderTestimonios();
+  };
+};
+
+window.bulkEditTestimonios = () => {
+  const ids = [...selectedTestimonios];
+  if (!ids.length) return;
+  document.getElementById('modalTitle').textContent = `Editar ${ids.length} testimonio(s)`;
+  document.getElementById('modalBody').innerHTML = `
+    <p class="bulk-edit-info">Solo se actualizan los campos activados.</p>
+    <div class="bulk-fields">
+      <div class="bulk-field">
+        <label class="bulk-toggle"><input type="checkbox" id="applyTestActive"> Estado</label>
+        <select class="form-select" id="bTestActive" disabled>
+          <option value="yes">✓ Activo</option>
+          <option value="no">✗ Inactivo</option>
+        </select>
+      </div>
+    </div>`;
+  document.getElementById('modalFooter').innerHTML = `
+    <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
+    <button class="btn btn-primary" id="modalSave">Aplicar cambios</button>`;
+  document.getElementById('modalCancel').onclick = closeModal;
+  const ck = document.getElementById('applyTestActive');
+  const inp = document.getElementById('bTestActive');
+  ck?.addEventListener('change', () => { inp.disabled = !ck.checked; });
+  document.getElementById('modalSave').onclick = async () => {
+    const updates = {};
+    if (document.getElementById('applyTestActive')?.checked)
+      updates.active = document.getElementById('bTestActive')?.value !== 'no';
+    if (!Object.keys(updates).length) { toast('Activá al menos un campo', 'error'); return; }
+    const btn = document.getElementById('modalSave');
+    btn.textContent = 'Guardando…'; btn.disabled = true;
+    try {
+      for (const id of ids) await updateDoc(doc(db, 'testimonios', id), updates);
+      closeModal(); toast(`${ids.length} testimonio(s) actualizado(s) ✓`, 'success');
+      selectedTestimonios.clear(); await loadData(); renderTestimonios();
+    } catch (e) {
+      toast('Error: ' + e.message, 'error');
+      btn.textContent = 'Aplicar cambios'; btn.disabled = false;
+    }
+  };
+  openModal();
+};
 
 // ── Category drag-and-drop reorder ────────
 let catDragSrcId = null;
