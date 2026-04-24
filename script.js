@@ -140,9 +140,10 @@ async function loadCatalog() {
   if (!grid) return;
 
   try {
-    const [catSnap, prodSnap, refSnap] = await Promise.all([
+    const [catSnap, prodSnap, noticeSnap, refSnap] = await Promise.all([
       getDocs(collection(db, 'categories')),
       getDocs(collection(db, 'products')),
+      getDocs(collection(db, 'notices')),
       getDocs(collection(db, 'references')),
     ]);
 
@@ -169,8 +170,11 @@ async function loadCatalog() {
 
     renderAllProducts(products, categories);
 
+    const activeNotices = noticeSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(n => n.active !== false).sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
     const activeRefs = refSnap.docs.map(d => ({ id: d.id, ...d.data() }))
       .filter(r => r.active !== false).sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+    renderNotices(activeNotices);
     renderRefs(activeRefs);
 
     setupRevealObserver();
@@ -1036,6 +1040,67 @@ function setupThemeToggle() {
 }
 
 // ── Avisos — carousel 2D ───────────────────────────────────
+// ── Avisos: one-at-a-time auto-rotating cards ─────────────
+function renderNotices(notices) {
+  const section = document.getElementById('avisos');
+  const strip   = document.getElementById('avisosStrip');
+  if (!section || !strip) return;
+  if (!notices.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  const ICON = { info: 'ℹ️', promo: '🎉', warning: '⚠️' };
+  let current = 0;
+
+  strip.innerHTML = notices.map((n, i) => `
+    <div class="aviso-card aviso-${n.type ?? 'info'}${i === 0 ? ' aviso-active' : ''}"
+         data-idx="${i}" role="button" tabindex="${i === 0 ? '0' : '-1'}">
+      <span class="aviso-card-icon">${ICON[n.type] ?? 'ℹ️'}</span>
+      <div class="aviso-card-text">
+        <strong>${n.title}</strong>${n.body ? `<span>${n.body}</span>` : ''}
+      </div>
+      ${notices.length > 1 ? `<span class="aviso-card-counter">${i + 1} / ${notices.length}</span>` : ''}
+    </div>`).join('');
+
+  const cards = [...strip.querySelectorAll('.aviso-card')];
+
+  function goTo(idx) {
+    cards[current].classList.remove('aviso-active');
+    cards[current].setAttribute('tabindex', '-1');
+    current = ((idx % notices.length) + notices.length) % notices.length;
+    cards[current].classList.add('aviso-active');
+    cards[current].setAttribute('tabindex', '0');
+  }
+
+  cards.forEach((card, i) => {
+    card.addEventListener('click', () => openAvisoPopup(notices[i]));
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') openAvisoPopup(notices[i]);
+    });
+  });
+
+  function openAvisoPopup(n) {
+    const overlay = document.getElementById('catModalOverlay');
+    const titleEl = document.getElementById('catModalTitle');
+    const grid    = document.getElementById('catModalGrid');
+    if (!overlay || !grid) return;
+    const typeClass = `aviso-${n.type ?? 'info'}`;
+    titleEl.textContent = n.title;
+    grid.innerHTML = `
+      <div style="grid-column:1/-1">
+        <div class="${typeClass}" style="padding:1.5rem;border-radius:12px;border-left:4px solid;display:flex;flex-direction:column;gap:1rem">
+          <span style="font-size:2rem">${ICON[n.type] ?? 'ℹ️'}</span>
+          ${n.body ? `<p style="font-size:.95rem;line-height:1.65;color:var(--black)">${n.body}</p>` : ''}
+          ${n.image ? `<img src="${driveImgUrl(n.image)}" alt="" style="width:100%;max-height:50vh;object-fit:contain;border-radius:8px">` : ''}
+        </div>
+      </div>`;
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  if (notices.length > 1) setInterval(() => goTo(current + 1), 5000);
+}
+
 // ── Testimonios carousel (CSS-only infinite ticker) ────────
 function renderRefs(refs) {
   const section = document.getElementById('testimonios');

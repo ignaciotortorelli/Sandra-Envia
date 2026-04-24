@@ -2036,6 +2036,42 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 [data-theme="dark"] .aviso-warning   { background: rgba(255,154,60,.12); }
 [data-theme="dark"] .aviso-2d-title  { color: #F0EBFF; }
 
+/* ── Aviso card (one-at-a-time rotating) ─────────────────── */
+.avisos-strip {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+.aviso-card {
+  display: none;
+  align-items: center;
+  gap: .6rem;
+  padding: .4rem .85rem;
+  border-radius: var(--r-md);
+  border-left: 3px solid transparent;
+  box-shadow: var(--sh-sm);
+  max-width: 520px;
+  width: 100%;
+  cursor: pointer;
+  user-select: none;
+}
+.aviso-card.aviso-active {
+  display: flex;
+  animation: avisoIn .35s ease;
+}
+@keyframes avisoIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.aviso-card:hover { box-shadow: var(--sh-md); }
+.aviso-card-icon  { font-size: 1rem; flex-shrink: 0; }
+.aviso-card-text  { flex: 1; min-width: 0; font-size: .72rem; line-height: 1.4;
+                    overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.aviso-card-text strong { font-weight: 700; color: var(--black); margin-right: .35rem; }
+.aviso-card-text span   { color: var(--text-muted); }
+.aviso-card-counter     { font-size: .62rem; color: var(--text-muted); flex-shrink: 0; }
+[data-theme="dark"] .aviso-card-text strong { color: #F0EBFF; }
+
 /* ══════════════════════════════════════════
    REFERENCIAS
    ══════════════════════════════════════════ */
