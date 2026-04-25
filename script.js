@@ -1247,7 +1247,6 @@ function initPolaroidScroll(wrap, strip) {
   let vel = NATURAL, pos = 0;
   let dragging = false, moved = false;
   let startX, startPos, velTrack = [], lastT = null;
-  let paused = false;
 
   function setPos(p) {
     pos = p;
@@ -1257,7 +1256,7 @@ function initPolaroidScroll(wrap, strip) {
   function loop(ts) {
     const dt = lastT ? Math.min((ts - lastT) / 1000, 0.05) : 1/60;
     lastT = ts;
-    if (!dragging && !paused) {
+    if (!dragging) {
       vel += (NATURAL - vel) * (1 - Math.exp(-DAMPING * dt));
       setPos(pos + vel);
     }
@@ -1279,14 +1278,13 @@ function initPolaroidScroll(wrap, strip) {
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
-    paused = true;
-    overlay.addEventListener('click', () => { paused = false; }, { once: true });
   }
 
   function endDrag() {
     if (!dragging) return;
     dragging = false;
     wrap.style.cursor = 'grab';
+    if (!moved) return;
     if (velTrack.length >= 2) {
       const a = velTrack[0], b = velTrack[velTrack.length - 1];
       const dt = (b.t - a.t) / 1000;
