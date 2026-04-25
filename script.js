@@ -1222,7 +1222,7 @@ function renderRefs(refs) {
   const items = refs.map(r => {
     const cap   = r.title ? ` data-caption="${r.title.replace(/"/g, '&quot;')}"` : '';
     const inner = r.image
-      ? `<img src="${driveImgUrl(r.image)}" alt="${r.title ?? ''}" loading="lazy">`
+      ? `<img src="${driveImgUrl(r.image)}" alt="${r.title ?? ''}">`
       : `<div class="pol-ph">💬</div>`;
     return `<div class="pol-wrap noselect"${cap}><div class="pol-canvas">${trackers}<div class="pol-card">${inner}</div></div></div>`;
   }).join('');
@@ -1239,18 +1239,25 @@ function initPolaroidScroll(wrap, strip) {
 
   const originals = Array.from(strip.children);
   const origW     = strip.scrollWidth;
-  const copies    = Math.max(1, Math.ceil(wrap.offsetWidth / origW) + 2);
+  const copies    = Math.max(2, Math.ceil(wrap.offsetWidth / origW) + 2);
   for (let i = 0; i < copies; i++)
     originals.forEach(c => strip.appendChild(c.cloneNode(true)));
 
-  const NATURAL = 1.8, DAMPING = 2.0;
-  let vel = NATURAL, pos = 0;
-  let dragging = false, moved = false;
-  let startX, startPos, velTrack = [], lastT = null;
+  // Start inside CLONE1 so there is room to scroll in both directions.
+  // scrollLeft is always kept in [origW, 2*origW): the seam between CLONE1
+  // and CLONE2 is identical to the seam between ORIG and CLONE1, so wrapping
+  // at that boundary is invisible.
+  wrap.scrollLeft = origW;
 
-  function setPos(p) {
-    pos = p;
-    wrap.scrollLeft = ((p % origW) + origW) % origW;
+  const NATURAL = 1.8, DAMPING = 2.0;
+  let vel = NATURAL, lastT = null;
+  let dragging = false, moved = false;
+  let startX, startSL, velTrack = [];
+
+  function setSL(s) {
+    const n = ((s - origW) % origW + origW) % origW + origW; // → [origW, 2*origW)
+    if (dragging) startSL += n - s;
+    wrap.scrollLeft = n;
   }
 
   function loop(ts) {
@@ -1258,7 +1265,7 @@ function initPolaroidScroll(wrap, strip) {
     lastT = ts;
     if (!dragging) {
       vel += (NATURAL - vel) * (1 - Math.exp(-DAMPING * dt));
-      setPos(pos + vel);
+      setSL(wrap.scrollLeft + vel);
     }
     requestAnimationFrame(loop);
   }
@@ -1294,13 +1301,13 @@ function initPolaroidScroll(wrap, strip) {
 
   wrap.addEventListener('mousedown', e => {
     dragging = true; moved = false; wrap.style.cursor = 'grabbing';
-    startX = e.pageX; startPos = pos;
+    startX = e.pageX; startSL = wrap.scrollLeft;
     velTrack = [{x: e.pageX, t: Date.now()}];
   });
   document.addEventListener('mousemove', e => {
     if (!dragging) return;
     if (Math.abs(e.pageX - startX) > 5) moved = true;
-    setPos(startPos - (e.pageX - startX));
+    setSL(startSL - (e.pageX - startX));
     velTrack.push({x: e.pageX, t: Date.now()});
     if (velTrack.length > 6) velTrack.shift();
   });
@@ -1315,13 +1322,13 @@ function initPolaroidScroll(wrap, strip) {
 
   wrap.addEventListener('touchstart', e => {
     dragging = true; moved = false;
-    startX = e.touches[0].pageX; startPos = pos;
+    startX = e.touches[0].pageX; startSL = wrap.scrollLeft;
     velTrack = [{x: startX, t: Date.now()}];
   }, {passive: true});
   wrap.addEventListener('touchmove', e => {
     if (!dragging) return;
     if (Math.abs(e.touches[0].pageX - startX) > 5) moved = true;
-    setPos(startPos - (e.touches[0].pageX - startX));
+    setSL(startSL - (e.touches[0].pageX - startX));
     velTrack.push({x: e.touches[0].pageX, t: Date.now()});
     if (velTrack.length > 6) velTrack.shift();
   }, {passive: true});
