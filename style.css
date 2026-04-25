@@ -1796,6 +1796,15 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 .carrier-days  { font-size: .67rem; color: rgba(255,255,255,.65); display: block; }
 .carrier-name  { display: block; }
 
+/* ── Catálogo section — compact sizing ──────────────────── */
+#catalogo.section                { padding: 2.5rem 0; }
+#catalogo .section-header        { margin-bottom: 1.5rem; }
+#catalogo .section-subtitle      { font-size: .85rem; line-height: 1.5; }
+#catalogo .card-img              { height: 130px; }
+@media (min-width: 640px)        { #catalogo .card-img { height: 145px; } }
+#catalogo .card-body             { padding: .7rem 1rem .85rem; gap: .3rem; }
+#catalogo .card-btn              { padding: .45rem .8rem; }
+
 /* ── Category tab layout ────────────────────────────────── */
 .cat-tabs {
   display: flex;
