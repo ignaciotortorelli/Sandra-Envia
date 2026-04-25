@@ -909,7 +909,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   gap: 1.5rem;
   align-items: flex-end;
   padding: .5rem .5rem 1.5rem;
-  min-width: max-content;
+  width: max-content;
   will-change: transform;
 }
 

@@ -1238,7 +1238,7 @@ function initPolaroidScroll(wrap, strip) {
   if (!wrap || !strip) return;
 
   const originals = Array.from(strip.children);
-  const origW     = strip.offsetWidth || strip.scrollWidth;
+  const origW     = strip.scrollWidth || strip.offsetWidth;
   if (!origW) return;
   const wrapW  = wrap.offsetWidth || window.innerWidth;
   const copies = Math.max(2, Math.ceil(wrapW / origW) + 2);
