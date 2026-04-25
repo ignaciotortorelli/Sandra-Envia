@@ -37,6 +37,9 @@
 
   --header-h: 70px;
   --max-w: 1200px;
+
+  --border: #e2e8f0;
+  --accent: var(--pink);
 }
 
 /* ── Reset ── */
@@ -614,6 +617,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   justify-content: center;
   padding: 5rem 0 4rem;
   overflow: visible;
+  touch-action: pan-y;
 }
 @keyframes autoRun3d {
   from { transform: perspective(900px) rotateY(-360deg); }
@@ -926,7 +930,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* 2D ticker — hover lift (mouse only, no pause, no scale to avoid overlap) */
-.t-slider { user-select: none; cursor: grab; }
+.t-slider { user-select: none; cursor: grab; touch-action: pan-y; }
 .t-slider:active { cursor: grabbing; }
 .t-list { overflow: visible; }
 .t-list .item { transition: transform .25s ease, filter .25s; cursor: pointer; }
@@ -1229,6 +1233,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   z-index: 2;
 }
 .product-card:hover .carousel-btn { opacity: 1; }
+/* On touch screens there is no hover — always show the arrows */
+@media (hover: none) {
+  .carousel-btn { opacity: 0.85; width: 36px; height: 36px; font-size: 1.2rem; }
+  .carousel-dot { width: 10px; height: 10px; }
+}
 .carousel-prev { left: .4rem; }
 .carousel-next { right: .4rem; }
 .carousel-dots {
@@ -1674,12 +1683,12 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
   flex-shrink: 0;
 }
 .qty-btn {
-  width: 20px;
-  height: 20px;
+  width: 36px;
+  height: 36px;
   border: 1px solid #ddd;
   border-radius: 50%;
   background: none;
-  font-size: .78rem;
+  font-size: 1rem;
   line-height: 1;
   cursor: pointer;
   display: flex;
@@ -1693,9 +1702,9 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
   background: none;
   border: none;
   color: #ccc;
-  font-size: .7rem;
+  font-size: .85rem;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: .4rem .55rem;
   margin-top: .1rem;
   transition: color var(--ease);
 }
@@ -1861,6 +1870,9 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
   transition: background .25s, transform .2s;
 }
 .cat-tab-dot.active { transform: scale(1.45); }
+@media (hover: none) {
+  .cat-tab-dot { width: 14px; height: 14px; }
+}
 .tab-empty {
   grid-column: 1 / -1;
   text-align: center;
@@ -1949,6 +1961,22 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
   .btn { padding: .8rem 1.5rem; }
   .floating-wa { width: 54px; height: 54px; bottom: 1rem; right: 1rem; }
   .floating-wa svg { width: 26px; height: 26px; }
+
+  /* 3D carousel: prevent horizontal overflow on narrow screens */
+  #productos { overflow: hidden !important; }
+  .carousel-3d-wrap { padding: 3rem 0 2.5rem; }
+
+  /* Cart: bump sub-12px text up to a readable minimum */
+  .cart-item-name         { font-size: .88rem; }
+  .cart-item-price        { font-size: .82rem; }
+  .cart-item-cat          { font-size: .75rem; }
+  .cart-section-label     { font-size: .72rem; }
+  .cart-min-header,
+  .cart-min-warning       { font-size: .72rem; }
+  .cart-curva-note        { font-size: .72rem; }
+  .cart-clear-btn         { font-size: .75rem; }
+  .carrier-opt-body strong { font-size: .78rem; }
+  .carrier-opt-body span   { font-size: .72rem; }
 }
 
 /* ══════════════════════════════════════════
@@ -1981,6 +2009,7 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
   --sh-sm: 0 2px 8px rgba(0,0,0,.4);
   --sh-md: 0 4px 20px rgba(0,0,0,.5);
   --sh-lg: 0 8px 40px rgba(0,0,0,.6);
+  --border: rgba(255,255,255,.18);
 }
 [data-theme="dark"] body { background: #0F0F1E; color: #F0EBFF; }
 
