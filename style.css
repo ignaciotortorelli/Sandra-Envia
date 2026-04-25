@@ -1796,6 +1796,70 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 .carrier-days  { font-size: .67rem; color: rgba(255,255,255,.65); display: block; }
 .carrier-name  { display: block; }
 
+/* ── Category tab layout ────────────────────────────────── */
+.cat-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-bottom: 1.25rem;
+}
+@media (max-width: 639px) {
+  .cat-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: .3rem;
+    scrollbar-width: none;
+  }
+  .cat-tabs::-webkit-scrollbar { display: none; }
+}
+.cat-tab-pill {
+  padding: .42rem 1.05rem;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--white);
+  color: var(--text-muted);
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color .2s, color .2s, background .2s, transform .15s;
+  line-height: 1.4;
+}
+.cat-tab-pill:hover:not(.active) {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.cat-tab-pill.active { color: #fff; font-weight: 700; }
+.cat-tab-body { transition: opacity .16s ease; }
+.cat-tab-body.is-fading { opacity: 0; }
+.cat-tab-dots {
+  display: flex;
+  gap: .45rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+  min-height: 1.1rem;
+}
+.cat-tab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background .25s, transform .2s;
+}
+.cat-tab-dot.active { transform: scale(1.45); }
+.tab-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem;
+  font-size: .9rem;
+}
+
 /* dark mode */
 [data-theme="dark"] .cart-curva-note { background: rgba(247,37,133,.1); }
 [data-theme="dark"] .cart-curva-note strong { color: #F0EBFF; }
@@ -1942,6 +2006,9 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 
 /* Cards */
 [data-theme="dark"] .product-card { background: #1A1A2E; }
+[data-theme="dark"] .cat-tab-pill:not(.active) { background: #1A1A2E; border-color: #2d2d4e; }
+[data-theme="dark"] .cat-tab-pill:hover:not(.active) { border-color: var(--accent); }
+[data-theme="dark"] .cat-tab-dot:not(.active) { background: #2d2d4e; }
 [data-theme="dark"] .card-name { color: #F0EBFF; }
 
 /* Cómo comprar */

@@ -136,7 +136,7 @@ function applySettings(s) {
 
 // ── Load categories and products from Firestore ────────────
 async function loadCatalog() {
-  const grid = document.getElementById('productsGrid');
+  const grid = document.getElementById('catTabGrid');
   if (!grid) return;
 
   try {
@@ -154,20 +154,15 @@ async function loadCatalog() {
 
     const products = prodSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    grid.innerHTML = '';
+    window._productMap  = Object.fromEntries(products.map(p => [p.id, p]));
+    window._categoryMap = Object.fromEntries(categories.map(c => [c.id, c]));
 
     if (!categories.length) {
       renderFallbackCategories(grid);
       return;
     }
 
-    categories.forEach((cat, i) => {
-      const catProducts = products.filter(p => p.categoryId === cat.id && p.inStock !== false);
-      const card = buildCategoryCard(cat, catProducts, i);
-      grid.appendChild(card);
-      attachCarouselAuto(card, `cat_${cat.id}`);
-    });
-
+    initCatTabs(categories, products);
     renderAllProducts(products, categories);
 
     const activeNotices = noticeSnap.docs.map(d => ({ id: d.id, ...d.data() }))
@@ -250,6 +245,107 @@ function getMinOrder(products) {
   if (!mins.length) return '[a confirmar]';
   const lo = Math.min(...mins), hi = Math.max(...mins);
   return lo === hi ? `${lo} u.` : `${lo} – ${hi} u.`;
+}
+
+// ── Category tab layout ────────────────────────────────────
+const CAT_PAGE_SIZE = 4;
+let _catIdx = 0, _catPage = 0, _catTimer = null, _catCats = [], _catProds = [];
+
+function initCatTabs(categories, products) {
+  _catCats  = categories;
+  _catProds = products;
+  _catIdx   = 0;
+  _catPage  = 0;
+  renderCatTabs();
+  renderTabProducts();
+  startCatTimer();
+  const section = document.getElementById('catalogo');
+  if (section) {
+    section.addEventListener('mouseenter', () => clearInterval(_catTimer));
+    section.addEventListener('mouseleave', startCatTimer);
+  }
+}
+
+function renderCatTabs() {
+  const el = document.getElementById('catTabs');
+  if (!el) return;
+  el.innerHTML = _catCats.map((c, i) => {
+    const active = i === _catIdx;
+    return `<button class="cat-tab-pill${active ? ' active' : ''}"
+      onclick="selectCatTab(${i})" role="tab" aria-selected="${active}"
+      ${active ? `style="background:${c.gradient ?? 'var(--accent)'};border-color:transparent"` : ''}>
+      ${c.emoji ?? ''} ${c.name}
+    </button>`;
+  }).join('');
+}
+
+function renderTabProducts() {
+  const grid = document.getElementById('catTabGrid');
+  const dots = document.getElementById('catTabDots');
+  if (!grid) return;
+  const cat        = _catCats[_catIdx];
+  const catProds   = _catProds.filter(p => p.categoryId === cat.id && p.inStock !== false);
+  const totalPages = Math.ceil(catProds.length / CAT_PAGE_SIZE) || 1;
+  const pageProds  = catProds.slice(_catPage * CAT_PAGE_SIZE, (_catPage + 1) * CAT_PAGE_SIZE);
+
+  grid.innerHTML = '';
+  if (!pageProds.length) {
+    grid.innerHTML = '<p class="tab-empty">Consultá disponibilidad por WhatsApp.</p>';
+  } else {
+    pageProds.forEach((p, i) => {
+      const card = buildProductCard(p, i);
+      card.classList.add('visible');
+      grid.appendChild(card);
+      attachCarouselAuto(card, p.id);
+    });
+  }
+
+  if (dots) {
+    dots.innerHTML = totalPages > 1
+      ? Array.from({ length: totalPages }, (_, i) => {
+          const active = i === _catPage;
+          return `<button class="cat-tab-dot${active ? ' active' : ''}"
+            onclick="goToTabPage(${i})" aria-label="Página ${i + 1}"
+            ${active ? `style="background:${_catCats[_catIdx].gradient ?? 'var(--accent)'}"` : ''}></button>`;
+        }).join('')
+      : '';
+  }
+}
+
+function _catFade(fn) {
+  const body = document.getElementById('catTabBody');
+  if (!body) { fn(); return; }
+  body.classList.add('is-fading');
+  setTimeout(() => { fn(); body.classList.remove('is-fading'); }, 160);
+}
+
+window.selectCatTab = function(idx) {
+  if (idx === _catIdx) return;
+  _catIdx  = idx;
+  _catPage = 0;
+  _catFade(() => { renderCatTabs(); renderTabProducts(); });
+  clearInterval(_catTimer);
+  startCatTimer();
+};
+
+window.goToTabPage = function(page) {
+  if (page === _catPage) return;
+  _catPage = page;
+  _catFade(() => renderTabProducts());
+  clearInterval(_catTimer);
+  startCatTimer();
+};
+
+function startCatTimer() {
+  clearInterval(_catTimer);
+  _catTimer = setInterval(() => {
+    const cat        = _catCats[_catIdx];
+    const catProds   = _catProds.filter(p => p.categoryId === cat.id && p.inStock !== false);
+    const totalPages = Math.ceil(catProds.length / CAT_PAGE_SIZE) || 1;
+    _catPage++;
+    if (_catPage >= totalPages) { _catPage = 0; _catIdx = (_catIdx + 1) % _catCats.length; }
+    _catFade(() => { renderCatTabs(); renderTabProducts(); });
+  }, 3000);
 }
 
 // ── Build a single product card with carousel ──────────────
