@@ -1809,20 +1809,20 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 #catalogo.section                { padding: 2.5rem 0; }
 #catalogo .section-header        { margin-bottom: 1.5rem; }
 #catalogo .section-subtitle      { font-size: .85rem; line-height: 1.5; }
-#catalogo .card-img              { height: 130px; }
-@media (min-width: 640px)        { #catalogo .card-img { height: 145px; } }
+/* Match the popup's image height so the image area is proportionally identical.
+   flex-shrink:0 prevents the flex container from ever squashing the image zone. */
+#catalogo .card-img              { height: 175px; flex-shrink: 0; }
 #catalogo .card-body             { padding: .7rem 1rem .85rem; gap: .3rem; }
 #catalogo .card-btn              { padding: .45rem .8rem; }
 
-/* Fixed row height so every card is the same size regardless of content */
-#catalogo .cat-tab-grid          { grid-auto-rows: 280px; }
-@media (min-width: 640px)        { #catalogo .cat-tab-grid { grid-auto-rows: 295px; } }
+/* Fixed row height: image (175) + body (150) = 325 px */
+#catalogo .cat-tab-grid          { grid-auto-rows: 325px; }
 /* Prevent grid height from collapsing when a page has fewer rows than the previous one.
    At 2–3 cols (640–1199 px), CAT_PAGE_SIZE=4 can produce 1 or 2 rows depending on the
    category; without a min-height the page jumps during the opacity-0 fade. At 4 cols
    (1200 px+) 4 products always fills exactly 1 row so no min-height is needed. */
 @media (min-width: 640px) and (max-width: 1199px) {
-  #catalogo .cat-tab-grid { min-height: calc(295px * 2 + 1.5rem); }
+  #catalogo .cat-tab-grid { min-height: calc(325px * 2 + 1.5rem); }
 }
 /* Clamp name to 2 lines so it never pushes the card taller */
 #catalogo .card-name {
