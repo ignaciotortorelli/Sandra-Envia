@@ -1237,8 +1237,11 @@ function renderRefs(refs) {
 function initPolaroidScroll(wrap, strip) {
   if (!wrap || !strip) return;
 
-  Array.from(strip.children).forEach(c => strip.appendChild(c.cloneNode(true)));
-  const origW = strip.scrollWidth / 2;
+  const originals = Array.from(strip.children);
+  const origW     = strip.scrollWidth;
+  const copies    = Math.max(1, Math.ceil(wrap.offsetWidth / origW) + 2);
+  for (let i = 0; i < copies; i++)
+    originals.forEach(c => strip.appendChild(c.cloneNode(true)));
 
   const NATURAL = 1.8, DAMPING = 2.0;
   let vel = NATURAL, pos = 0;
