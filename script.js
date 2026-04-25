@@ -1219,12 +1219,14 @@ function renderRefs(refs) {
   section.style.display = '';
 
   const trackers = Array.from({length: 25}, () => '<div></div>').join('');
-  const items = refs.map(r => {
+  const rotations = [-3, 2, -1.5, 3.5, -2, 1, -2.5, 1.5, -1, 4, -3.5, 2.5, -2, 1, -1.5, 3, -4, 2];
+  const items = refs.map((r, i) => {
     const cap   = r.title ? ` data-caption="${r.title.replace(/"/g, '&quot;')}"` : '';
     const inner = r.image
       ? `<img src="${driveImgUrl(r.image)}" alt="${r.title ?? ''}">`
       : `<div class="pol-ph">💬</div>`;
-    return `<div class="pol-wrap noselect"${cap}><div class="pol-canvas">${trackers}<div class="pol-card">${inner}</div></div></div>`;
+    const rot = rotations[i % rotations.length];
+    return `<div class="pol-wrap noselect"${cap} style="transform:rotate(${rot}deg)"><div class="pol-canvas">${trackers}<div class="pol-card">${inner}</div></div></div>`;
   }).join('');
 
   grid.innerHTML = `<div class="t-pol-scroll" id="testimoniosScroll"><div class="t-pol-strip" id="testimoniosStrip">${items}</div></div>`;
