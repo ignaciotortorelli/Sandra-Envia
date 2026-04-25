@@ -1938,9 +1938,10 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
    ══════════════════════════════════════════ */
 .hero-ellas {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: .6rem;
-  margin: -.4rem 0 .6rem;
+  gap: .2rem;
+  margin: 0 0 .6rem;
 }
 .hero-ellas-by {
   font-size: .8rem;
@@ -1950,14 +1951,14 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
   text-transform: uppercase;
 }
 .hero-ellas-logo {
-  height: 52px;
-  width: 210px;
-  object-fit: cover;
-  object-position: center;
+  height: 44px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,.5));
 }
 @media (max-width: 480px) {
-  .hero-ellas-logo { height: 40px; width: 162px; }
+  .hero-ellas-logo { height: 36px; max-width: 180px; }
 }
 
 .social-featured {
@@ -2004,7 +2005,6 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
   .section { padding: 3.5rem 0; }
   .hero    { padding-bottom: 3.5rem; }
   .hero-logo { max-height: 130px; margin-bottom: 0.5rem; }
-  .hero-ellas { margin-top: 0; }
   .btn { padding: .8rem 1.5rem; }
   .floating-wa { width: 54px; height: 54px; bottom: 1rem; right: 1rem; }
   .floating-wa svg { width: 26px; height: 26px; }
