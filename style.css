@@ -1937,9 +1937,8 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
    ELLAS ITUZAINGÓ BRANDING
    ══════════════════════════════════════════ */
 .hero-ellas {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: .6rem;
   margin: -.4rem 0 .6rem;
 }
