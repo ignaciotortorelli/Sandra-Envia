@@ -1834,6 +1834,27 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
   overflow: hidden;
 }
 
+/* ── Catálogo: mobile overflow fixes (< 640px) ── */
+@media (max-width: 639px) {
+  /* 1 — taller card: body gets 205px instead of 175px */
+  #catalogo .cat-tab-grid { grid-auto-rows: 380px; min-height: calc(380px * 2 + 1rem); }
+
+  /* 2 — hide low-priority fields: cat tag is redundant inside a category tab,
+         bulk note detail belongs in the product modal */
+  #catalogo .card-cat-tag   { display: none; }
+  #catalogo .card-note-bulk { display: none; }
+
+  /* 3 — tighter text: smaller font + single-line clamp on notes */
+  #catalogo .card-name { font-size: .82rem; }
+  #catalogo .card-note {
+    font-size: .72rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
 /* ── Category tab layout ────────────────────────────────── */
 .cat-tabs {
   display: flex;
