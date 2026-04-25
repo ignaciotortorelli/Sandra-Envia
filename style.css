@@ -1811,10 +1811,13 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 #catalogo .section-subtitle      { font-size: .85rem; line-height: 1.5; }
 #catalogo .card-img              { height: 130px; }
 @media (min-width: 640px)        { #catalogo .card-img { height: 145px; } }
-/* Fixed body height keeps every card the same size without locking grid row count */
-#catalogo .card-body             { padding: .7rem 1rem .85rem; gap: .3rem; flex: none; height: 150px; overflow: hidden; }
+#catalogo .card-body             { padding: .7rem 1rem .85rem; gap: .3rem; }
 #catalogo .card-btn              { padding: .45rem .8rem; }
-/* Clamp name to 2 lines so it never pushes the body taller */
+
+/* Fixed row height so every card is the same size regardless of content */
+#catalogo .cat-tab-grid          { grid-auto-rows: 280px; }
+@media (min-width: 640px)        { #catalogo .cat-tab-grid { grid-auto-rows: 295px; } }
+/* Clamp name to 2 lines so it never pushes the card taller */
 #catalogo .card-name {
   display: -webkit-box;
   -webkit-line-clamp: 2;
