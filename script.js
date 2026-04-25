@@ -169,9 +169,10 @@ async function loadCatalog() {
 
     const activeNotices = noticeSnap.docs.map(d => ({ id: d.id, ...d.data() }))
       .filter(n => n.active !== false).sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+    renderNotices(activeNotices);
+
     const activeRefs = refSnap.docs.map(d => ({ id: d.id, ...d.data() }))
       .filter(r => r.active !== false).sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
-    renderNotices(activeNotices);
     renderRefs(activeRefs);
 
     setupRevealObserver();
@@ -1209,7 +1210,7 @@ function renderNotices(notices) {
   }
 }
 
-// ── Testimonios carousel (CSS-only infinite ticker) ────────
+// ── Testimonios — polaroid scroll ────────────────────────────
 function renderRefs(refs) {
   const section = document.getElementById('testimonios');
   const grid    = document.getElementById('testimoniosGrid');
@@ -1217,192 +1218,127 @@ function renderRefs(refs) {
   if (!refs.length) { section.style.display = 'none'; return; }
   section.style.display = '';
 
-  const qty   = refs.length;
-  const items = refs.map((r, i) => `
-    <div class="item" style="--position: ${i + 1}">
-      <div class="t-screenshot">
-        ${r.image
-          ? `<img src="${driveImgUrl(r.image)}" alt="${r.title ?? 'Testimonio'}" loading="lazy">`
-          : `<div class="t-screenshot-ph">💬</div>`}
-        ${r.title ? `<p class="t-caption">${r.title}</p>` : ''}
-      </div>
-    </div>`).join('');
+  const trackers = Array.from({length: 25}, () => '<div></div>').join('');
+  const items = refs.map(r => {
+    const cap   = r.title ? ` data-caption="${r.title.replace(/"/g, '&quot;')}"` : '';
+    const inner = r.image
+      ? `<img src="${driveImgUrl(r.image)}" alt="${r.title ?? ''}" loading="lazy">`
+      : `<div class="pol-ph">💬</div>`;
+    return `<div class="pol-wrap noselect"${cap}><div class="pol-canvas">${trackers}<div class="pol-card">${inner}</div></div></div>`;
+  }).join('');
 
-  grid.innerHTML = `
-    <div class="t-slider" style="--quantity: ${qty}">
-      <div class="t-list">${items}</div>
-    </div>`;
-  initTickerDrag(grid.querySelector('.t-slider'));
+  grid.innerHTML = `<div class="t-pol-scroll" id="testimoniosScroll"><div class="t-pol-strip" id="testimoniosStrip">${items}</div></div>`;
+  initPolaroidScroll(
+    document.getElementById('testimoniosScroll'),
+    document.getElementById('testimoniosStrip')
+  );
+}
+
+function initPolaroidScroll(wrap, strip) {
+  if (!wrap || !strip) return;
+
+  Array.from(strip.children).forEach(c => strip.appendChild(c.cloneNode(true)));
+  const origW = strip.scrollWidth / 2;
+
+  const NATURAL = 1.8, DAMPING = 2.0;
+  let vel = NATURAL, pos = 0;
+  let dragging = false, moved = false;
+  let startX, startPos, velTrack = [], lastT = null;
+  let paused = false;
+
+  function setPos(p) {
+    pos = p;
+    wrap.scrollLeft = ((p % origW) + origW) % origW;
+  }
+
+  function loop(ts) {
+    const dt = lastT ? Math.min((ts - lastT) / 1000, 0.05) : 1/60;
+    lastT = ts;
+    if (!dragging && !paused) {
+      vel += (NATURAL - vel) * (1 - Math.exp(-DAMPING * dt));
+      setPos(pos + vel);
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  function openPopup(card) {
+    const overlay = document.getElementById('catModalOverlay');
+    const titleEl = document.getElementById('catModalTitle');
+    const gridEl  = document.getElementById('catModalGrid');
+    if (!overlay || !gridEl) return;
+    const img = card.querySelector('img');
+    const cap = card.getAttribute('data-caption') || '';
+    titleEl.textContent = cap;
+    gridEl.innerHTML = `<div style="grid-column:1/-1;display:flex;justify-content:center;padding:1rem 0">${
+      img ? `<img src="${img.src}" alt="" style="max-width:100%;max-height:72vh;object-fit:contain;border-radius:12px;box-shadow:var(--sh-lg)">` : '<p style="font-size:3rem;text-align:center">💬</p>'
+    }</div>`;
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    paused = true;
+    overlay.addEventListener('click', () => { paused = false; }, { once: true });
+  }
+
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    wrap.style.cursor = 'grab';
+    if (velTrack.length >= 2) {
+      const a = velTrack[0], b = velTrack[velTrack.length - 1];
+      const dt = (b.t - a.t) / 1000;
+      if (dt > 0.01) vel = -(b.x - a.x) / dt / 60;
+    }
+  }
+
+  wrap.addEventListener('mousedown', e => {
+    dragging = true; moved = false; wrap.style.cursor = 'grabbing';
+    startX = e.pageX; startPos = pos;
+    velTrack = [{x: e.pageX, t: Date.now()}];
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    if (Math.abs(e.pageX - startX) > 5) moved = true;
+    setPos(startPos - (e.pageX - startX));
+    velTrack.push({x: e.pageX, t: Date.now()});
+    if (velTrack.length > 6) velTrack.shift();
+  });
+  document.addEventListener('mouseup', e => {
+    if (!dragging) return;
+    endDrag();
+    if (!moved) {
+      const card = e.target.closest('#testimoniosStrip > .pol-wrap');
+      if (card) openPopup(card);
+    }
+  });
+
+  wrap.addEventListener('touchstart', e => {
+    dragging = true; moved = false;
+    startX = e.touches[0].pageX; startPos = pos;
+    velTrack = [{x: startX, t: Date.now()}];
+  }, {passive: true});
+  wrap.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    if (Math.abs(e.touches[0].pageX - startX) > 5) moved = true;
+    setPos(startPos - (e.touches[0].pageX - startX));
+    velTrack.push({x: e.touches[0].pageX, t: Date.now()});
+    if (velTrack.length > 6) velTrack.shift();
+  }, {passive: true});
+  wrap.addEventListener('touchend', e => {
+    if (!dragging) return;
+    endDrag();
+    if (!moved && e.changedTouches.length) {
+      const t  = e.changedTouches[0];
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      const card = el?.closest('#testimoniosStrip > .pol-wrap');
+      if (card) openPopup(card);
+    }
+  }, {passive: true});
 }
 
 // ══════════════════════════════════════════
 //  CAROUSEL INTERACTIONS (drag + hover + click)
 // ══════════════════════════════════════════
-
-// ── 2D ticker: drag + momentum + click popup ──────────────
-function initTickerDrag(sliderEl) {
-  if (!sliderEl) return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-  const items = [...sliderEl.querySelectorAll('.item')];
-  const list  = sliderEl.querySelector('.t-list');
-  if (!items.length || !list) return;
-
-  const cardW   = parseFloat(getComputedStyle(sliderEl).getPropertyValue('--width')) || 200;
-  const dur     = parseFloat(getComputedStyle(sliderEl).getPropertyValue('--dur'))   || 16;
-  const DAMPING = 1.2;
-
-  let dragging = false, startX = 0, moved = false;
-  let velTrack = [];
-  let momRaf   = null;
-  let jsMode   = false;   // true while items are JS-driven (left: px, animation:none)
-  let lefts    = [];      // current px positions when in jsMode
-
-  const sw     = () => sliderEl.offsetWidth;
-  const natVel = () => -(sw() + cardW) / dur;
-
-  // Switch from CSS animation → JS-driven left positions (atomic read+write)
-  function toJS() {
-    if (jsMode) return;
-    const r = sliderEl.getBoundingClientRect();
-    const captured = items.map(it => it.getBoundingClientRect().left - r.left);
-    list.style.transform = '';
-    items.forEach((it, i) => {
-      it.style.animationName = 'none';
-      it.style.transform = '';
-      it.style.left = captured[i] + 'px';
-    });
-    lefts = captured;
-    jsMode = true;
-  }
-
-  // Move all items by dx px, wrapping around the loop boundary
-  function shift(dx) {
-    const W = sw(), P = W + cardW;
-    lefts = lefts.map((l, i) => {
-      let nl = l + dx;
-      if (nl < -cardW - 1) nl += P;
-      if (nl > W + 1)      nl -= P;
-      items[i].style.left = nl + 'px';
-      return nl;
-    });
-  }
-
-  // Switch back to CSS animation with correct delays
-  function toCSS() {
-    if (!jsMode) return;
-    const W = sw(), P = W + cardW;
-    items.forEach((it, i) => {
-      let prog = (W - lefts[i]) / P;
-      prog = ((prog % 1) + 1) % 1;
-      it.style.animationDelay = -(prog * dur) + 's';
-      void it.offsetWidth;
-      it.style.left = '';
-      it.style.animationName = '';
-    });
-    jsMode = false;
-  }
-
-  function startMomentum(initVel) {
-    if (momRaf) cancelAnimationFrame(momRaf);
-    const nv = natVel();
-    let vel = Math.sign(initVel) * Math.min(Math.abs(initVel), Math.abs(nv) * 6);
-    let lastT = performance.now();
-
-    function frame(ts) {
-      const dt = Math.min((ts - lastT) / 1000, 0.05);
-      lastT = ts;
-      vel += (nv - vel) * (1 - Math.exp(-DAMPING * dt));
-      shift(vel * dt);
-      if (Math.abs(vel - nv) < 1) { toCSS(); return; }
-      momRaf = requestAnimationFrame(frame);
-    }
-    momRaf = requestAnimationFrame(frame);
-  }
-
-  function onStart(x) {
-    if (momRaf) { cancelAnimationFrame(momRaf); momRaf = null; }
-    toJS();
-    dragging = true; moved = false; startX = x;
-    velTrack = [{ x, t: performance.now() }];
-    sliderEl.classList.add('is-dragging');
-  }
-  function onMove(x) {
-    if (!dragging) return;
-    if (Math.abs(x - startX) > 4) moved = true;
-    shift(x - startX - (velTrack.length ? velTrack[velTrack.length-1].x - startX : 0));
-    // recalculate delta from last move, not from start
-    startX = x;  // rolling origin so shift() gets incremental delta
-    velTrack.push({ x, t: performance.now() });
-    if (velTrack.length > 6) velTrack.shift();
-  }
-  function onEnd() {
-    if (!dragging) return;
-    dragging = false;
-    sliderEl.classList.remove('is-dragging');
-    if (!moved) { toCSS(); return; }
-    let vel = natVel();
-    if (velTrack.length >= 2) {
-      const a = velTrack[0], b = velTrack[velTrack.length - 1];
-      const dt = (b.t - a.t) / 1000;
-      if (dt > 0.01) vel = (b.x - a.x) / dt;
-    }
-    startMomentum(vel);
-  }
-
-  sliderEl.addEventListener('mousedown', e => { onStart(e.clientX); e.preventDefault(); });
-  document.addEventListener('mousemove', e => onMove(e.clientX));
-  document.addEventListener('mouseup',   () => onEnd());
-  sliderEl.addEventListener('touchstart', e => onStart(e.touches[0].clientX),           { passive: true });
-  sliderEl.addEventListener('touchmove',  e => { if (dragging) onMove(e.touches[0].clientX); }, { passive: true });
-  sliderEl.addEventListener('touchend',   () => onEnd(),                                 { passive: true });
-
-  // Click popup — use pointerup to distinguish tap from drag
-  items.forEach(it => {
-    it.addEventListener('pointerup', () => { if (!moved) showTickerPopup(it); });
-  });
-}
-
-function showTickerPopup(item) {
-  const overlay = document.getElementById('catModalOverlay');
-  const titleEl = document.getElementById('catModalTitle');
-  const grid    = document.getElementById('catModalGrid');
-  if (!overlay || !grid) return;
-
-  const screenshot = item.querySelector('.t-screenshot');
-  const aviso      = item.querySelector('.aviso-2d');
-
-  if (screenshot) {
-    const img     = screenshot.querySelector('img');
-    const caption = screenshot.querySelector('.t-caption')?.textContent ?? 'Testimonio';
-    titleEl.textContent = caption;
-    grid.innerHTML = `
-      <div style="grid-column:1/-1;display:flex;justify-content:center;padding:1rem 0">
-        ${img
-          ? `<img src="${img.src}" alt="" style="max-width:100%;max-height:72vh;object-fit:contain;border-radius:12px;box-shadow:var(--sh-lg)">`
-          : '<p style="font-size:3rem;text-align:center">💬</p>'}
-      </div>`;
-  } else if (aviso) {
-    const typeClass = [...aviso.classList].find(c => /^aviso-(info|promo|warning)$/.test(c)) ?? 'aviso-info';
-    const icon  = aviso.querySelector('.aviso-2d-icon')?.textContent ?? 'ℹ️';
-    const title = aviso.querySelector('.aviso-2d-title')?.textContent ?? '';
-    const body  = aviso.querySelector('.aviso-2d-body')?.textContent  ?? '';
-    const imgEl = aviso.querySelector('.aviso-2d-img');
-    titleEl.textContent = title;
-    grid.innerHTML = `
-      <div style="grid-column:1/-1">
-        <div class="${typeClass}" style="padding:1.5rem;border-radius:12px;border-left:4px solid;display:flex;flex-direction:column;gap:1rem;align-items:flex-start">
-          <span style="font-size:2rem">${icon}</span>
-          <p style="font-size:.95rem;line-height:1.65;color:var(--black)">${body}</p>
-          ${imgEl ? `<img src="${imgEl.src}" alt="" style="width:100%;max-height:50vh;object-fit:contain;border-radius:8px">` : ''}
-        </div>
-      </div>`;
-  } else { return; }
-
-  overlay.classList.add('open');
-  overlay.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-}
 
 // ── 3D carousel: drag + momentum + click-to-center ────────
 let _c3dRaf = null;

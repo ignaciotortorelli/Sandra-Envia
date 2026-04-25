@@ -890,58 +890,121 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* ══════════════════════════════════════════
-   TESTIMONIOS
+   TESTIMONIOS — polaroid scroll
    ══════════════════════════════════════════ */
-.testimonials-grid { width: 100%; }
+.testimonials-wrap { width: 100%; }
 
-/* ── Testimonios — CSS-only infinite ticker ── */
-.t-slider {
-  --width:  200px;
-  --height: 340px;
-  --dur:    16s;
-  width: 100%;
-  height: calc(var(--height) + 18px); /* extra room for hover lift */
+.t-pol-scroll {
   overflow: hidden;
-  mask-image: linear-gradient(to right, transparent, #000 12% 88%, transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 12% 88%, transparent);
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  mask-image: linear-gradient(to right, transparent, #000 8% 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8% 92%, transparent);
 }
-.t-list {
+.t-pol-scroll:active { cursor: grabbing; }
+
+.t-pol-strip {
   display: flex;
-  width: 100%;
-  min-width: calc(var(--width) * var(--quantity));
+  gap: 1.5rem;
+  align-items: flex-end;
+  padding: .5rem .5rem 1.5rem;
+  min-width: max-content;
+}
+
+.pol-wrap {
   position: relative;
-  height: var(--height);
+  width: 116px;
+  height: 206px;
+  flex-shrink: 0;
 }
-.t-list .item {
-  width: var(--width);
-  height: var(--height);
+
+.pol-canvas {
+  perspective: 600px;
   position: absolute;
-  left: 100%;
-  padding: 0 8px;
-  will-change: transform;
-  animation: tRun var(--dur) linear infinite;
-  animation-delay: calc(
-    (var(--dur) / var(--quantity)) * (var(--position) - 1) - var(--dur)
-  );
-  transition: filter .4s;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
 }
-@keyframes tRun {
-  from { transform: translateX(0); }
-  to   { transform: translateX(calc(-100vw - var(--width))); }
-}
+.pol-canvas > div:not(.pol-card) { z-index: 200; cursor: pointer; }
 
-@media (prefers-reduced-motion: reduce) {
-  .t-list .item { animation-play-state: paused; }
+.pol-card {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--white);
+  padding: 8px 8px 28px;
+  box-shadow: var(--sh-md);
+  border-radius: 4px;
+  transition: 300ms;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
 }
+.pol-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  border-radius: 2px;
+}
+.pol-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  background: var(--pink-bg);
+  border-radius: 2px;
+}
+.pol-card::before {
+  content: '';
+  background: rgba(247, 37, 133, .35);
+  filter: blur(1.2rem);
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  z-index: -1;
+  transition: 200ms;
+  border-radius: 4px;
+}
+.pol-wrap:hover .pol-card::before { opacity: 1; }
+.pol-canvas > div:not(.pol-card):hover ~ .pol-card { filter: brightness(1.06); }
 
-/* 2D ticker — hover lift (mouse only, no pause, no scale to avoid overlap) */
-.t-slider { user-select: none; cursor: grab; touch-action: pan-y; }
-.t-slider:active { cursor: grabbing; }
-.t-list { overflow: visible; }
-.t-list .item { transition: transform .25s ease, filter .25s; cursor: pointer; }
-.t-list .item:hover { transform: translateY(-9px) !important; z-index: 20; filter: brightness(1.06) !important; }
-.t-slider.is-dragging .item { pointer-events: none; }
-.t-slider.is-dragging .item:hover { transform: none !important; filter: none !important; }
+.pol-canvas>div:nth-child(1):hover~.pol-card  {transition:125ms ease-in-out;transform:rotateX(20deg) rotateY(-10deg)}
+.pol-canvas>div:nth-child(2):hover~.pol-card  {transition:125ms ease-in-out;transform:rotateX(20deg) rotateY(-5deg)}
+.pol-canvas>div:nth-child(3):hover~.pol-card  {transition:125ms ease-in-out;transform:rotateX(20deg) rotateY(0deg)}
+.pol-canvas>div:nth-child(4):hover~.pol-card  {transition:125ms ease-in-out;transform:rotateX(20deg) rotateY(5deg)}
+.pol-canvas>div:nth-child(5):hover~.pol-card  {transition:125ms ease-in-out;transform:rotateX(20deg) rotateY(10deg)}
+.pol-canvas>div:nth-child(6):hover~.pol-card  {transition:125ms ease-in-out;transform:rotateX(10deg) rotateY(-10deg)}
+.pol-canvas>div:nth-child(7):hover~.pol-card  {transition:125ms ease-in-out;transform:rotateX(10deg) rotateY(-5deg)}
+.pol-canvas>div:nth-child(8):hover~.pol-card  {transition:125ms ease-in-out;transform:rotateX(10deg) rotateY(0deg)}
+.pol-canvas>div:nth-child(9):hover~.pol-card  {transition:125ms ease-in-out;transform:rotateX(10deg) rotateY(5deg)}
+.pol-canvas>div:nth-child(10):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(10deg) rotateY(10deg)}
+.pol-canvas>div:nth-child(11):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(0deg) rotateY(-10deg)}
+.pol-canvas>div:nth-child(12):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(0deg) rotateY(-5deg)}
+.pol-canvas>div:nth-child(13):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(0deg) rotateY(0deg)}
+.pol-canvas>div:nth-child(14):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(0deg) rotateY(5deg)}
+.pol-canvas>div:nth-child(15):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(0deg) rotateY(10deg)}
+.pol-canvas>div:nth-child(16):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(-10deg) rotateY(-10deg)}
+.pol-canvas>div:nth-child(17):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(-10deg) rotateY(-5deg)}
+.pol-canvas>div:nth-child(18):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(-10deg) rotateY(0deg)}
+.pol-canvas>div:nth-child(19):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(-10deg) rotateY(5deg)}
+.pol-canvas>div:nth-child(20):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(-10deg) rotateY(10deg)}
+.pol-canvas>div:nth-child(21):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(-20deg) rotateY(-10deg)}
+.pol-canvas>div:nth-child(22):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(-20deg) rotateY(-5deg)}
+.pol-canvas>div:nth-child(23):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(-20deg) rotateY(0deg)}
+.pol-canvas>div:nth-child(24):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(-20deg) rotateY(5deg)}
+.pol-canvas>div:nth-child(25):hover~.pol-card {transition:125ms ease-in-out;transform:rotateX(-20deg) rotateY(10deg)}
+
+@media (max-width: 480px) {
+  .pol-wrap { width: 96px; height: 172px; }
+  .t-pol-strip { gap: 1rem; }
+}
 
 /* 3D carousel — hover glow + selected ring */
 .card-3d { cursor: grab; }
@@ -950,50 +1013,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .card-3d > div.c3d-hover    { box-shadow: var(--sh-lg), 0 0 0 3px var(--pink); filter: brightness(1.06); z-index: 5; }
 .card-3d > div.c3d-selected { box-shadow: 0 0 0 3px var(--pink-dark), 0 12px 40px rgba(247,37,133,.4); z-index: 6; }
 
-/* Card inside each item */
-.t-screenshot {
-  width: 100%;
-  height: 100%;
-  border-radius: var(--r-md);
-  overflow: hidden;
-  box-shadow: var(--sh-md);
-  background: var(--white);
-  display: flex;
-  flex-direction: column;
-}
-.t-screenshot img {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  object-fit: cover;
-  object-position: top center;
-  display: block;
-}
-.t-screenshot-ph {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-  background: var(--pink-bg);
-}
-.t-caption {
-  font-size: .68rem;
-  text-align: center;
-  padding: .35rem .5rem;
-  color: var(--text-muted);
-  font-weight: 500;
-  background: var(--white);
-  border-top: 1px solid var(--pink-pale);
-  flex-shrink: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-[data-theme="dark"] .t-screenshot     { background: #1A1A2E; }
-[data-theme="dark"] .t-caption        { background: #1A1A2E; border-top-color: rgba(255,255,255,.07); color: #8878A8; }
-[data-theme="dark"] .t-screenshot-ph  { background: rgba(247,37,133,.1); }
 
 /* ══════════════════════════════════════════
    REDES SOCIALES
@@ -2173,6 +2192,9 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 [data-theme="dark"] .stat-card { background: #1A1A2E; border-color: rgba(247,37,133,.18); }
 
 /* Testimonios */
+[data-theme="dark"] .pol-card         { background: #1A1A2E; }
+[data-theme="dark"] .pol-ph           { background: rgba(247,37,133,.1); }
+[data-theme="dark"] .pol-card::before { background: rgba(247,37,133,.2); }
 
 /* Contacto */
 [data-theme="dark"] .section-contact { background: linear-gradient(150deg, #1C0F18 0%, #2A1522 100%); }
