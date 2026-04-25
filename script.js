@@ -525,10 +525,10 @@ function renderModalControls() {
         <option value="">Todas las categorías</option>${catOpts}
       </select>
       <div class="mctrl-price">
-        <input class="mctrl-price-input" type="number" min="0" placeholder="$ mín"
+        <input class="mctrl-price-input" type="number" min="0" inputmode="numeric" placeholder="$ mín"
                value="${modalPriceMin}" oninput="onModalPriceMin(this.value)">
         <span>–</span>
-        <input class="mctrl-price-input" type="number" min="0" placeholder="$ máx"
+        <input class="mctrl-price-input" type="number" min="0" inputmode="numeric" placeholder="$ máx"
                value="${modalPriceMax}" oninput="onModalPriceMax(this.value)">
       </div>
       <label class="mctrl-check"><input type="checkbox" ${modalDiscount ? 'checked' : ''} onchange="onModalDiscount(this.checked)"> Con descuento</label>
@@ -1269,6 +1269,7 @@ function initTickerDrag(sliderEl) {
     list.style.transform = '';
     items.forEach((it, i) => {
       it.style.animationName = 'none';
+      it.style.transform = '';
       it.style.left = captured[i] + 'px';
     });
     lefts = captured;

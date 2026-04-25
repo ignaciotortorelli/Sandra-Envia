@@ -168,6 +168,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 @media (prefers-reduced-motion: reduce) {
   .reveal, .product-card { transition: none !important; opacity: 1 !important; transform: none !important; }
+  .hero-logo { animation: none !important; }
+  .scroll-chevron { animation: none !important; }
 }
 
 /* ══════════════════════════════════════════
@@ -915,6 +917,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   position: absolute;
   left: 100%;
   padding: 0 8px;
+  will-change: transform;
   animation: tRun var(--dur) linear infinite;
   animation-delay: calc(
     (var(--dur) / var(--quantity)) * (var(--position) - 1) - var(--dur)
@@ -922,8 +925,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   transition: filter .4s;
 }
 @keyframes tRun {
-  from { left: 100%; }
-  to   { left: calc(var(--width) * -1); }
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-100vw - var(--width))); }
 }
 
 @media (prefers-reduced-motion: reduce) {
