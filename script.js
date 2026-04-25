@@ -12,14 +12,14 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 // Convert any Drive URL to the embeddable thumbnail format
-function driveImgUrl(url) {
+function driveImgUrl(url, sz = 'w800') {
   if (!url) return null;
   // ?id=FILE_ID  (old export/open links)
   let m = url.match(/[?&]id=([^&]+)/);
-  if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`;
+  if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=${sz}`;
   // /file/d/FILE_ID/  (standard share links)
   m = url.match(/\/file\/d\/([^/?]+)/);
-  if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`;
+  if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=${sz}`;
   return url;
 }
 
@@ -157,6 +157,8 @@ async function loadCatalog() {
     window._productMap  = Object.fromEntries(products.map(p => [p.id, p]));
     window._categoryMap = Object.fromEntries(categories.map(c => [c.id, c]));
 
+    document.getElementById('catSkeleton')?.remove();
+
     if (!categories.length) {
       renderFallbackCategories(grid);
       return;
@@ -263,6 +265,9 @@ function initCatTabs(categories, products) {
   if (section) {
     section.addEventListener('mouseenter', () => clearInterval(_catTimer));
     section.addEventListener('mouseleave', startCatTimer);
+    new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) startCatTimer(); else clearInterval(_catTimer);
+    }, { threshold: 0 }).observe(section);
   }
 }
 
@@ -345,7 +350,7 @@ function startCatTimer() {
     _catPage++;
     if (_catPage >= totalPages) { _catPage = 0; _catIdx = (_catIdx + 1) % _catCats.length; }
     _catFade(() => { renderCatTabs(); renderTabProducts(); });
-  }, 3000);
+  }, 6000);
 }
 
 // ── Build a single product card with carousel ──────────────
@@ -421,7 +426,7 @@ function renderAllProducts(products, categories) {
 
   carousel.innerHTML = slots.map(prod => {
     const cat      = window._categoryMap?.[prod.categoryId];
-    const img      = driveImgUrl(prod.images?.[0]);
+    const img      = driveImgUrl(prod.images?.[0], 'w400');
     const grad     = cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)';
     const discPct  = prod.discount > 0 ? prod.discount : null;
     const discPrice = (prod.price && discPct) ? Math.round(prod.price * (1 - discPct / 100)) : null;
@@ -708,12 +713,21 @@ function closeLightbox() {
 
 function setupLightbox() {
   document.getElementById('lbClose')?.addEventListener('click', closeLightbox);
-  document.getElementById('lightbox')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeLightbox(); });
+  const lb = document.getElementById('lightbox');
+  lb?.addEventListener('click', e => { if (e.target === e.currentTarget) closeLightbox(); });
   document.addEventListener('keydown', e => {
-    if (!document.getElementById('lightbox')?.classList.contains('open')) return;
+    if (!lb?.classList.contains('open')) return;
     if (e.key === 'ArrowRight') window.lbNext();
     if (e.key === 'ArrowLeft')  window.lbPrev();
     if (e.key === 'Escape')     closeLightbox();
+  });
+  let _lbTx = null;
+  lb?.addEventListener('touchstart', e => { _lbTx = e.touches[0].clientX; }, { passive: true });
+  lb?.addEventListener('touchend', e => {
+    if (_lbTx === null) return;
+    const dx = e.changedTouches[0].clientX - _lbTx;
+    if (Math.abs(dx) > 40) { dx < 0 ? window.lbNext() : window.lbPrev(); }
+    _lbTx = null;
   });
   document.getElementById('catModalClose')?.addEventListener('click', closeCategoryModal);
   document.getElementById('catModalOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeCategoryModal(); });
@@ -1184,7 +1198,15 @@ function renderNotices(notices) {
     document.body.style.overflow = 'hidden';
   }
 
-  if (notices.length > 1) setInterval(() => goTo(current + 1), 5000);
+  if (notices.length > 1) {
+    let avisosTimer = null;
+    const startAvisosTimer = () => { if (!avisosTimer) avisosTimer = setInterval(() => goTo(current + 1), 5000); };
+    const stopAvisosTimer  = () => { clearInterval(avisosTimer); avisosTimer = null; };
+    startAvisosTimer();
+    new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) startAvisosTimer(); else stopAvisosTimer();
+    }, { threshold: 0 }).observe(section);
+  }
 }
 
 // ── Testimonios carousel (CSS-only infinite ticker) ────────
@@ -1428,6 +1450,17 @@ function initCarousel3d() {
     _c3dRaf = requestAnimationFrame(loop);
   }
   _c3dRaf = requestAnimationFrame(loop);
+
+  if (wrapEl) {
+    new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) {
+        if (_c3dRaf) { cancelAnimationFrame(_c3dRaf); _c3dRaf = null; }
+      } else if (!_c3dRaf) {
+        lastTs = null;
+        _c3dRaf = requestAnimationFrame(loop);
+      }
+    }, { threshold: 0 }).observe(wrapEl);
+  }
 
   // Drag — with velocity sampling for momentum
   const SENS = 0.5;
