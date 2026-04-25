@@ -144,7 +144,7 @@ async function loadCatalog() {
       getDocs(collection(db, 'categories')),
       getDocs(collection(db, 'products')),
       getDocs(collection(db, 'notices')),
-      getDocs(collection(db, 'references')),
+      getDocs(collection(db, 'testimonios')),
     ]);
 
     const categories = catSnap.docs
