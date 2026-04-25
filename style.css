@@ -1951,11 +1951,13 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 }
 .hero-ellas-logo {
   height: 52px;
-  object-fit: contain;
+  width: 160px;
+  object-fit: cover;
+  object-position: center;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,.5));
 }
 @media (max-width: 480px) {
-  .hero-ellas-logo { height: 40px; }
+  .hero-ellas-logo { height: 40px; width: 130px; }
 }
 
 .social-featured {
