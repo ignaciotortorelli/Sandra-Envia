@@ -1228,10 +1228,10 @@ function renderRefs(refs) {
   }).join('');
 
   grid.innerHTML = `<div class="t-pol-scroll" id="testimoniosScroll"><div class="t-pol-strip" id="testimoniosStrip">${items}</div></div>`;
-  initPolaroidScroll(
+  requestAnimationFrame(() => initPolaroidScroll(
     document.getElementById('testimoniosScroll'),
     document.getElementById('testimoniosStrip')
-  );
+  ));
 }
 
 function initPolaroidScroll(wrap, strip) {
@@ -1239,33 +1239,32 @@ function initPolaroidScroll(wrap, strip) {
 
   const originals = Array.from(strip.children);
   const origW     = strip.scrollWidth;
+  if (!origW) return;
   const copies    = Math.max(2, Math.ceil(wrap.offsetWidth / origW) + 2);
   for (let i = 0; i < copies; i++)
     originals.forEach(c => strip.appendChild(c.cloneNode(true)));
 
-  // Start inside CLONE1 so there is room to scroll in both directions.
-  // scrollLeft is always kept in [origW, 2*origW): the seam between CLONE1
-  // and CLONE2 is identical to the seam between ORIG and CLONE1, so wrapping
-  // at that boundary is invisible.
-  wrap.scrollLeft = origW;
-
   const NATURAL = 1.8, DAMPING = 2.0;
-  let vel = NATURAL, lastT = null;
+  // pos is an unbounded virtual number; scrollLeft is derived from it.
+  // Starting at origW gives headroom so leftward drag never hits the
+  // browser's scrollLeft floor of 0.
+  let pos = origW, vel = NATURAL, lastT = null;
   let dragging = false, moved = false;
-  let startX, startSL, velTrack = [];
+  let startX, startPos, velTrack = [];
 
-  function setSL(s) {
-    const n = ((s - origW) % origW + origW) % origW + origW; // → [origW, 2*origW)
-    if (dragging) startSL += n - s;
-    wrap.scrollLeft = n;
+  function setPos(p) {
+    pos = p;
+    // map to [origW, 2*origW): seam is always between two identical clones
+    wrap.scrollLeft = ((p - origW) % origW + origW) % origW + origW;
   }
+  setPos(pos);
 
   function loop(ts) {
     const dt = lastT ? Math.min((ts - lastT) / 1000, 0.05) : 1/60;
     lastT = ts;
     if (!dragging) {
       vel += (NATURAL - vel) * (1 - Math.exp(-DAMPING * dt));
-      setSL(wrap.scrollLeft + vel);
+      setPos(pos + vel);
     }
     requestAnimationFrame(loop);
   }
@@ -1280,7 +1279,7 @@ function initPolaroidScroll(wrap, strip) {
     const cap = card.getAttribute('data-caption') || '';
     titleEl.textContent = cap;
     gridEl.innerHTML = `<div style="grid-column:1/-1;display:flex;justify-content:center;padding:1rem 0">${
-      img ? `<img src="${img.src}" alt="" style="max-width:100%;max-height:72vh;object-fit:contain;border-radius:12px;box-shadow:var(--sh-lg)">` : '<p style="font-size:3rem;text-align:center">💬</p>'
+      img ? `<img src="${img.src}" alt="" style="max-width:100%;max-height:72vh;object-fit:contain;border-radius:12px;box-shadow:var(--sh-lg)">` : '<p style="font-size:3rem;text-align:center">&#x1F4AC;</p>'
     }</div>`;
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
@@ -1301,13 +1300,13 @@ function initPolaroidScroll(wrap, strip) {
 
   wrap.addEventListener('mousedown', e => {
     dragging = true; moved = false; wrap.style.cursor = 'grabbing';
-    startX = e.pageX; startSL = wrap.scrollLeft;
+    startX = e.pageX; startPos = pos;
     velTrack = [{x: e.pageX, t: Date.now()}];
   });
   document.addEventListener('mousemove', e => {
     if (!dragging) return;
     if (Math.abs(e.pageX - startX) > 5) moved = true;
-    setSL(startSL - (e.pageX - startX));
+    setPos(startPos - (e.pageX - startX));
     velTrack.push({x: e.pageX, t: Date.now()});
     if (velTrack.length > 6) velTrack.shift();
   });
@@ -1322,13 +1321,13 @@ function initPolaroidScroll(wrap, strip) {
 
   wrap.addEventListener('touchstart', e => {
     dragging = true; moved = false;
-    startX = e.touches[0].pageX; startSL = wrap.scrollLeft;
+    startX = e.touches[0].pageX; startPos = pos;
     velTrack = [{x: startX, t: Date.now()}];
   }, {passive: true});
   wrap.addEventListener('touchmove', e => {
     if (!dragging) return;
     if (Math.abs(e.touches[0].pageX - startX) > 5) moved = true;
-    setSL(startSL - (e.touches[0].pageX - startX));
+    setPos(startPos - (e.touches[0].pageX - startX));
     velTrack.push({x: e.touches[0].pageX, t: Date.now()});
     if (velTrack.length > 6) velTrack.shift();
   }, {passive: true});
