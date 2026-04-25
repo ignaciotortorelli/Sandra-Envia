@@ -910,6 +910,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   align-items: flex-end;
   padding: .5rem .5rem 1.5rem;
   min-width: max-content;
+  will-change: transform;
 }
 
 .pol-wrap {

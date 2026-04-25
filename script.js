@@ -1238,26 +1238,24 @@ function initPolaroidScroll(wrap, strip) {
   if (!wrap || !strip) return;
 
   const originals = Array.from(strip.children);
-  const origW     = strip.scrollWidth;
+  const origW     = strip.offsetWidth || strip.scrollWidth;
   if (!origW) return;
-  const copies    = Math.max(2, Math.ceil(wrap.offsetWidth / origW) + 2);
+  const wrapW  = wrap.offsetWidth || window.innerWidth;
+  const copies = Math.max(2, Math.ceil(wrapW / origW) + 2);
   for (let i = 0; i < copies; i++)
     originals.forEach(c => strip.appendChild(c.cloneNode(true)));
 
   const NATURAL = 1.8, DAMPING = 2.0;
-  // pos is an unbounded virtual number; scrollLeft is derived from it.
-  // Starting at origW gives headroom so leftward drag never hits the
-  // browser's scrollLeft floor of 0.
-  let pos = origW, vel = NATURAL, lastT = null;
+  let pos = 0, vel = NATURAL, lastT = null;
   let dragging = false, moved = false;
   let startX, startPos, velTrack = [];
 
   function setPos(p) {
     pos = p;
-    // map to [origW, 2*origW): seam is always between two identical clones
-    wrap.scrollLeft = ((p - origW) % origW + origW) % origW + origW;
+    // normalize to [0, origW) and apply as a transform — no scrollLeft involved
+    strip.style.transform = 'translateX(' + (-(((p % origW) + origW) % origW)) + 'px)';
   }
-  setPos(pos);
+  setPos(0);
 
   function loop(ts) {
     const dt = lastT ? Math.min((ts - lastT) / 1000, 0.05) : 1/60;
@@ -1278,9 +1276,11 @@ function initPolaroidScroll(wrap, strip) {
     const img = card.querySelector('img');
     const cap = card.getAttribute('data-caption') || '';
     titleEl.textContent = cap;
-    gridEl.innerHTML = `<div style="grid-column:1/-1;display:flex;justify-content:center;padding:1rem 0">${
-      img ? `<img src="${img.src}" alt="" style="max-width:100%;max-height:72vh;object-fit:contain;border-radius:12px;box-shadow:var(--sh-lg)">` : '<p style="font-size:3rem;text-align:center">&#x1F4AC;</p>'
-    }</div>`;
+    gridEl.innerHTML = '<div style="grid-column:1/-1;display:flex;justify-content:center;padding:1rem 0">' +
+      (img
+        ? '<img src="' + img.src + '" alt="" style="max-width:100%;max-height:72vh;object-fit:contain;border-radius:12px;box-shadow:var(--sh-lg)">'
+        : '<p style="font-size:3rem;text-align:center">&#x1F4AC;</p>') +
+      '</div>';
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
@@ -1337,7 +1337,7 @@ function initPolaroidScroll(wrap, strip) {
     if (!moved && e.changedTouches.length) {
       const t  = e.changedTouches[0];
       const el = document.elementFromPoint(t.clientX, t.clientY);
-      const card = el?.closest('#testimoniosStrip > .pol-wrap');
+      const card = el && el.closest('#testimoniosStrip > .pol-wrap');
       if (card) openPopup(card);
     }
   }, {passive: true});
