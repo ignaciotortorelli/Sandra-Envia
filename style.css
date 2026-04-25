@@ -1817,6 +1817,13 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 /* Fixed row height so every card is the same size regardless of content */
 #catalogo .cat-tab-grid          { grid-auto-rows: 280px; }
 @media (min-width: 640px)        { #catalogo .cat-tab-grid { grid-auto-rows: 295px; } }
+/* Prevent grid height from collapsing when a page has fewer rows than the previous one.
+   At 2–3 cols (640–1199 px), CAT_PAGE_SIZE=4 can produce 1 or 2 rows depending on the
+   category; without a min-height the page jumps during the opacity-0 fade. At 4 cols
+   (1200 px+) 4 products always fills exactly 1 row so no min-height is needed. */
+@media (min-width: 640px) and (max-width: 1199px) {
+  #catalogo .cat-tab-grid { min-height: calc(295px * 2 + 1.5rem); }
+}
 /* Clamp name to 2 lines so it never pushes the card taller */
 #catalogo .card-name {
   display: -webkit-box;
