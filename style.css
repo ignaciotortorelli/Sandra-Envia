@@ -1814,6 +1814,17 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 #catalogo .card-body             { padding: .7rem 1rem .85rem; gap: .3rem; }
 #catalogo .card-btn              { padding: .45rem .8rem; }
 
+/* Fixed row height so every card is the same size regardless of content */
+#catalogo .cat-tab-grid          { grid-auto-rows: 280px; }
+@media (min-width: 640px)        { #catalogo .cat-tab-grid { grid-auto-rows: 295px; } }
+/* Clamp name to 2 lines so it never pushes the card taller */
+#catalogo .card-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* ── Category tab layout ────────────────────────────────── */
 .cat-tabs {
   display: flex;
