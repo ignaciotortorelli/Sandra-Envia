@@ -704,68 +704,93 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* ══════════════════════════════════════════
    CÓMO COMPRAR
    ══════════════════════════════════════════ */
-.steps-grid {
+.how-strip {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  max-width: 360px;
+  margin: 0 auto 1rem;
+}
+.how-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
-  margin-bottom: 3rem;
-}
-@media (min-width: 900px) {
-  .steps-grid {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-}
-
-.step {
+  gap: .18rem;
   flex: 1;
-  background: var(--white);
-  border-radius: var(--r-lg);
-  padding: 2rem 1.5rem;
-  text-align: center;
-  box-shadow: var(--sh-sm);
-  transition: transform var(--ease), box-shadow var(--ease);
+  padding: .15rem 0;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
-.step:hover { transform: translateY(-4px); box-shadow: var(--sh-md); }
-
-.step-num {
-  font-family: var(--ff-display);
-  font-size: 2.8rem;
-  font-weight: 700;
-  color: var(--pink-light);
-  line-height: 1;
-  margin-bottom: .3rem;
-}
-.step-icon {
-  font-size: 2.2rem;
-  margin-bottom: .9rem;
-}
-.step h3 {
-  font-size: .95rem;
-  font-weight: 700;
-  color: var(--black);
-  margin-bottom: .45rem;
-}
-.step p {
-  font-size: .83rem;
-  color: var(--text-muted);
-  line-height: 1.65;
-}
-
-.step-line {
-  width: 2px;
-  height: 36px;
-  background: linear-gradient(to bottom, var(--pink-light), var(--pink-pale));
-  margin: 0 auto;
+.how-conn {
+  flex: none;
+  width: 14px;
+  height: 2px;
+  background: var(--pink-light);
   flex-shrink: 0;
+  margin-top: 21px;
 }
-@media (min-width: 900px) {
-  .step-line {
-    width: 36px; height: 2px;
-    margin: 3.5rem 0 0;
-    background: linear-gradient(to right, var(--pink-light), var(--pink-pale));
-  }
+.how-ico-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: var(--sh-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  border: 2px solid var(--pink-light);
+  transition: border-color var(--ease), transform var(--ease);
+}
+.how-item:hover .how-ico-wrap,
+.how-item.active .how-ico-wrap {
+  border-color: var(--pink);
+  transform: translateY(-2px);
+}
+.how-snum {
+  font-size: .55rem;
+  font-weight: 900;
+  color: var(--pink-light);
+}
+.how-lbl {
+  font-size: .6rem;
+  font-weight: 600;
+  color: var(--black);
+  text-align: center;
+  max-width: 56px;
+  line-height: 1.2;
+}
+.how-info {
+  height: 3rem;
+  overflow: hidden;
+  max-width: 360px;
+  margin: 0 auto 1.25rem;
+  padding: .3rem .75rem;
+  background: rgba(247,37,133,.07);
+  border-radius: 8px;
+  font-size: .8rem;
+  color: var(--black);
+  line-height: 1.45;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity var(--ease);
+  opacity: 0;
+}
+.how-info.visible { opacity: 1; }
+
+@media (min-width: 600px) {
+  .how-strip { max-width: 480px; }
+  .how-ico-wrap { width: 52px; height: 52px; font-size: 1.4rem; }
+  .how-conn { margin-top: 26px; width: 20px; }
+  .how-lbl { font-size: .72rem; max-width: 72px; }
+  .how-snum { font-size: .62rem; }
+  .how-info { max-width: 480px; font-size: .85rem; height: 3.5rem; }
 }
 
 .steps-cta { text-align: center; }
@@ -2185,8 +2210,9 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 [data-theme="dark"] .card-name { color: #F0EBFF; }
 
 /* Cómo comprar */
-[data-theme="dark"] .step { background: #1A1A2E; }
-[data-theme="dark"] .step h3 { color: #F0EBFF; }
+[data-theme="dark"] .how-ico-wrap { background: #2D2D44; border-color: #C9184A; }
+[data-theme="dark"] .how-lbl { color: #F0EBFF; }
+[data-theme="dark"] .how-info { background: rgba(255,179,198,.08); color: #F0EBFF; }
 
 /* Nosotros */
 [data-theme="dark"] .highlight strong { color: #F0EBFF; }

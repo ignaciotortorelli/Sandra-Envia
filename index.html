@@ -139,54 +139,6 @@
       </div>
     </section>
 
-    <!-- ═══════════════════════ CÓMO COMPRAR ═══════════════════════ -->
-    <section id="como-comprar" class="section section-pink" aria-labelledby="pasos-titulo">
-      <div class="container">
-        <div class="section-header reveal">
-          <span class="section-tag">Simple y Rápido</span>
-          <h2 id="pasos-titulo" class="section-title">¿Cómo Comprar?</h2>
-          <p class="section-subtitle">En cuatro pasos simples tenés tu pedido en camino.</p>
-        </div>
-
-        <div class="steps-grid">
-          <div class="step reveal">
-            <div class="step-num" aria-hidden="true">01</div>
-            <div class="step-icon" aria-hidden="true">👀</div>
-            <h3>Mirá el Catálogo</h3>
-            <p>Explorá nuestras categorías y encontrá la ropa que más te gusta.</p>
-          </div>
-          <div class="step-line" aria-hidden="true"></div>
-          <div class="step reveal">
-            <div class="step-num" aria-hidden="true">02</div>
-            <div class="step-icon" aria-hidden="true">🛒</div>
-            <h3>Añadí al Carrito</h3>
-            <p>Sumá todos los productos que querés a tu carrito desde la página.</p>
-          </div>
-          <div class="step-line" aria-hidden="true"></div>
-          <div class="step reveal">
-            <div class="step-num" aria-hidden="true">03</div>
-            <div class="step-icon" aria-hidden="true">💬</div>
-            <h3>Envianos tu Carrito por WhatsApp</h3>
-            <p>Con un clic tu pedido completo se envía automáticamente a nuestro WhatsApp.</p>
-          </div>
-          <div class="step-line" aria-hidden="true"></div>
-          <div class="step reveal">
-            <div class="step-num" aria-hidden="true">04</div>
-            <div class="step-icon" aria-hidden="true">📦</div>
-            <h3>Coordinamos el Pago y el Envío</h3>
-            <p>Confirmamos disponibilidad, acordamos el pago y te mandamos el pedido a todo el país.</p>
-          </div>
-        </div>
-
-        <div class="steps-cta reveal">
-          <a href="#catalogo" class="btn btn-primary">
-            Ver Catálogo
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </a>
-        </div>
-      </div>
-    </section>
-
     <!-- ═══════════════════════ CATÁLOGO ═══════════════════════ -->
     <section id="catalogo" class="section" aria-labelledby="catalogo-titulo">
       <div class="container">
@@ -236,6 +188,49 @@
             Todos los productos
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ CÓMO COMPRAR ═══════════════════════ -->
+    <section id="como-comprar" class="section section-pink" aria-labelledby="pasos-titulo">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="section-tag">Simple y Rápido</span>
+          <h2 id="pasos-titulo" class="section-title">¿Cómo Comprar?</h2>
+          <p class="section-subtitle">En cuatro pasos simples tenés tu pedido en camino.</p>
+        </div>
+        <div class="how-strip reveal">
+          <button type="button" class="how-item" data-desc="Explorá nuestras categorías y encontrá la ropa que más te gusta.">
+            <div class="how-ico-wrap">👀</div>
+            <div class="how-snum">01</div>
+            <div class="how-lbl">Mirá el Catálogo</div>
+          </button>
+          <div class="how-conn" aria-hidden="true"></div>
+          <button type="button" class="how-item" data-desc="Sumá todos los productos que querés a tu carrito desde la página.">
+            <div class="how-ico-wrap">🛒</div>
+            <div class="how-snum">02</div>
+            <div class="how-lbl">Añadí al Carrito</div>
+          </button>
+          <div class="how-conn" aria-hidden="true"></div>
+          <button type="button" class="how-item" data-desc="Con un clic tu pedido completo se envía automáticamente a nuestro WhatsApp.">
+            <div class="how-ico-wrap">💬</div>
+            <div class="how-snum">03</div>
+            <div class="how-lbl">Enviá por WhatsApp</div>
+          </button>
+          <div class="how-conn" aria-hidden="true"></div>
+          <button type="button" class="how-item" data-desc="Confirmamos disponibilidad, acordamos el pago y te mandamos el pedido a todo el país.">
+            <div class="how-ico-wrap">📦</div>
+            <div class="how-snum">04</div>
+            <div class="how-lbl">Coordinamos Envío</div>
+          </button>
+        </div>
+        <div class="how-info" id="how-info"></div>
+        <div class="steps-cta reveal">
+          <a href="#catalogo" class="btn btn-primary">
+            Ver Catálogo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
         </div>
       </div>
     </section>
@@ -477,424 +472,33 @@
   </aside>
 
   <script type="module" src="script.js"></script>
+  <script>
+  (function(){
+    var _howTimer=null;
+    var _howInfo=document.getElementById('how-info');
+    function howClose(){
+      clearTimeout(_howTimer);_howTimer=null;
+      document.querySelectorAll('.how-item').forEach(function(e){e.classList.remove('active');});
+      _howInfo.textContent='';_howInfo.classList.remove('visible');
+    }
+    document.querySelectorAll('.how-item').forEach(function(el){
+      el.addEventListener('click',function(e){
+        e.stopPropagation();
+        var wasActive=el.classList.contains('active');
+        howClose();
+        if(!wasActive){
+          el.classList.add('active');
+          _howInfo.textContent=el.dataset.desc;
+          _howInfo.classList.add('visible');
+          _howTimer=setTimeout(howClose,5000);
+        }
+      });
+    });
+    document.addEventListener('click',howClose);
+  })();
+  </script>
 
 <!-- ═══ LAYOUT DEMOS ═══ -->
-<style>
-/* ── SHARED DEMO CHROME ─────────────────────────────── */
-.dx-wrap{max-width:900px;margin:0 auto;font-family:sans-serif}
-.dx-block{background:#fff;border-radius:16px;margin-bottom:1.5rem;box-shadow:0 2px 12px rgba(0,0,0,.08)}
-.dx-meta{padding:.42rem .9rem;background:#f5f5f5;border-bottom:1px solid #eee;display:flex;align-items:center;gap:.5rem;border-radius:16px 16px 0 0}
-.dx-block>*:last-child{border-radius:0 0 16px 16px}
-.dx-letter{font-size:.65rem;font-weight:900;color:#fff;background:#F72585;border-radius:4px;padding:.15rem .45rem}
-.dx-name{font-size:.73rem;font-weight:700;color:#555}
-
-/* ── A: PILL STEPPER ───────────────────────────────── */
-.dA-sec{background:#FFF0F3;padding:2rem 1.25rem;text-align:center}
-.dA-tag{font-size:.68rem;font-weight:700;color:#F72585;text-transform:uppercase;letter-spacing:.07em;background:rgba(247,37,133,.1);padding:.2rem .75rem;border-radius:99px;display:inline-block;margin-bottom:.6rem}
-.dA-h2{font-size:1.35rem;font-weight:800;color:#1A1A2E;margin:0 0 1.6rem}
-.dA-track{display:flex;flex-wrap:wrap;justify-content:center;gap:.75rem;max-width:500px;margin:0 auto 1.6rem;position:relative}
-.dA-step{display:flex;flex-direction:column;align-items:center;gap:.35rem;z-index:1;width:calc(50% - .375rem)}
-.dA-circle{width:44px;height:44px;border-radius:50%;background:#F72585;color:#fff;font-size:.72rem;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(247,37,133,.35)}
-.dA-ico{font-size:1.3rem;line-height:1}
-.dA-lbl{font-size:.68rem;font-weight:600;color:#1A1A2E;max-width:72px;line-height:1.3;text-align:center}
-.dA-btn{display:inline-block;background:#F72585;color:#fff;font-size:.85rem;font-weight:700;padding:.55rem 1.4rem;border-radius:99px;text-decoration:none}
-@media(min-width:520px){
-  .dA-track{flex-wrap:nowrap;justify-content:space-between}
-  .dA-track::before{content:'';position:absolute;top:22px;left:22px;right:22px;height:2px;background:linear-gradient(to right,#FFB3C6,#FFCCD5);z-index:0}
-  .dA-step{flex:1;width:auto}
-}
-
-/* ── B: LEFT-RAIL NUMBERED LIST ────────────────────── */
-.dB-sec{background:#fff;padding:2rem 1.25rem}
-.dB-tag{font-size:.68rem;font-weight:700;color:#F72585;text-transform:uppercase;letter-spacing:.07em}
-.dB-h2{font-size:1.35rem;font-weight:800;color:#1A1A2E;margin:.25rem 0 1.4rem}
-.dB-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem}
-.dB-item{display:grid;grid-template-columns:3rem 2rem 1fr;align-items:start;gap:0 .6rem}
-.dB-num{font-size:2.2rem;font-weight:900;color:#FFCCD5;line-height:1;text-align:right;padding-top:.1rem}
-.dB-ico{font-size:1.3rem;line-height:1.5}
-.dB-text h3{font-size:.88rem;font-weight:700;color:#1A1A2E;margin:0 0 .12rem}
-.dB-text p{font-size:.77rem;color:#6C757D;margin:0;line-height:1.5}
-.dB-btn{display:inline-block;background:#F72585;color:#fff;font-size:.85rem;font-weight:700;padding:.55rem 1.4rem;border-radius:99px;text-decoration:none}
-
-/* ── C: WHATSAPP BUBBLES ───────────────────────────── */
-.dC-sec{background:#ECE5DD;padding:2rem 1.25rem}
-.dC-header{text-align:center;margin-bottom:1.2rem}
-.dC-tag{font-size:.68rem;font-weight:700;color:#075E54;text-transform:uppercase;letter-spacing:.07em;background:rgba(7,94,84,.1);padding:.2rem .75rem;border-radius:99px;display:inline-block;margin-bottom:.4rem}
-.dC-h2{font-size:1.3rem;font-weight:800;color:#1A1A2E;margin:0}
-.dC-convo{display:flex;flex-direction:column;gap:.55rem;max-width:420px;margin:0 auto 1.2rem}
-.dC-bubble{max-width:80%;padding:.55rem .85rem;font-size:.82rem;line-height:1.45;border-radius:12px}
-.dC-bubble.left{background:#fff;border-radius:0 12px 12px 12px;align-self:flex-start;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-.dC-bubble.right{background:#DCF8C6;border-radius:12px 0 12px 12px;align-self:flex-end;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-.dC-bubble.wa{background:#25D366;border-radius:12px 0 12px 12px;align-self:flex-end;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.dC-bnum{font-size:.62rem;font-weight:900;margin-bottom:.15rem;display:block}
-.dC-bubble.left .dC-bnum{color:#F72585}
-.dC-bubble.right .dC-bnum{color:#075E54}
-.dC-bubble.wa .dC-bnum{color:rgba(255,255,255,.75)}
-.dC-bubble h4{font-size:.84rem;font-weight:700;margin:0 0 .1rem}
-.dC-bubble.left h4,.dC-bubble.right h4{color:#1A1A2E}
-.dC-bubble.wa h4{color:#fff}
-.dC-bubble p{font-size:.77rem;margin:0}
-.dC-bubble.left p,.dC-bubble.right p{color:#4a4a4a}
-.dC-bubble.wa p{color:rgba(255,255,255,.9)}
-.dC-cta{text-align:center}
-.dC-btn{display:inline-block;background:#25D366;color:#fff;font-size:.85rem;font-weight:700;padding:.55rem 1.4rem;border-radius:99px;text-decoration:none}
-
-/* ── D: 2×2 ICON GRID ──────────────────────────────── */
-.dD-sec{background:#FFF0F3;padding:2rem 1.25rem}
-.dD-header{text-align:center;margin-bottom:1.2rem}
-.dD-tag{font-size:.68rem;font-weight:700;color:#F72585;text-transform:uppercase;letter-spacing:.07em}
-.dD-h2{font-size:1.35rem;font-weight:800;color:#1A1A2E;margin:.25rem 0 0}
-.dD-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;max-width:380px;margin:0 auto 1.25rem}
-.dD-card{background:#fff;border-radius:16px;padding:1rem .85rem;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.07)}
-.dD-badge{position:absolute;top:.5rem;right:.55rem;font-size:.6rem;font-weight:900;color:#fff;background:#FFB3C6;border-radius:99px;padding:.1rem .38rem;line-height:1.5}
-.dD-ico{font-size:2rem;display:block;margin-bottom:.45rem}
-.dD-card-title{font-size:.82rem;font-weight:700;color:#1A1A2E;line-height:1.3;margin:0}
-.dD-btn{display:inline-block;background:#F72585;color:#fff;font-size:.85rem;font-weight:700;padding:.55rem 1.4rem;border-radius:99px;text-decoration:none}
-
-/* ── E: VERTICAL PROCESS RAIL (DARK) ───────────────── */
-.dE-sec{background:#1A1A2E;padding:2rem 1.25rem}
-.dE-header{text-align:center;margin-bottom:1.5rem}
-.dE-tag{font-size:.68rem;font-weight:700;color:#FFB3C6;text-transform:uppercase;letter-spacing:.07em}
-.dE-h2{font-size:1.35rem;font-weight:800;color:#fff;margin:.25rem 0 0}
-.dE-list{max-width:420px;margin:0 auto 1.5rem;display:flex;flex-direction:column}
-.dE-row{display:flex;align-items:stretch}
-.dE-rail{display:flex;flex-direction:column;align-items:center;width:38px;flex-shrink:0}
-.dE-dot{width:34px;height:34px;border-radius:50%;background:#F72585;color:#fff;font-size:.7rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(247,37,133,.4)}
-.dE-vline{width:2px;flex:1;background:rgba(247,37,133,.25);margin:3px 0;min-height:8px}
-.dE-row:last-child .dE-vline{display:none}
-.dE-content{padding:.2rem 0 .9rem .85rem}
-.dE-top{display:flex;align-items:center;gap:.5rem;margin-bottom:.18rem}
-.dE-ico2{font-size:1.15rem;line-height:1}
-.dE-content h3{font-size:.88rem;font-weight:700;color:#fff;margin:0}
-.dE-content p{font-size:.76rem;color:rgba(255,255,255,.55);margin:.1rem 0 0;line-height:1.45}
-.dE-cta{text-align:center}
-.dE-btn{display:inline-block;background:#F72585;color:#fff;font-size:.85rem;font-weight:700;padding:.55rem 1.4rem;border-radius:99px;text-decoration:none}
-
-/* ── F: ACCORDION ──────────────────────────────────── */
-.dF-sec{background:#fff;padding:2rem 1.25rem}
-.dF-tag{font-size:.68rem;font-weight:700;color:#F72585;text-transform:uppercase;letter-spacing:.07em}
-.dF-h2{font-size:1.35rem;font-weight:800;color:#1A1A2E;margin:.25rem 0 1.2rem}
-.dF-list{display:flex;flex-direction:column;gap:.45rem;margin-bottom:1.5rem}
-.dF-item{border:1.5px solid #FFCCD5;border-radius:12px;overflow:hidden;transition:border-color .2s}
-.dF-item.open{border-color:#F72585}
-.dF-trigger{width:100%;background:none;border:none;padding:.65rem .9rem;display:flex;align-items:center;gap:.55rem;cursor:pointer;text-align:left}
-.dF-tnum{font-size:.62rem;font-weight:900;color:#fff;background:#FFB3C6;border-radius:99px;padding:.1rem .42rem;line-height:1.5;flex-shrink:0}
-.dF-item.open .dF-tnum{background:#F72585}
-.dF-tico{font-size:1.1rem;flex-shrink:0}
-.dF-ttitle{font-size:.87rem;font-weight:700;color:#1A1A2E;flex:1;text-align:left}
-.dF-chev{font-size:.7rem;color:#F72585;transition:transform .2s;margin-left:auto;flex-shrink:0}
-.dF-item.open .dF-chev{transform:rotate(180deg)}
-.dF-body{display:none;padding:0 .9rem .7rem 2.8rem;font-size:.79rem;color:#6C757D;line-height:1.5}
-.dF-item.open .dF-body{display:block}
-.dF-cta{text-align:center}
-.dF-btn{display:inline-block;background:#F72585;color:#fff;font-size:.85rem;font-weight:700;padding:.55rem 1.4rem;border-radius:99px;text-decoration:none}
-
-/* ── G: GLASSMORPHISM ──────────────────────────────── */
-.dG-sec{background:linear-gradient(135deg,#FF6B9D 0%,#F72585 55%,#C9184A 100%);padding:2rem 1.25rem}
-.dG-header{text-align:center;margin-bottom:1.4rem}
-.dG-tag{font-size:.68rem;font-weight:700;color:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:.07em;background:rgba(255,255,255,.18);padding:.2rem .75rem;border-radius:99px;display:inline-block;margin-bottom:.4rem}
-.dG-h2{font-size:1.35rem;font-weight:800;color:#fff;margin:0}
-.dG-grid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;max-width:400px;margin:0 auto 1.4rem}
-.dG-card{background:rgba(255,255,255,.17);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.3);border-radius:16px;padding:1rem .9rem;text-align:center}
-.dG-num{font-size:.62rem;font-weight:900;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem}
-.dG-ico{font-size:1.7rem;display:block;margin-bottom:.35rem}
-.dG-card-title{font-size:.82rem;font-weight:700;color:#fff;line-height:1.3;margin:0 0 .3rem}
-.dG-card-desc{font-size:.73rem;color:rgba(255,255,255,.78);line-height:1.4;margin:0}
-.dG-cta{text-align:center}
-.dG-btn{display:inline-block;background:#fff;color:#F72585;font-size:.85rem;font-weight:700;padding:.55rem 1.4rem;border-radius:99px;text-decoration:none}
-
-/* ── H: ICON STRIP + TOOLTIP ───────────────────────── */
-.dH-sec{background:#FFF0F3;padding:.75rem 1rem}
-.dH-header{text-align:center;margin-bottom:.3rem}
-.dH-tag{font-size:.6rem;font-weight:700;color:#F72585;text-transform:uppercase;letter-spacing:.07em}
-.dH-h2{font-size:1.05rem;font-weight:800;color:#1A1A2E;margin:.15rem 0 .1rem}
-.dH-sub{font-size:.65rem;color:#6C757D;margin:0 0 .5rem}
-.dH-strip{display:flex;justify-content:center;align-items:flex-start;max-width:340px;margin:0 auto .35rem}
-.dH-item{position:relative;display:flex;flex-direction:column;align-items:center;gap:.15rem;flex:1;padding:.1rem 0;cursor:pointer;background:none;border:none;font-family:inherit;font-size:inherit;-webkit-tap-highlight-color:transparent}
-.dH-conn{flex:none;width:14px;height:2px;background:#FFCCD5;flex-shrink:0;margin-top:20px}
-.dH-ico-wrap{width:40px;height:40px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.09);display:flex;align-items:center;justify-content:center;font-size:1.1rem;border:2px solid #FFCCD5;transition:border-color .18s,transform .18s}
-.dH-item:hover .dH-ico-wrap,.dH-item.active .dH-ico-wrap{border-color:#F72585;transform:translateY(-2px)}
-.dH-snum{font-size:.55rem;font-weight:900;color:#FFB3C6}
-.dH-slbl{font-size:.58rem;font-weight:600;color:#1A1A2E;text-align:center;max-width:54px;line-height:1.2}
-.dH-info{height:3rem;overflow:hidden;max-width:340px;margin:0 auto .5rem;padding:.3rem .75rem;background:rgba(247,37,133,.07);border-radius:7px;font-size:.72rem;color:#1A1A2E;line-height:1.4;text-align:center;display:flex;align-items:center;justify-content:center;transition:opacity .2s;opacity:0}
-.dH-info.visible{opacity:1}
-.dH-cta{text-align:center}
-.dH-btn{display:inline-block;background:#F72585;color:#fff;font-size:.78rem;font-weight:700;padding:.42rem 1.1rem;border-radius:99px;text-decoration:none}
-</style>
-
-<section style="padding:2rem 1rem 3rem;background:#e8e8e8">
-  <div class="dx-wrap">
-    <h2 style="font-size:1.1rem;font-weight:800;color:#111;margin:0 0 .25rem">¿Cómo Comprar? — Layout Demos</h2>
-    <p style="font-size:.8rem;color:#888;margin:0 0 2rem">8 variantes — mismo contenido, distintos estilos.</p>
-
-    <!-- A: Pill Stepper -->
-    <div class="dx-block">
-      <div class="dx-meta"><span class="dx-letter">A</span><span class="dx-name">Pill stepper</span></div>
-      <div class="dA-sec">
-        <span class="dA-tag">Simple y Rápido</span>
-        <h2 class="dA-h2">¿Cómo Comprar?</h2>
-        <div class="dA-track">
-          <div class="dA-step">
-            <div class="dA-circle">01</div>
-            <div class="dA-ico">👀</div>
-            <div class="dA-lbl">Mirá el Catálogo</div>
-          </div>
-          <div class="dA-step">
-            <div class="dA-circle">02</div>
-            <div class="dA-ico">🛒</div>
-            <div class="dA-lbl">Añadí al Carrito</div>
-          </div>
-          <div class="dA-step">
-            <div class="dA-circle">03</div>
-            <div class="dA-ico">💬</div>
-            <div class="dA-lbl">Enviá por WhatsApp</div>
-          </div>
-          <div class="dA-step">
-            <div class="dA-circle">04</div>
-            <div class="dA-ico">📦</div>
-            <div class="dA-lbl">Coordinamos Envío</div>
-          </div>
-        </div>
-        <a href="#catalogo" class="dA-btn">Ver Catálogo →</a>
-      </div>
-    </div>
-
-    <!-- B: Left-rail numbered list -->
-    <div class="dx-block">
-      <div class="dx-meta"><span class="dx-letter">B</span><span class="dx-name">Left-rail numbered list</span></div>
-      <div class="dB-sec">
-        <span class="dB-tag">Simple y Rápido</span>
-        <h2 class="dB-h2">¿Cómo Comprar?</h2>
-        <div class="dB-list">
-          <div class="dB-item">
-            <div class="dB-num">01</div>
-            <div class="dB-ico">👀</div>
-            <div class="dB-text"><h3>Mirá el Catálogo</h3><p>Explorá nuestras categorías y encontrá la ropa que más te gusta.</p></div>
-          </div>
-          <div class="dB-item">
-            <div class="dB-num">02</div>
-            <div class="dB-ico">🛒</div>
-            <div class="dB-text"><h3>Añadí al Carrito</h3><p>Sumá todos los productos que querés a tu carrito desde la página.</p></div>
-          </div>
-          <div class="dB-item">
-            <div class="dB-num">03</div>
-            <div class="dB-ico">💬</div>
-            <div class="dB-text"><h3>Envianos tu Carrito por WhatsApp</h3><p>Con un clic tu pedido completo se envía automáticamente a nuestro WhatsApp.</p></div>
-          </div>
-          <div class="dB-item">
-            <div class="dB-num">04</div>
-            <div class="dB-ico">📦</div>
-            <div class="dB-text"><h3>Coordinamos el Pago y el Envío</h3><p>Confirmamos disponibilidad, acordamos el pago y te mandamos el pedido a todo el país.</p></div>
-          </div>
-        </div>
-        <a href="#catalogo" class="dB-btn">Ver Catálogo →</a>
-      </div>
-    </div>
-
-    <!-- C: WhatsApp bubble flow -->
-    <div class="dx-block">
-      <div class="dx-meta"><span class="dx-letter">C</span><span class="dx-name">WhatsApp bubble flow</span></div>
-      <div class="dC-sec">
-        <div class="dC-header">
-          <span class="dC-tag">Simple y Rápido</span>
-          <h2 class="dC-h2">¿Cómo Comprar?</h2>
-        </div>
-        <div class="dC-convo">
-          <div class="dC-bubble left">
-            <span class="dC-bnum">01</span>
-            <h4>👀 Mirá el Catálogo</h4>
-            <p>Explorá nuestras categorías y encontrá la ropa que más te gusta.</p>
-          </div>
-          <div class="dC-bubble right">
-            <span class="dC-bnum">02</span>
-            <h4>🛒 Añadí al Carrito</h4>
-            <p>Sumá los productos que querés desde la página.</p>
-          </div>
-          <div class="dC-bubble wa">
-            <span class="dC-bnum">03</span>
-            <h4>💬 Envianos tu Carrito</h4>
-            <p>Un clic y tu pedido llega automáticamente a nuestro WhatsApp.</p>
-          </div>
-          <div class="dC-bubble left">
-            <span class="dC-bnum">04</span>
-            <h4>📦 Coordinamos Envío</h4>
-            <p>Confirmamos, acordamos el pago y te mandamos el pedido a todo el país.</p>
-          </div>
-        </div>
-        <div class="dC-cta"><a href="#catalogo" class="dC-btn">Ver Catálogo →</a></div>
-      </div>
-    </div>
-
-    <!-- D: 2×2 icon grid -->
-    <div class="dx-block">
-      <div class="dx-meta"><span class="dx-letter">D</span><span class="dx-name">2×2 icon grid</span></div>
-      <div class="dD-sec">
-        <div class="dD-header">
-          <span class="dD-tag">Simple y Rápido</span>
-          <h2 class="dD-h2">¿Cómo Comprar?</h2>
-        </div>
-        <div class="dD-grid">
-          <div class="dD-card"><span class="dD-badge">01</span><span class="dD-ico">👀</span><p class="dD-card-title">Mirá el Catálogo</p></div>
-          <div class="dD-card"><span class="dD-badge">02</span><span class="dD-ico">🛒</span><p class="dD-card-title">Añadí al Carrito</p></div>
-          <div class="dD-card"><span class="dD-badge">03</span><span class="dD-ico">💬</span><p class="dD-card-title">Enviá por WhatsApp</p></div>
-          <div class="dD-card"><span class="dD-badge">04</span><span class="dD-ico">📦</span><p class="dD-card-title">Coordinamos Envío</p></div>
-        </div>
-        <div style="text-align:center"><a href="#catalogo" class="dD-btn">Ver Catálogo →</a></div>
-      </div>
-    </div>
-
-    <!-- E: Vertical process rail (dark) -->
-    <div class="dx-block">
-      <div class="dx-meta"><span class="dx-letter">E</span><span class="dx-name">Vertical process rail — dark bg</span></div>
-      <div class="dE-sec">
-        <div class="dE-header">
-          <span class="dE-tag">Simple y Rápido</span>
-          <h2 class="dE-h2">¿Cómo Comprar?</h2>
-        </div>
-        <div class="dE-list">
-          <div class="dE-row">
-            <div class="dE-rail"><div class="dE-dot">01</div><div class="dE-vline"></div></div>
-            <div class="dE-content"><div class="dE-top"><span class="dE-ico2">👀</span><h3>Mirá el Catálogo</h3></div><p>Explorá nuestras categorías y encontrá la ropa que más te gusta.</p></div>
-          </div>
-          <div class="dE-row">
-            <div class="dE-rail"><div class="dE-dot">02</div><div class="dE-vline"></div></div>
-            <div class="dE-content"><div class="dE-top"><span class="dE-ico2">🛒</span><h3>Añadí al Carrito</h3></div><p>Sumá todos los productos que querés a tu carrito desde la página.</p></div>
-          </div>
-          <div class="dE-row">
-            <div class="dE-rail"><div class="dE-dot">03</div><div class="dE-vline"></div></div>
-            <div class="dE-content"><div class="dE-top"><span class="dE-ico2">💬</span><h3>Envianos por WhatsApp</h3></div><p>Con un clic tu pedido completo se envía automáticamente a nuestro WhatsApp.</p></div>
-          </div>
-          <div class="dE-row">
-            <div class="dE-rail"><div class="dE-dot">04</div><div class="dE-vline"></div></div>
-            <div class="dE-content"><div class="dE-top"><span class="dE-ico2">📦</span><h3>Coordinamos Envío</h3></div><p>Confirmamos disponibilidad, acordamos el pago y te mandamos el pedido a todo el país.</p></div>
-          </div>
-        </div>
-        <div class="dE-cta"><a href="#catalogo" class="dE-btn">Ver Catálogo →</a></div>
-      </div>
-    </div>
-
-    <!-- F: Accordion -->
-    <div class="dx-block">
-      <div class="dx-meta"><span class="dx-letter">F</span><span class="dx-name">Accordion</span></div>
-      <div class="dF-sec">
-        <span class="dF-tag">Simple y Rápido</span>
-        <h2 class="dF-h2">¿Cómo Comprar?</h2>
-        <div class="dF-list">
-          <div class="dF-item">
-            <button class="dF-trigger" onclick="this.closest('.dF-item').classList.toggle('open')">
-              <span class="dF-tnum">01</span><span class="dF-tico">👀</span><span class="dF-ttitle">Mirá el Catálogo</span><span class="dF-chev">▼</span>
-            </button>
-            <div class="dF-body">Explorá nuestras categorías y encontrá la ropa que más te gusta.</div>
-          </div>
-          <div class="dF-item">
-            <button class="dF-trigger" onclick="this.closest('.dF-item').classList.toggle('open')">
-              <span class="dF-tnum">02</span><span class="dF-tico">🛒</span><span class="dF-ttitle">Añadí al Carrito</span><span class="dF-chev">▼</span>
-            </button>
-            <div class="dF-body">Sumá todos los productos que querés a tu carrito desde la página.</div>
-          </div>
-          <div class="dF-item">
-            <button class="dF-trigger" onclick="this.closest('.dF-item').classList.toggle('open')">
-              <span class="dF-tnum">03</span><span class="dF-tico">💬</span><span class="dF-ttitle">Envianos tu Carrito por WhatsApp</span><span class="dF-chev">▼</span>
-            </button>
-            <div class="dF-body">Con un clic tu pedido completo se envía automáticamente a nuestro WhatsApp.</div>
-          </div>
-          <div class="dF-item">
-            <button class="dF-trigger" onclick="this.closest('.dF-item').classList.toggle('open')">
-              <span class="dF-tnum">04</span><span class="dF-tico">📦</span><span class="dF-ttitle">Coordinamos el Pago y el Envío</span><span class="dF-chev">▼</span>
-            </button>
-            <div class="dF-body">Confirmamos disponibilidad, acordamos el pago y te mandamos el pedido a todo el país.</div>
-          </div>
-        </div>
-        <div class="dF-cta"><a href="#catalogo" class="dF-btn">Ver Catálogo →</a></div>
-      </div>
-    </div>
-
-    <!-- G: Glassmorphism -->
-    <div class="dx-block">
-      <div class="dx-meta"><span class="dx-letter">G</span><span class="dx-name">Glassmorphism cards on gradient</span></div>
-      <div class="dG-sec">
-        <div class="dG-header">
-          <span class="dG-tag">Simple y Rápido</span>
-          <h2 class="dG-h2">¿Cómo Comprar?</h2>
-        </div>
-        <div class="dG-grid">
-          <div class="dG-card"><div class="dG-num">PASO 01</div><span class="dG-ico">👀</span><p class="dG-card-title">Mirá el Catálogo</p><p class="dG-card-desc">Explorá categorías y encontrá lo que más te gusta.</p></div>
-          <div class="dG-card"><div class="dG-num">PASO 02</div><span class="dG-ico">🛒</span><p class="dG-card-title">Añadí al Carrito</p><p class="dG-card-desc">Sumá los productos que querés desde la página.</p></div>
-          <div class="dG-card"><div class="dG-num">PASO 03</div><span class="dG-ico">💬</span><p class="dG-card-title">Enviá por WhatsApp</p><p class="dG-card-desc">Un clic y tu pedido llega a nuestro chat automáticamente.</p></div>
-          <div class="dG-card"><div class="dG-num">PASO 04</div><span class="dG-ico">📦</span><p class="dG-card-title">Coordinamos Envío</p><p class="dG-card-desc">Acordamos el pago y te mandamos el pedido a todo el país.</p></div>
-        </div>
-        <div class="dG-cta"><a href="#catalogo" class="dG-btn">Ver Catálogo →</a></div>
-      </div>
-    </div>
-
-    <!-- H: Icon strip + tooltip -->
-    <div class="dx-block">
-      <div class="dx-meta"><span class="dx-letter">H</span><span class="dx-name">Icon strip + tap/hover tooltip</span></div>
-      <div class="dH-sec">
-        <div class="dH-header">
-          <span class="dH-tag">Simple y Rápido</span>
-          <h2 class="dH-h2">¿Cómo Comprar?</h2>
-          <p class="dH-sub">Tocá cada ícono para ver más.</p>
-        </div>
-        <div class="dH-strip">
-          <button type="button" class="dH-item" data-desc="Explorá nuestras categorías y encontrá la ropa que más te gusta.">
-            <div class="dH-ico-wrap">👀</div>
-            <div class="dH-snum">01</div>
-            <div class="dH-slbl">Mirá el Catálogo</div>
-          </button>
-          <div class="dH-conn"></div>
-          <button type="button" class="dH-item" data-desc="Sumá todos los productos que querés a tu carrito desde la página.">
-            <div class="dH-ico-wrap">🛒</div>
-            <div class="dH-snum">02</div>
-            <div class="dH-slbl">Añadí al Carrito</div>
-          </button>
-          <div class="dH-conn"></div>
-          <button type="button" class="dH-item" data-desc="Con un clic tu pedido completo se envía automáticamente a nuestro WhatsApp.">
-            <div class="dH-ico-wrap">💬</div>
-            <div class="dH-snum">03</div>
-            <div class="dH-slbl">Enviá por WhatsApp</div>
-          </button>
-          <div class="dH-conn"></div>
-          <button type="button" class="dH-item" data-desc="Confirmamos disponibilidad, acordamos el pago y te mandamos el pedido a todo el país.">
-            <div class="dH-ico-wrap">📦</div>
-            <div class="dH-snum">04</div>
-            <div class="dH-slbl">Coordinamos Envío</div>
-          </button>
-        </div>
-        <div class="dH-info" id="dH-info"></div>
-        <div class="dH-cta"><a href="#catalogo" class="dH-btn">Ver Catálogo →</a></div>
-      </div>
-    </div>
-
-  </div>
-</section>
-<script>
-(function(){
-  var _dHTimer=null;
-  var _dHInfo=document.getElementById('dH-info');
-  function dHClose(){
-    clearTimeout(_dHTimer);
-    _dHTimer=null;
-    document.querySelectorAll('.dH-item').forEach(function(e){e.classList.remove('active');});
-    _dHInfo.textContent='';
-    _dHInfo.classList.remove('visible');
-  }
-  document.querySelectorAll('.dH-item').forEach(function(el){
-    el.addEventListener('click',function(e){
-      e.stopPropagation();
-      var wasActive=el.classList.contains('active');
-      dHClose();
-      if(!wasActive){
-        el.classList.add('active');
-        _dHInfo.textContent=el.dataset.desc;
-        _dHInfo.classList.add('visible');
-        _dHTimer=setTimeout(dHClose,5000);
-      }
-    });
-  });
-  document.addEventListener('click',dHClose);
-})();
-</script>
 <!-- ═══ END DEMOS ═══ -->
 
 </body>
