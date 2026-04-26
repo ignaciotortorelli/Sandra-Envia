@@ -1222,11 +1222,12 @@ function renderRefs(refs) {
   const rotations = [-3, 2, -1.5, 3.5, -2, 1, -2.5, 1.5, -1, 4, -3.5, 2.5, -2, 1, -1.5, 3, -4, 2];
   const items = refs.map((r, i) => {
     const cap   = r.title ? ` data-caption="${r.title.replace(/"/g, '&quot;')}"` : '';
+    const bod   = r.body  ? ` data-body="${r.body.replace(/"/g, '&quot;')}"` : '';
     const inner = r.image
       ? `<img src="${driveImgUrl(r.image)}" alt="${r.title ?? ''}">`
       : `<div class="pol-ph">💬</div>`;
     const rot = rotations[i % rotations.length];
-    return `<div class="pol-wrap noselect"${cap} style="transform:rotate(${rot}deg)"><div class="pol-canvas">${trackers}<div class="pol-card">${inner}</div></div></div>`;
+    return `<div class="pol-wrap noselect"${cap}${bod} style="transform:rotate(${rot}deg)"><div class="pol-canvas">${trackers}<div class="pol-card">${inner}</div></div></div>`;
   }).join('');
 
   grid.innerHTML = `<div class="t-pol-scroll" id="testimoniosScroll"><div class="t-pol-strip" id="testimoniosStrip">${items}</div></div>`;
@@ -1278,10 +1279,12 @@ function initPolaroidScroll(wrap, strip) {
     const img = card.querySelector('img');
     const cap = card.getAttribute('data-caption') || '';
     titleEl.textContent = cap;
-    gridEl.innerHTML = '<div style="grid-column:1/-1;display:flex;justify-content:center;padding:1rem 0">' +
+    const body = card.getAttribute('data-body') || '';
+    gridEl.innerHTML = '<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:1rem;padding:1rem 0">' +
       (img
-        ? '<img src="' + img.src + '" alt="" style="max-width:100%;max-height:72vh;object-fit:contain;border-radius:12px;box-shadow:var(--sh-lg)">'
+        ? '<img src="' + img.src + '" alt="" style="max-width:100%;max-height:60vh;object-fit:contain;border-radius:12px;box-shadow:var(--sh-lg)">'
         : '<p style="font-size:3rem;text-align:center">&#x1F4AC;</p>') +
+      (body ? '<p style="font-size:.95rem;line-height:1.6;color:var(--text);text-align:center;max-width:480px;font-style:italic">' + body + '</p>' : '') +
       '</div>';
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
