@@ -880,29 +880,18 @@
     _dHTimer=null;
     document.querySelectorAll('.dH-item').forEach(function(e){e.classList.remove('active');});
   }
-  function dHToggle(el){
-    var wasActive=el.classList.contains('active');
-    dHClose();
-    if(!wasActive){
-      el.classList.add('active');
-      _dHTimer=setTimeout(dHClose,5000);
-    }
-  }
   document.querySelectorAll('.dH-item').forEach(function(el){
-    el.addEventListener('touchend',function(e){
-      e.preventDefault();
-      dHToggle(el);
-    },{passive:false});
-    el.addEventListener('click',function(){
-      dHToggle(el);
+    el.addEventListener('click',function(e){
+      e.stopPropagation();
+      var wasActive=el.classList.contains('active');
+      dHClose();
+      if(!wasActive){
+        el.classList.add('active');
+        _dHTimer=setTimeout(dHClose,5000);
+      }
     });
   });
-  document.addEventListener('touchstart',function(e){
-    if(!e.target.closest('.dH-item'))dHClose();
-  },{passive:true});
-  document.addEventListener('click',function(e){
-    if(!e.target.closest('.dH-item'))dHClose();
-  });
+  document.addEventListener('click',dHClose);
 })();
 </script>
 <!-- ═══ END DEMOS ═══ -->
