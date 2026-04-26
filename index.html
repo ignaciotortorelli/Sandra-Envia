@@ -608,17 +608,16 @@
 .dH-header{text-align:center;margin-bottom:1.4rem}
 .dH-tag{font-size:.68rem;font-weight:700;color:#F72585;text-transform:uppercase;letter-spacing:.07em}
 .dH-h2{font-size:1.35rem;font-weight:800;color:#1A1A2E;margin:.25rem 0 .2rem}
-.dH-sub{font-size:.75rem;color:#6C757D;margin:0}
-.dH-strip{display:flex;justify-content:center;align-items:flex-start;max-width:380px;margin:1.4rem auto 1.4rem}
+.dH-sub{font-size:.75rem;color:#6C757D;margin:0 0 1.2rem}
+.dH-strip{display:flex;justify-content:center;align-items:flex-start;max-width:380px;margin:0 auto .8rem}
 .dH-item{position:relative;display:flex;flex-direction:column;align-items:center;gap:.35rem;flex:1;padding:.3rem 0;cursor:pointer;background:none;border:none;font-family:inherit;font-size:inherit;-webkit-tap-highlight-color:transparent}
 .dH-conn{flex:none;width:20px;height:2px;background:#FFCCD5;flex-shrink:0;margin-top:29px}
 .dH-ico-wrap{width:58px;height:58px;border-radius:50%;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;font-size:1.6rem;border:2px solid #FFCCD5;transition:border-color .18s,transform .18s}
 .dH-item:hover .dH-ico-wrap,.dH-item.active .dH-ico-wrap{border-color:#F72585;transform:translateY(-3px)}
 .dH-snum{font-size:.62rem;font-weight:900;color:#FFB3C6}
 .dH-slbl{font-size:.65rem;font-weight:600;color:#1A1A2E;text-align:center;max-width:62px;line-height:1.3}
-.dH-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) scale(.92);background:#1A1A2E;color:#fff;font-size:.73rem;line-height:1.4;padding:.45rem .65rem;border-radius:8px;width:150px;text-align:center;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;z-index:20}
-.dH-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1A1A2E}
-.dH-item:hover .dH-tip,.dH-item.active .dH-tip{opacity:1;transform:translateX(-50%) scale(1)}
+.dH-info{min-height:52px;max-width:380px;margin:0 auto 1.2rem;padding:.6rem 1rem;background:rgba(247,37,133,.07);border-radius:10px;font-size:.8rem;color:#1A1A2E;line-height:1.5;text-align:center;display:flex;align-items:center;justify-content:center;transition:opacity .2s;opacity:0}
+.dH-info.visible{opacity:1}
 .dH-cta{text-align:center}
 .dH-btn{display:inline-block;background:#F72585;color:#fff;font-size:.85rem;font-weight:700;padding:.55rem 1.4rem;border-radius:99px;text-decoration:none}
 </style>
@@ -838,34 +837,31 @@
           <p class="dH-sub">Tocá cada ícono para ver más.</p>
         </div>
         <div class="dH-strip">
-          <button type="button" class="dH-item">
+          <button type="button" class="dH-item" data-desc="Explorá nuestras categorías y encontrá la ropa que más te gusta.">
             <div class="dH-ico-wrap">👀</div>
             <div class="dH-snum">01</div>
             <div class="dH-slbl">Mirá el Catálogo</div>
-            <div class="dH-tip">Explorá nuestras categorías y encontrá la ropa que más te gusta.</div>
           </button>
           <div class="dH-conn"></div>
-          <button type="button" class="dH-item">
+          <button type="button" class="dH-item" data-desc="Sumá todos los productos que querés a tu carrito desde la página.">
             <div class="dH-ico-wrap">🛒</div>
             <div class="dH-snum">02</div>
             <div class="dH-slbl">Añadí al Carrito</div>
-            <div class="dH-tip">Sumá todos los productos que querés a tu carrito desde la página.</div>
           </button>
           <div class="dH-conn"></div>
-          <button type="button" class="dH-item">
+          <button type="button" class="dH-item" data-desc="Con un clic tu pedido completo se envía automáticamente a nuestro WhatsApp.">
             <div class="dH-ico-wrap">💬</div>
             <div class="dH-snum">03</div>
             <div class="dH-slbl">Enviá por WhatsApp</div>
-            <div class="dH-tip">Con un clic tu pedido completo se envía automáticamente a nuestro WhatsApp.</div>
           </button>
           <div class="dH-conn"></div>
-          <button type="button" class="dH-item">
+          <button type="button" class="dH-item" data-desc="Confirmamos disponibilidad, acordamos el pago y te mandamos el pedido a todo el país.">
             <div class="dH-ico-wrap">📦</div>
             <div class="dH-snum">04</div>
             <div class="dH-slbl">Coordinamos Envío</div>
-            <div class="dH-tip">Confirmamos disponibilidad, acordamos el pago y te mandamos el pedido.</div>
           </button>
         </div>
+        <div class="dH-info" id="dH-info"></div>
         <div class="dH-cta"><a href="#catalogo" class="dH-btn">Ver Catálogo →</a></div>
       </div>
     </div>
@@ -875,10 +871,13 @@
 <script>
 (function(){
   var _dHTimer=null;
+  var _dHInfo=document.getElementById('dH-info');
   function dHClose(){
     clearTimeout(_dHTimer);
     _dHTimer=null;
     document.querySelectorAll('.dH-item').forEach(function(e){e.classList.remove('active');});
+    _dHInfo.textContent='';
+    _dHInfo.classList.remove('visible');
   }
   document.querySelectorAll('.dH-item').forEach(function(el){
     el.addEventListener('click',function(e){
@@ -887,6 +886,8 @@
       dHClose();
       if(!wasActive){
         el.classList.add('active');
+        _dHInfo.textContent=el.dataset.desc;
+        _dHInfo.classList.add('visible');
         _dHTimer=setTimeout(dHClose,5000);
       }
     });
