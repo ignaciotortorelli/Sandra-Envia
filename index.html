@@ -837,28 +837,28 @@
           <p class="dH-sub">Tocá cada ícono para ver más.</p>
         </div>
         <div class="dH-strip">
-          <div class="dH-item" onclick="document.querySelectorAll('.dH-item').forEach(el=>el!==this&&el.classList.remove('active'));this.classList.toggle('active')">
+          <div class="dH-item" onclick="dHToggle(this)">
             <div class="dH-ico-wrap">👀</div>
             <div class="dH-snum">01</div>
             <div class="dH-slbl">Mirá el Catálogo</div>
             <div class="dH-tip">Explorá nuestras categorías y encontrá la ropa que más te gusta.</div>
           </div>
           <div class="dH-conn"></div>
-          <div class="dH-item" onclick="document.querySelectorAll('.dH-item').forEach(el=>el!==this&&el.classList.remove('active'));this.classList.toggle('active')">
+          <div class="dH-item" onclick="dHToggle(this)">
             <div class="dH-ico-wrap">🛒</div>
             <div class="dH-snum">02</div>
             <div class="dH-slbl">Añadí al Carrito</div>
             <div class="dH-tip">Sumá todos los productos que querés a tu carrito desde la página.</div>
           </div>
           <div class="dH-conn"></div>
-          <div class="dH-item" onclick="document.querySelectorAll('.dH-item').forEach(el=>el!==this&&el.classList.remove('active'));this.classList.toggle('active')">
+          <div class="dH-item" onclick="dHToggle(this)">
             <div class="dH-ico-wrap">💬</div>
             <div class="dH-snum">03</div>
             <div class="dH-slbl">Enviá por WhatsApp</div>
             <div class="dH-tip">Con un clic tu pedido completo se envía automáticamente a nuestro WhatsApp.</div>
           </div>
           <div class="dH-conn"></div>
-          <div class="dH-item" onclick="document.querySelectorAll('.dH-item').forEach(el=>el!==this&&el.classList.remove('active'));this.classList.toggle('active')">
+          <div class="dH-item" onclick="dHToggle(this)">
             <div class="dH-ico-wrap">📦</div>
             <div class="dH-snum">04</div>
             <div class="dH-slbl">Coordinamos Envío</div>
@@ -871,6 +871,20 @@
 
   </div>
 </section>
+<script>
+(function(){
+  let _dHTimer=null;
+  window.dHToggle=function(el){
+    const wasActive=el.classList.contains('active');
+    clearTimeout(_dHTimer);
+    document.querySelectorAll('.dH-item').forEach(e=>e.classList.remove('active'));
+    if(!wasActive){
+      el.classList.add('active');
+      _dHTimer=setTimeout(()=>el.classList.remove('active'),5000);
+    }
+  };
+})();
+</script>
 <!-- ═══ END DEMOS ═══ -->
 
 </body>
