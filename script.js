@@ -397,8 +397,7 @@ function buildProductCard(prod, index) {
   card.setAttribute('role', 'listitem');
   card.style.transitionDelay = `${index * 40}ms`;
   card.innerHTML = `
-    <div class="card-img card-img-carousel" style="background:${grad}"
-         ${images.length ? `onclick="openProductLightbox('${cid}')"` : ''}>
+    <div class="card-img card-img-carousel" style="background:${grad}">
       ${imgHtml}${carouselControls}${badge}${discBadge}${bulkBadge}
     </div>
     <div class="card-body">
@@ -410,6 +409,11 @@ function buildProductCard(prod, index) {
         🛒 Agregar al carrito
       </button>
     </div>`;
+  card.style.cursor = 'pointer';
+  card.addEventListener('click', e => {
+    if (e.target.closest('button')) return;
+    window.openProductPopup?.(prod.id);
+  });
   return card;
 }
 
@@ -441,7 +445,7 @@ function renderAllProducts(products, categories) {
       ? `<span class="prod-badge-bulk">Mayor ×${prod.bulkMinQty}</span>` : '';
 
     return `
-      <div>
+      <div data-prod-id="${prod.id}">
         <div class="prod-3d-img" style="background:${grad}">
           ${img ? `<img src="${img}" alt="${prod.name ?? ''}" loading="lazy">` : `<span class="card-emoji">${cat?.emoji ?? '👗'}</span>`}
           ${stockBadge}${discBadge}${bulkBadge}
@@ -717,6 +721,7 @@ function setupLightbox() {
   const lb = document.getElementById('lightbox');
   lb?.addEventListener('click', e => { if (e.target === e.currentTarget) closeLightbox(); });
   document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') window.closeProdPopup?.();
     if (!lb?.classList.contains('open')) return;
     if (e.key === 'ArrowRight') window.lbNext();
     if (e.key === 'ArrowLeft')  window.lbPrev();
@@ -951,6 +956,59 @@ function closeCart() {
   document.body.style.overflow = '';
 }
 
+// ── Product Popup ───────────────────────────────────────────
+window.openProductPopup = function(id) {
+  const prod = window._productMap?.[id];
+  if (!prod) return;
+  const cat      = window._categoryMap?.[prod.categoryId];
+  const discPct  = prod.discount > 0 ? prod.discount : null;
+  const effPrice = (prod.price != null && discPct) ? Math.round(prod.price * (1 - discPct / 100)) : prod.price;
+  const hasBulk  = prod.bulkMinQty && prod.bulkPrice;
+  const inStock  = prod.inStock !== false;
+
+  const imgWrap = document.getElementById('prod-popup-img');
+  const infoEl  = document.getElementById('prod-popup-info');
+  if (!imgWrap || !infoEl) return;
+
+  const imgUrl = prod.images?.[0] ? driveImgUrl(prod.images[0], 'w800') : null;
+  imgWrap.innerHTML = imgUrl
+    ? `<img src="${imgUrl}" alt="${prod.name ?? ''}" style="width:100%;height:100%;object-fit:cover;display:block">`
+    : `<div style="background:${cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)'}">${cat?.emoji ?? '👗'}</div>`;
+
+  const badges = [
+    inStock ? '<span class="pp-badge-stock">✓ En stock</span>' : '<span class="pp-badge-out">Sin stock</span>',
+    discPct ? `<span class="pp-badge-disc">−${discPct} %</span>` : '',
+    hasBulk ? '<span class="pp-badge-bulk">Precio por mayor</span>' : '',
+  ].filter(Boolean).join('');
+
+  const priceHtml = effPrice != null
+    ? `<span class="pp-price">${fmtARS(effPrice)}</span>${discPct ? `<span class="pp-price-orig">${fmtARS(prod.price)}</span>` : ''}`
+    : `<span class="pp-price" style="font-size:1.1rem;color:var(--text-muted)">A consultar</span>`;
+
+  const metaLines = [];
+  if (prod.minOrder) metaLines.push(`<span>Pedido mínimo: ${prod.minOrder} unidades</span>`);
+  if (hasBulk)       metaLines.push(`<span>Por mayor: ${fmtARS(prod.bulkPrice)}/u. a partir de ${prod.bulkMinQty} u.</span>`);
+  if (cat?.name)     metaLines.push(`<span>Categoría: ${cat.emoji ?? ''} ${cat.name}</span>`);
+
+  infoEl.innerHTML = `
+    <div class="pp-badges">${badges}</div>
+    <h2 class="pp-name">${prod.name ?? '—'}</h2>
+    <div class="pp-price-row">${priceHtml}</div>
+    ${prod.descripcion ? `<p class="pp-desc">${prod.descripcion}</p>` : ''}
+    ${metaLines.length ? `<div class="pp-meta">${metaLines.join('')}</div>` : ''}
+    <button class="pp-cta" ${!inStock ? 'disabled' : ''}
+      onclick="window.closeProdPopup();window.addToCart('${prod.id}')">🛒 Añadir al carrito</button>
+  `;
+
+  document.getElementById('prod-popup-ov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeProdPopup = function() {
+  document.getElementById('prod-popup-ov')?.classList.remove('open');
+  document.body.style.overflow = '';
+};
+
 function renderCart() {
   const container = document.getElementById('cartItems');
   const footer    = document.getElementById('cartFooter');
@@ -983,7 +1041,7 @@ function renderCart() {
       ? `<p class="cart-bulk-hint">×${item.bulkMinQty} u. → ${fmtARS(item.bulkPrice)} c/u</p>`
       : '';
     return `
-    <div class="cart-item">
+    <div class="cart-item" onclick="if(!event.target.closest('button'))window.openProductPopup?.('${item.id}')">
       <div class="cart-item-img">
         ${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy">` : `<span>👗</span>`}
       </div>
@@ -1447,6 +1505,7 @@ function initCarousel3d() {
   items.forEach((it, idx) => {
     it.addEventListener('click', e => {
       if (dragState) return;
+      if (e.target.closest('.prod-3d-btn')) return;
       e.stopPropagation();
       if (selectedIdx === idx) { deselect(); return; }
 
@@ -1465,6 +1524,7 @@ function initCarousel3d() {
         items.forEach((el, i) => el.classList.toggle('c3d-selected', i === idx));
         clearTimeout(pauseTimer);
         pauseTimer = setTimeout(deselect, 5000);
+        window.openProductPopup?.(it.getAttribute('data-prod-id'));
       })(performance.now());
     });
   });
