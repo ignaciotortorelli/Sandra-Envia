@@ -211,7 +211,9 @@ const SEED_IMG_POOLS = [
   // 4 Accesorios
   ['1548036161-18aafe94b13b', '1584917865442-de89df76afd3'],
 ];
-const SEED_TOTAL_IMGS = SEED_IMG_POOLS.reduce((s, p) => s + p.length, 0);
+const SEED_AV_IMGS   = ['1483985988338-f6253ba0d259', '1441984904996-e0b6ba687e04', '1445205170230-053b83016050'];
+const SEED_TEST_IMGS = ['1494790108377-be9c29b29330', '1438761681033-6461ffad8d80', '1500648767791-00dcc994a43e'];
+const SEED_TOTAL_IMGS = SEED_IMG_POOLS.reduce((s, p) => s + p.length, 0) + SEED_AV_IMGS.length + SEED_TEST_IMGS.length;
 
 const SEED_NOTICES = [
   { title: 'Envíos a todo el país', body: 'Despachamos a cualquier punto del país por OCA, Andreani y Correo Argentino. Consultá el costo según tu zona.', type: 'info', active: true, order: 1 },
@@ -321,16 +323,34 @@ async function runSeed() {
       });
     }
 
-    // Step 4 — Create notices
+    // Step 4 — Upload aviso images then create notices
+    const avDriveUrls = [];
+    for (let i = 0; i < SEED_AV_IMGS.length; i++) {
+      uploadsDone++;
+      progText.textContent = `Subiendo foto ${uploadsDone}/${SEED_TOTAL_IMGS} a Drive…`;
+      try {
+        const file = await fetchImageAsFile(SEED_AV_IMGS[i], `aviso-seed-${i}.jpg`);
+        avDriveUrls.push(await uploadFileToDrive(file));
+      } catch (e) { console.warn(`Aviso img ${i} falló:`, e); avDriveUrls.push(null); }
+    }
     for (let i = 0; i < SEED_NOTICES.length; i++) {
       progText.textContent = `Creando aviso ${i + 1}/${SEED_NOTICES.length}…`;
-      await addDoc(collection(db, 'notices'), { ...SEED_NOTICES[i], createdAt: serverTimestamp() });
+      await addDoc(collection(db, 'notices'), { ...SEED_NOTICES[i], image: avDriveUrls[i] ?? null, createdAt: serverTimestamp() });
     }
 
-    // Step 5 — Create references
+    // Step 5 — Upload testimonio images then create testimonios
+    const testDriveUrls = [];
+    for (let i = 0; i < SEED_TEST_IMGS.length; i++) {
+      uploadsDone++;
+      progText.textContent = `Subiendo foto ${uploadsDone}/${SEED_TOTAL_IMGS} a Drive…`;
+      try {
+        const file = await fetchImageAsFile(SEED_TEST_IMGS[i], `testimonio-seed-${i}.jpg`);
+        testDriveUrls.push(await uploadFileToDrive(file));
+      } catch (e) { console.warn(`Testimonio img ${i} falló:`, e); testDriveUrls.push(null); }
+    }
     for (let i = 0; i < SEED_TESTIMONIOS.length; i++) {
       progText.textContent = `Creando referencia ${i + 1}/${SEED_TESTIMONIOS.length}…`;
-      await addDoc(collection(db, 'testimonios'), { ...SEED_TESTIMONIOS[i], createdAt: serverTimestamp() });
+      await addDoc(collection(db, 'testimonios'), { ...SEED_TESTIMONIOS[i], image: testDriveUrls[i] ?? null, createdAt: serverTimestamp() });
     }
 
     closeModal();
