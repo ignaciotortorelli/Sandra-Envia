@@ -507,6 +507,8 @@
       <button class="demos-btn" onclick="openPPB()">B · Card Sheet</button>
       <button class="demos-btn" onclick="openPPC()">C · Drawer</button>
       <button class="demos-btn" onclick="openPPD()">D · Bottom Sheet</button>
+      <button class="demos-btn" onclick="openPPE()">E · Fullscreen</button>
+      <button class="demos-btn" onclick="openPPF()">F · Quick Add</button>
     </div>
   </div>
 </section>
@@ -534,7 +536,7 @@
         <span>Pedido mínimo: 3 unidades</span>
         <span>Por mayor: $15.000/u. a partir de 12 u.</span>
       </div>
-      <button class="pp-cta">💬 Consultar por WhatsApp</button>
+      <button class="pp-cta">🛒 Añadir al carrito</button>
     </div>
   </div>
 </div>
@@ -560,7 +562,7 @@
         <span>Pedido mínimo: 3 unidades</span>
         <span>Por mayor: $15.000/u. a partir de 12 u.</span>
       </div>
-      <button class="pp-cta">💬 Consultar por WhatsApp</button>
+      <button class="pp-cta">🛒 Añadir al carrito</button>
     </div>
   </div>
 </div>
@@ -589,7 +591,7 @@
         <span>Pedido mínimo: 3 unidades</span>
         <span>Por mayor: $15.000/u. a partir de 12 u.</span>
       </div>
-      <button class="pp-cta">💬 Consultar por WhatsApp</button>
+      <button class="pp-cta">🛒 Añadir al carrito</button>
     </div>
   </div>
 </div>
@@ -622,7 +624,77 @@
       </div>
     </div>
     <div class="ppd-foot">
-      <button class="pp-cta" style="width:100%">💬 Consultar por WhatsApp</button>
+      <button class="pp-cta" style="width:100%">🛒 Añadir al carrito</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Popup E: Fullscreen ── -->
+<div id="pp-e-ov" class="ppov" onclick="if(event.target===this)closePPE()">
+  <div class="ppe-dialog">
+    <div class="ppe-img">
+      <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&h=1100&fit=crop&q=80" alt="Vestido largo verano">
+    </div>
+    <div class="ppe-panel">
+      <button class="ppc-close ppe-close" onclick="closePPE()">✕</button>
+      <div class="ppe-body">
+        <div class="pp-badges">
+          <span class="pp-badge-stock">✓ En stock</span>
+          <span class="pp-badge-disc">−15 %</span>
+          <span class="pp-badge-bulk">Precio por mayor</span>
+        </div>
+        <h2 class="pp-name ppe-name">Vestido largo verano</h2>
+        <div class="pp-price-row">
+          <span class="pp-price ppe-price">$18.700</span>
+          <span class="pp-price-orig">$22.000</span>
+        </div>
+        <p class="pp-desc">Vestido largo de tela liviana, ideal para días calurosos. Disponible en varios colores y talles del S al XXL.</p>
+        <div class="pp-meta">
+          <span>Pedido mínimo: 3 unidades</span>
+          <span>Por mayor: $15.000/u. a partir de 12 u.</span>
+        </div>
+        <button class="pp-cta">🛒 Añadir al carrito</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Popup F: Quick Add ── -->
+<div id="pp-f-ov" class="ppov ppov-center" onclick="if(event.target===this)closePPF()">
+  <div class="ppf-dialog">
+    <div class="ppf-head">
+      <img class="ppf-thumb" src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=200&h=200&fit=crop&q=80" alt="Vestido largo verano">
+      <div class="ppf-head-info">
+        <p class="ppf-head-name">Vestido largo verano</p>
+        <div class="pp-badges">
+          <span class="pp-badge-stock">✓ En stock</span>
+          <span class="pp-badge-disc">−15 %</span>
+        </div>
+      </div>
+      <button class="ppc-close" onclick="closePPF()">✕</button>
+    </div>
+    <div class="ppd-sep" style="margin:0"></div>
+    <div class="ppf-body">
+      <div class="pp-price-row">
+        <span class="pp-price">$18.700</span>
+        <span class="pp-price-orig">$22.000</span>
+      </div>
+      <p class="pp-desc" style="font-size:.82rem">Vestido largo de tela liviana, ideal para días calurosos. Disponible en varios colores y talles del S al XXL.</p>
+      <div class="pp-meta">
+        <span>Pedido mínimo: 3 unidades</span>
+        <span>Por mayor: $15.000/u. a partir de 12 u.</span>
+      </div>
+      <div class="ppf-qty-row">
+        <span class="ppf-qty-label">Cantidad</span>
+        <div class="ppf-qty">
+          <button class="ppf-qty-btn" onclick="ppfQty(-1)">−</button>
+          <span class="ppf-qty-val" id="ppf-qty-val">3</span>
+          <button class="ppf-qty-btn" onclick="ppfQty(1)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="ppf-foot">
+      <button class="pp-cta" style="width:100%">🛒 Añadir al carrito</button>
     </div>
   </div>
 </div>
@@ -648,9 +720,9 @@
 .pp-x-light { background: rgba(255,255,255,.88); }
 .pp-x-light:hover { background: var(--white); }
 .pp-badges { display: flex; gap: .4rem; flex-wrap: wrap; }
-.pp-badge-stock { background: #dcfce7; color: #166534;       font-size: .7rem; font-weight: 700; padding: .18rem .55rem; border-radius: var(--r-pill); }
+.pp-badge-stock { background: #dcfce7; color: #166534;         font-size: .7rem; font-weight: 700; padding: .18rem .55rem; border-radius: var(--r-pill); }
 .pp-badge-disc  { background: #fff1f2; color: var(--pink-dark); font-size: .7rem; font-weight: 700; padding: .18rem .55rem; border-radius: var(--r-pill); }
-.pp-badge-bulk  { background: #eff6ff; color: #1d4ed8;        font-size: .7rem; font-weight: 700; padding: .18rem .55rem; border-radius: var(--r-pill); }
+.pp-badge-bulk  { background: #eff6ff; color: #1d4ed8;          font-size: .7rem; font-weight: 700; padding: .18rem .55rem; border-radius: var(--r-pill); }
 .pp-name { font-family: var(--ff-display); font-size: 1.4rem; line-height: 1.25; color: var(--black); }
 .pp-price-row { display: flex; align-items: baseline; gap: .5rem; }
 .pp-price { font-size: 1.6rem; font-weight: 700; color: #16a34a; }
@@ -658,8 +730,8 @@
 .pp-desc { font-size: .875rem; line-height: 1.65; color: var(--text-muted); }
 .pp-meta { background: var(--gray-bg); border-radius: var(--r-md); padding: .65rem .9rem; display: flex; flex-direction: column; gap: .3rem; font-size: .8rem; color: var(--text-muted); }
 .pp-meta span::before { content: '• '; }
-.pp-cta { background: var(--wa); color: var(--white); border: none; border-radius: var(--r-pill); padding: .8rem 1.5rem; font-family: var(--ff-body); font-size: .9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .4rem; transition: background .2s, transform .15s; }
-.pp-cta:hover { background: var(--wa-dark); transform: translateY(-1px); }
+.pp-cta { background: var(--pink); color: var(--white); border: none; border-radius: var(--r-pill); padding: .8rem 1.5rem; font-family: var(--ff-body); font-size: .9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .4rem; transition: background .2s, transform .15s; }
+.pp-cta:hover { background: var(--pink-dark); transform: translateY(-1px); }
 
 /* ─── A: Split Panel ─── */
 #pp-a-ov { align-items: center; justify-content: center; overflow-y: auto; padding: 1rem; }
@@ -695,22 +767,54 @@
 .ppd-sep { height: 1px; background: var(--border); margin: 0 1.25rem; flex-shrink: 0; }
 .ppd-body { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: .7rem; flex: 1; }
 .ppd-foot { padding: .75rem 1.25rem 1.5rem; flex-shrink: 0; }
+
+/* ─── E: Fullscreen ─── */
+#pp-e-ov { padding: 0; }
+.ppe-dialog { width: 100%; height: 100%; display: flex; }
+.ppe-img { flex: 0 0 56%; overflow: hidden; }
+.ppe-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ppe-panel { flex: 1; background: var(--white); display: flex; flex-direction: column; overflow-y: auto; position: relative; }
+.ppe-close { position: absolute; top: 1rem; right: 1rem; }
+.ppe-body { padding: 4rem 2.5rem 2.5rem; display: flex; flex-direction: column; gap: 1.1rem; flex: 1; justify-content: center; }
+.ppe-name { font-size: 2rem; }
+.ppe-price { font-size: 2rem; }
+@media (max-width: 700px) { .ppe-dialog { flex-direction: column; } .ppe-img { flex: 0 0 42vh; } .ppe-body { padding: 1.5rem; justify-content: flex-start; } .ppe-name { font-size: 1.4rem; } .ppe-price { font-size: 1.6rem; } }
+
+/* ─── F: Quick Add ─── */
+.ppf-dialog { background: var(--white); border-radius: var(--r-xl); width: 100%; max-width: 380px; box-shadow: var(--sh-lg); display: flex; flex-direction: column; overflow: hidden; }
+.ppf-head { display: flex; align-items: center; gap: .85rem; padding: 1.1rem 1.1rem 1rem; }
+.ppf-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: var(--r-md); flex-shrink: 0; }
+.ppf-head-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .3rem; }
+.ppf-head-name { font-weight: 700; font-size: .9rem; color: var(--black); line-height: 1.3; }
+.ppf-body { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: .75rem; }
+.ppf-qty-row { display: flex; align-items: center; justify-content: space-between; }
+.ppf-qty-label { font-size: .85rem; font-weight: 600; color: var(--black); }
+.ppf-qty { display: flex; align-items: center; gap: .5rem; }
+.ppf-qty-btn { width: 32px; height: 32px; border: 1.5px solid var(--border); border-radius: 50%; background: var(--white); font-size: 1.1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--black); transition: border-color .2s; }
+.ppf-qty-btn:hover { border-color: var(--pink); color: var(--pink); }
+.ppf-qty-val { font-size: 1rem; font-weight: 700; min-width: 2rem; text-align: center; }
+.ppf-foot { padding: .75rem 1.25rem 1.25rem; }
 </style>
 
 <script>
 (function () {
   function openPP(id)  { document.getElementById(id).classList.add('open');    document.body.style.overflow = 'hidden'; }
   function closePP(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
-  window.openPPA  = () => openPP('pp-a-ov');
-  window.openPPB  = () => openPP('pp-b-ov');
-  window.openPPC  = () => openPP('pp-c-ov');
-  window.openPPD  = () => openPP('pp-d-ov');
-  window.closePPA = () => closePP('pp-a-ov');
-  window.closePPB = () => closePP('pp-b-ov');
-  window.closePPC = () => closePP('pp-c-ov');
-  window.closePPD = () => closePP('pp-d-ov');
+  const IDS = ['pp-a-ov','pp-b-ov','pp-c-ov','pp-d-ov','pp-e-ov','pp-f-ov'];
+  window.openPPA  = () => openPP('pp-a-ov');  window.closePPA = () => closePP('pp-a-ov');
+  window.openPPB  = () => openPP('pp-b-ov');  window.closePPB = () => closePP('pp-b-ov');
+  window.openPPC  = () => openPP('pp-c-ov');  window.closePPC = () => closePP('pp-c-ov');
+  window.openPPD  = () => openPP('pp-d-ov');  window.closePPD = () => closePP('pp-d-ov');
+  window.openPPE  = () => openPP('pp-e-ov');  window.closePPE = () => closePP('pp-e-ov');
+  window.openPPF  = () => openPP('pp-f-ov');  window.closePPF = () => closePP('pp-f-ov');
+  let _ppfQty = 3;
+  window.ppfQty = (d) => {
+    _ppfQty = Math.max(1, _ppfQty + d);
+    const el = document.getElementById('ppf-qty-val');
+    if (el) el.textContent = _ppfQty;
+  };
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') ['pp-a-ov','pp-b-ov','pp-c-ov','pp-d-ov'].forEach(id => closePP(id));
+    if (e.key === 'Escape') IDS.forEach(id => closePP(id));
   });
 })();
 </script>
