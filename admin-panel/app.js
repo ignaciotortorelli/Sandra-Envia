@@ -142,60 +142,60 @@ const SEED_CATS = [
 // catIdx → SEED_CATS index | imgPoolIdx → SEED_IMG_POOLS index (5 pools shared across 10 cats)
 const SEED_PRODS = [
   // ── Damas (cat 0, pool 0) ──
-  { name: 'Vestido largo verano',     price: 22000, minOrder:  3, inStock: true,  discount: 15, bulkMinQty: null,  bulkPrice: null,  catIdx: 0, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
-  { name: 'Conjunto lencería seda',   price: 18500, minOrder:  6, inStock: true,  discount: null,bulkMinQty: 12,   bulkPrice: 15000, catIdx: 0, imgPoolIdx: 0, imgs: 2, imgStart: 1 },
-  { name: 'Blusa estampada',          price:  9900, minOrder: 12, inStock: true,  discount: 20, bulkMinQty: 24,   bulkPrice:  7500, catIdx: 0, imgPoolIdx: 0, imgs: 1, imgStart: 2 },
-  { name: 'Pantalón palazzo negro',   price: 14000, minOrder:  6, inStock: false, discount: null,bulkMinQty: null,  bulkPrice: null,  catIdx: 0, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
-  { name: 'Remera algodón dama',      price:  7500, minOrder: 24, inStock: true,  discount: null,bulkMinQty: 48,   bulkPrice:  6000, catIdx: 0, imgPoolIdx: 0, imgs: 1, imgStart: 1 },
+  { name: 'Vestido largo verano',     descripcion: 'Vestido largo de tela liviana, ideal para días calurosos. Disponible en varios colores.',                            price: 22000, minOrder:  3, inStock: true,  discount: 15,   bulkMinQty: null, bulkPrice:  null, catIdx: 0, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
+  { name: 'Conjunto lencería seda',   descripcion: 'Conjunto en satén con acabado suave al tacto. Incluye corpiño con refuerzo y bombacha combinada.',                  price: 18500, minOrder:  6, inStock: true,  discount: null, bulkMinQty: 12,   bulkPrice: 15000, catIdx: 0, imgPoolIdx: 0, imgs: 2, imgStart: 1 },
+  { name: 'Blusa estampada',          descripcion: 'Blusa de gasa con estampado floral, escote en V y manga corta. Combina con jean o pantalón de vestir.',             price:  9900, minOrder: 12, inStock: true,  discount: 20,   bulkMinQty: 24,   bulkPrice:  7500, catIdx: 0, imgPoolIdx: 0, imgs: 1, imgStart: 2 },
+  { name: 'Pantalón palazzo negro',   descripcion: 'Pantalón de pierna amplia en tela fluida. Corte clásico negro, versátil para día y noche.',                         price: 14000, minOrder:  6, inStock: false, discount: null, bulkMinQty: null, bulkPrice:  null, catIdx: 0, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
+  { name: 'Remera algodón dama',      descripcion: 'Remera básica 100% algodón de alta calidad. Talles del S al XXL, disponible en colores neutros y vibrantes.',       price:  7500, minOrder: 24, inStock: true,  discount: null, bulkMinQty: 48,   bulkPrice:  6000, catIdx: 0, imgPoolIdx: 0, imgs: 1, imgStart: 1 },
   // ── Caballeros (cat 1, pool 1) ──
-  { name: 'Jean slim negro',          price: 24000, minOrder:  3, inStock: true,  discount: 10, bulkMinQty:  6,   bulkPrice: 20000, catIdx: 1, imgPoolIdx: 1, imgs: 2, imgStart: 0 },
-  { name: 'Camisa cuadros',           price: 16000, minOrder:  6, inStock: true,  discount: null,bulkMinQty: null,  bulkPrice: null,  catIdx: 1, imgPoolIdx: 1, imgs: 2, imgStart: 1 },
-  { name: 'Polo básico',              price:  8500, minOrder: 12, inStock: true,  discount: 25, bulkMinQty: 24,   bulkPrice:  5500, catIdx: 1, imgPoolIdx: 1, imgs: 1, imgStart: 2 },
-  { name: 'Bermuda cargo',            price: 13000, minOrder:  6, inStock: false, discount: null,bulkMinQty: 12,   bulkPrice: 10500, catIdx: 1, imgPoolIdx: 1, imgs: 2, imgStart: 0 },
+  { name: 'Jean slim negro',          descripcion: 'Jean de corte slim en denim elástico negro. Cintura ajustada con bolsillos frontales y traseros.',                  price: 24000, minOrder:  3, inStock: true,  discount: 10,   bulkMinQty:  6,   bulkPrice: 20000, catIdx: 1, imgPoolIdx: 1, imgs: 2, imgStart: 0 },
+  { name: 'Camisa cuadros',           descripcion: 'Camisa de algodón con cuadros clásicos, botones de nácar y corte recto. Ideal para look casual o sport.',          price: 16000, minOrder:  6, inStock: true,  discount: null, bulkMinQty: null, bulkPrice:  null, catIdx: 1, imgPoolIdx: 1, imgs: 2, imgStart: 1 },
+  { name: 'Polo básico',              descripcion: 'Polo de piqué con cuello y puños tejidos. Dos botones en el escote, disponible en varios tonos.',                   price:  8500, minOrder: 12, inStock: true,  discount: 25,   bulkMinQty: 24,   bulkPrice:  5500, catIdx: 1, imgPoolIdx: 1, imgs: 1, imgStart: 2 },
+  { name: 'Bermuda cargo',            descripcion: 'Bermuda con múltiples bolsillos laterales y cierre con botón. Tela resistente, ideal para uso diario.',             price: 13000, minOrder:  6, inStock: false, discount: null, bulkMinQty: 12,   bulkPrice: 10500, catIdx: 1, imgPoolIdx: 1, imgs: 2, imgStart: 0 },
   // ── Niños (cat 2, pool 2) ──
-  { name: 'Conjunto deportivo niña',  price: 10500, minOrder:  6, inStock: true,  discount: 15, bulkMinQty: null,  bulkPrice: null,  catIdx: 2, imgPoolIdx: 2, imgs: 2, imgStart: 0 },
-  { name: 'Remera estampada nene',    price:  6000, minOrder: 12, inStock: true,  discount: null,bulkMinQty: 24,   bulkPrice:  4800, catIdx: 2, imgPoolIdx: 2, imgs: 1, imgStart: 1 },
-  { name: 'Vestido floral niña',      price: 11000, minOrder:  6, inStock: true,  discount: 20, bulkMinQty: 12,   bulkPrice:  8500, catIdx: 2, imgPoolIdx: 2, imgs: 2, imgStart: 0 },
-  { name: 'Short verano niño',        price:  7500, minOrder: 12, inStock: false, discount: null,bulkMinQty: null,  bulkPrice: null,  catIdx: 2, imgPoolIdx: 2, imgs: 1, imgStart: 1 },
+  { name: 'Conjunto deportivo niña',  descripcion: 'Conjunto de buzo y pantalón deportivo en tela suave con ribetes de color. Talles 4 al 14.',                         price: 10500, minOrder:  6, inStock: true,  discount: 15,   bulkMinQty: null, bulkPrice:  null, catIdx: 2, imgPoolIdx: 2, imgs: 2, imgStart: 0 },
+  { name: 'Remera estampada nene',    descripcion: 'Remera de algodón con estampado frontal llamativo. Cuello redondo y manga corta, fresca y resistente al lavado.',   price:  6000, minOrder: 12, inStock: true,  discount: null, bulkMinQty: 24,   bulkPrice:  4800, catIdx: 2, imgPoolIdx: 2, imgs: 1, imgStart: 1 },
+  { name: 'Vestido floral niña',      descripcion: 'Vestido con falda amplia y estampado de flores en tonos pastel. Broche trasero y tiritas ajustables.',              price: 11000, minOrder:  6, inStock: true,  discount: 20,   bulkMinQty: 12,   bulkPrice:  8500, catIdx: 2, imgPoolIdx: 2, imgs: 2, imgStart: 0 },
+  { name: 'Short verano niño',        descripcion: 'Short liviano con elástico en cintura y bolsillos laterales. Tela transpirable perfecta para el calor.',            price:  7500, minOrder: 12, inStock: false, discount: null, bulkMinQty: null, bulkPrice:  null, catIdx: 2, imgPoolIdx: 2, imgs: 1, imgStart: 1 },
   // ── Deportivo (cat 3, pool 3) ──
-  { name: 'Calza deportiva mujer',    price: 12000, minOrder:  6, inStock: true,  discount: null,bulkMinQty: 12,   bulkPrice:  9500, catIdx: 3, imgPoolIdx: 3, imgs: 2, imgStart: 0 },
-  { name: 'Buzo canguro',             price: 21000, minOrder:  3, inStock: true,  discount: 10, bulkMinQty:  6,   bulkPrice: 17500, catIdx: 3, imgPoolIdx: 3, imgs: 2, imgStart: 1 },
-  { name: 'Short running',            price:  9500, minOrder: 12, inStock: true,  discount: null,bulkMinQty: null,  bulkPrice: null,  catIdx: 3, imgPoolIdx: 3, imgs: 1, imgStart: 2 },
-  { name: 'Remera dry-fit',           price:  8500, minOrder: 12, inStock: false, discount: 30, bulkMinQty: null,  bulkPrice: null,  catIdx: 3, imgPoolIdx: 3, imgs: 1, imgStart: 0 },
-  { name: 'Conjunto gym mujer',       price: 25000, minOrder:  3, inStock: true,  discount: 15, bulkMinQty:  6,   bulkPrice: 20000, catIdx: 3, imgPoolIdx: 3, imgs: 2, imgStart: 1 },
+  { name: 'Calza deportiva mujer',    descripcion: 'Calza de microfibra con compresión suave y cintura alta. Ideal para gimnasio, yoga o running.',                     price: 12000, minOrder:  6, inStock: true,  discount: null, bulkMinQty: 12,   bulkPrice:  9500, catIdx: 3, imgPoolIdx: 3, imgs: 2, imgStart: 0 },
+  { name: 'Buzo canguro',             descripcion: 'Buzo con capucha y bolsillo canguro frontal. Interior afelpado, disponible en colores lisos y combinados.',         price: 21000, minOrder:  3, inStock: true,  discount: 10,   bulkMinQty:  6,   bulkPrice: 17500, catIdx: 3, imgPoolIdx: 3, imgs: 2, imgStart: 1 },
+  { name: 'Short running',            descripcion: 'Short ultraliviano con lycra interna y bolsillo trasero con cierre. Secado rápido y corte ergonómico.',             price:  9500, minOrder: 12, inStock: true,  discount: null, bulkMinQty: null, bulkPrice:  null, catIdx: 3, imgPoolIdx: 3, imgs: 1, imgStart: 2 },
+  { name: 'Remera dry-fit',           descripcion: 'Remera técnica de tela dry-fit que evacúa la humedad. Costuras planas para mayor comodidad durante el ejercicio.',  price:  8500, minOrder: 12, inStock: false, discount: 30,   bulkMinQty: null, bulkPrice:  null, catIdx: 3, imgPoolIdx: 3, imgs: 1, imgStart: 0 },
+  { name: 'Conjunto gym mujer',       descripcion: 'Conjunto de calza y top deportivo a juego. Tela con control de humedad, sujeción media y cintura reforzada.',       price: 25000, minOrder:  3, inStock: true,  discount: 15,   bulkMinQty:  6,   bulkPrice: 20000, catIdx: 3, imgPoolIdx: 3, imgs: 2, imgStart: 1 },
   // ── Accesorios (cat 4, pool 4) ──
-  { name: 'Cartera eco cuero',        price: 27000, minOrder:  3, inStock: true,  discount: null,bulkMinQty:  6,   bulkPrice: 22000, catIdx: 4, imgPoolIdx: 4, imgs: 2, imgStart: 0 },
-  { name: 'Cinturón cuero',           price:  7500, minOrder:  6, inStock: true,  discount: null,bulkMinQty: null,  bulkPrice: null,  catIdx: 4, imgPoolIdx: 4, imgs: 1, imgStart: 1 },
-  { name: 'Bufanda tejida',           price:  9000, minOrder:  6, inStock: true,  discount: 20, bulkMinQty: null,  bulkPrice: null,  catIdx: 4, imgPoolIdx: 4, imgs: 2, imgStart: 0 },
-  { name: 'Mochila urbana',           price: 32000, minOrder:  1, inStock: true,  discount: 10, bulkMinQty:  3,   bulkPrice: 27000, catIdx: 4, imgPoolIdx: 4, imgs: 1, imgStart: 1 },
+  { name: 'Cartera eco cuero',        descripcion: 'Cartera mediana en cuero ecológico con cierre y asa corta. Interior forrado con bolsillo con cierre.',              price: 27000, minOrder:  3, inStock: true,  discount: null, bulkMinQty:  6,   bulkPrice: 22000, catIdx: 4, imgPoolIdx: 4, imgs: 2, imgStart: 0 },
+  { name: 'Cinturón cuero',           descripcion: 'Cinturón de cuero genuino con hebilla metálica clásica. Ancho 3,5 cm, disponible en marrón y negro.',              price:  7500, minOrder:  6, inStock: true,  discount: null, bulkMinQty: null, bulkPrice:  null, catIdx: 4, imgPoolIdx: 4, imgs: 1, imgStart: 1 },
+  { name: 'Bufanda tejida',           descripcion: 'Bufanda de punto en lana acrílica suave. Larga y amplia, perfecta para abrigarse con estilo en invierno.',         price:  9000, minOrder:  6, inStock: true,  discount: 20,   bulkMinQty: null, bulkPrice:  null, catIdx: 4, imgPoolIdx: 4, imgs: 2, imgStart: 0 },
+  { name: 'Mochila urbana',           descripcion: 'Mochila de 25 litros con compartimento principal, bolsillo frontal y porta notebook acolchado. Resistente al agua.', price: 32000, minOrder:  1, inStock: true,  discount: 10,   bulkMinQty:  3,   bulkPrice: 27000, catIdx: 4, imgPoolIdx: 4, imgs: 1, imgStart: 1 },
   // ── Calzado (cat 5, pool 3) ──
-  { name: 'Zapatilla urbana',         price: 35000, minOrder:  1, inStock: true,  discount: null,bulkMinQty:  3,   bulkPrice: 30000, catIdx: 5, imgPoolIdx: 3, imgs: 2, imgStart: 0 },
-  { name: 'Bota cuero eco',           price: 42000, minOrder:  1, inStock: true,  discount: 15, bulkMinQty: null,  bulkPrice: null,  catIdx: 5, imgPoolIdx: 3, imgs: 2, imgStart: 1 },
-  { name: 'Sandalia verano',          price: 18000, minOrder:  3, inStock: true,  discount: 20, bulkMinQty:  6,   bulkPrice: 14000, catIdx: 5, imgPoolIdx: 3, imgs: 1, imgStart: 2 },
-  { name: 'Mocasín clásico',          price: 28000, minOrder:  1, inStock: false, discount: null,bulkMinQty: null,  bulkPrice: null,  catIdx: 5, imgPoolIdx: 3, imgs: 2, imgStart: 0 },
-  { name: 'Zapatilla niño',           price: 22000, minOrder:  3, inStock: true,  discount: 10, bulkMinQty:  6,   bulkPrice: 18000, catIdx: 5, imgPoolIdx: 3, imgs: 1, imgStart: 1 },
+  { name: 'Zapatilla urbana',         descripcion: 'Zapatilla de cuero sintético con suela de goma antideslizante. Diseño clean para uso diario o salidas casuales.',  price: 35000, minOrder:  1, inStock: true,  discount: null, bulkMinQty:  3,   bulkPrice: 30000, catIdx: 5, imgPoolIdx: 3, imgs: 2, imgStart: 0 },
+  { name: 'Bota cuero eco',           descripcion: 'Bota alta de cuero ecológico con suela texturada y cierre lateral. Ideal para otoño-invierno.',                    price: 42000, minOrder:  1, inStock: true,  discount: 15,   bulkMinQty: null, bulkPrice:  null, catIdx: 5, imgPoolIdx: 3, imgs: 2, imgStart: 1 },
+  { name: 'Sandalia verano',          descripcion: 'Sandalia plana con tiras cruzadas en PU y suela de goma liviana. Cómoda y versátil para el calor.',                price: 18000, minOrder:  3, inStock: true,  discount: 20,   bulkMinQty:  6,   bulkPrice: 14000, catIdx: 5, imgPoolIdx: 3, imgs: 1, imgStart: 2 },
+  { name: 'Mocasín clásico',          descripcion: 'Mocasín en cuero genuino con suela de cuero cosida. Clásico y elegante, perfecto para vestir o semi-formal.',      price: 28000, minOrder:  1, inStock: false, discount: null, bulkMinQty: null, bulkPrice:  null, catIdx: 5, imgPoolIdx: 3, imgs: 2, imgStart: 0 },
+  { name: 'Zapatilla niño',           descripcion: 'Zapatilla con velcro de fácil colocación y suela flexible. Diseño colorido y resistente al uso intenso.',          price: 22000, minOrder:  3, inStock: true,  discount: 10,   bulkMinQty:  6,   bulkPrice: 18000, catIdx: 5, imgPoolIdx: 3, imgs: 1, imgStart: 1 },
   // ── Ropa Interior (cat 6, pool 0) ──
-  { name: 'Pack box 3u hombre',       price:  9500, minOrder:  6, inStock: true,  discount: null,bulkMinQty: 12,   bulkPrice:  7500, catIdx: 6, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
-  { name: 'Conjunto íntimo mujer',    price: 14000, minOrder:  3, inStock: true,  discount: 25, bulkMinQty: null,  bulkPrice: null,  catIdx: 6, imgPoolIdx: 0, imgs: 2, imgStart: 1 },
-  { name: 'Medias pack 6u',           price:  4500, minOrder: 12, inStock: true,  discount: null,bulkMinQty: 24,   bulkPrice:  3500, catIdx: 6, imgPoolIdx: 0, imgs: 1, imgStart: 2 },
-  { name: 'Bombacha algodón',         price:  3500, minOrder: 24, inStock: true,  discount: null,bulkMinQty: 48,   bulkPrice:  2800, catIdx: 6, imgPoolIdx: 0, imgs: 1, imgStart: 0 },
+  { name: 'Pack box 3u hombre',       descripcion: 'Pack de 3 boxes en algodón peinado con lycra. Elástico forrado y costuras planas para mayor comodidad.',           price:  9500, minOrder:  6, inStock: true,  discount: null, bulkMinQty: 12,   bulkPrice:  7500, catIdx: 6, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
+  { name: 'Conjunto íntimo mujer',    descripcion: 'Conjunto de corpiño y bombacha en microfibra suave. Corpiño con breteles regulables y copa sin armado.',            price: 14000, minOrder:  3, inStock: true,  discount: 25,   bulkMinQty: null, bulkPrice:  null, catIdx: 6, imgPoolIdx: 0, imgs: 2, imgStart: 1 },
+  { name: 'Medias pack 6u',           descripcion: 'Pack de 6 pares de medias tobilleras en algodón elástico. Colores surtidos, talles únicos.',                       price:  4500, minOrder: 12, inStock: true,  discount: null, bulkMinQty: 24,   bulkPrice:  3500, catIdx: 6, imgPoolIdx: 0, imgs: 1, imgStart: 2 },
+  { name: 'Bombacha algodón',         descripcion: 'Bombacha de algodón 100% con elástico suave. Corte clásico cómodo, ideal para uso diario.',                        price:  3500, minOrder: 24, inStock: true,  discount: null, bulkMinQty: 48,   bulkPrice:  2800, catIdx: 6, imgPoolIdx: 0, imgs: 1, imgStart: 0 },
   // ── Abrigos (cat 7, pool 1) ──
-  { name: 'Campera acolchada',        price: 55000, minOrder:  1, inStock: true,  discount: 10, bulkMinQty:  3,   bulkPrice: 47000, catIdx: 7, imgPoolIdx: 1, imgs: 2, imgStart: 0 },
-  { name: 'Buzo polar',               price: 28000, minOrder:  3, inStock: true,  discount: null,bulkMinQty:  6,   bulkPrice: 23000, catIdx: 7, imgPoolIdx: 1, imgs: 2, imgStart: 1 },
-  { name: 'Chaleco inflable',         price: 38000, minOrder:  1, inStock: true,  discount: 20, bulkMinQty: null,  bulkPrice: null,  catIdx: 7, imgPoolIdx: 1, imgs: 1, imgStart: 2 },
-  { name: 'Cárdigan punto',           price: 22000, minOrder:  3, inStock: false, discount: null,bulkMinQty:  6,   bulkPrice: 18000, catIdx: 7, imgPoolIdx: 1, imgs: 2, imgStart: 0 },
-  { name: 'Tapado largo mujer',       price: 65000, minOrder:  1, inStock: true,  discount: 15, bulkMinQty:  3,   bulkPrice: 53000, catIdx: 7, imgPoolIdx: 1, imgs: 1, imgStart: 1 },
+  { name: 'Campera acolchada',        descripcion: 'Campera inflable con relleno de pluma sintética. Capucha removible, bolsillos con cierre y puños ajustables.',     price: 55000, minOrder:  1, inStock: true,  discount: 10,   bulkMinQty:  3,   bulkPrice: 47000, catIdx: 7, imgPoolIdx: 1, imgs: 2, imgStart: 0 },
+  { name: 'Buzo polar',               descripcion: 'Buzo de polar grueso con cuello alto y bolsillos laterales. Suave por dentro, muy abrigado para el invierno.',      price: 28000, minOrder:  3, inStock: true,  discount: null, bulkMinQty:  6,   bulkPrice: 23000, catIdx: 7, imgPoolIdx: 1, imgs: 2, imgStart: 1 },
+  { name: 'Chaleco inflable',         descripcion: 'Chaleco acolchado sin mangas ideal para superposición. Liviano, plegable y muy abrigado.',                          price: 38000, minOrder:  1, inStock: true,  discount: 20,   bulkMinQty: null, bulkPrice:  null, catIdx: 7, imgPoolIdx: 1, imgs: 1, imgStart: 2 },
+  { name: 'Cárdigan punto',           descripcion: 'Cárdigan largo tejido en punto grueso con botones delanteros. Cuello redondo y bolsillos laterales integrados.',    price: 22000, minOrder:  3, inStock: false, discount: null, bulkMinQty:  6,   bulkPrice: 18000, catIdx: 7, imgPoolIdx: 1, imgs: 2, imgStart: 0 },
+  { name: 'Tapado largo mujer',       descripcion: 'Tapado largo al tobillo en paño con solapa y botones dorados. Elegante y abrigado, ideal para invierno formal.',    price: 65000, minOrder:  1, inStock: true,  discount: 15,   bulkMinQty:  3,   bulkPrice: 53000, catIdx: 7, imgPoolIdx: 1, imgs: 1, imgStart: 1 },
   // ── Bebés (cat 8, pool 2) ──
-  { name: 'Mameluco algodón',         price:  8500, minOrder:  6, inStock: true,  discount: null,bulkMinQty: 12,   bulkPrice:  6800, catIdx: 8, imgPoolIdx: 2, imgs: 2, imgStart: 0 },
-  { name: 'Conjunto bebé invierno',   price: 13000, minOrder:  3, inStock: true,  discount: 15, bulkMinQty:  6,   bulkPrice: 10500, catIdx: 8, imgPoolIdx: 2, imgs: 2, imgStart: 1 },
-  { name: 'Ajuar recién nacido',      price: 25000, minOrder:  1, inStock: true,  discount: null,bulkMinQty:  3,   bulkPrice: 21000, catIdx: 8, imgPoolIdx: 2, imgs: 1, imgStart: 0 },
-  { name: 'Medias bebé pack',         price:  3000, minOrder: 12, inStock: true,  discount: null,bulkMinQty: 24,   bulkPrice:  2300, catIdx: 8, imgPoolIdx: 2, imgs: 1, imgStart: 1 },
+  { name: 'Mameluco algodón',         descripcion: 'Mameluco de algodón orgánico con broches a presión en la entrepierna. Suave, lavable y disponible en varios talles.', price:  8500, minOrder:  6, inStock: true,  discount: null, bulkMinQty: 12,   bulkPrice:  6800, catIdx: 8, imgPoolIdx: 2, imgs: 2, imgStart: 0 },
+  { name: 'Conjunto bebé invierno',   descripcion: 'Conjunto de polar para bebé con capucha, pantalón y remera interior. Abrigado y fácil de poner gracias a sus cierres.', price: 13000, minOrder:  3, inStock: true,  discount: 15,   bulkMinQty:  6,   bulkPrice: 10500, catIdx: 8, imgPoolIdx: 2, imgs: 2, imgStart: 1 },
+  { name: 'Ajuar recién nacido',      descripcion: 'Ajuar completo para recién nacido: mameluco, escarpines y gorrito. Algodón hipoalergénico, ideal como regalo.',     price: 25000, minOrder:  1, inStock: true,  discount: null, bulkMinQty:  3,   bulkPrice: 21000, catIdx: 8, imgPoolIdx: 2, imgs: 1, imgStart: 0 },
+  { name: 'Medias bebé pack',         descripcion: 'Pack de 4 pares de medias antideslizantes para bebé. Con suela de puntos de goma para los primeros pasos.',         price:  3000, minOrder: 12, inStock: true,  discount: null, bulkMinQty: 24,   bulkPrice:  2300, catIdx: 8, imgPoolIdx: 2, imgs: 1, imgStart: 1 },
   // ── Teens (cat 9, pool 0) ──
-  { name: 'Jogger cargo teen',        price: 16000, minOrder:  3, inStock: true,  discount: 15, bulkMinQty:  6,   bulkPrice: 13000, catIdx: 9, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
-  { name: 'Crop top básico',          price:  7500, minOrder: 12, inStock: true,  discount: null,bulkMinQty: 24,   bulkPrice:  6000, catIdx: 9, imgPoolIdx: 0, imgs: 1, imgStart: 1 },
-  { name: 'Jean roturas mujer',       price: 21000, minOrder:  3, inStock: true,  discount: 20, bulkMinQty: null,  bulkPrice: null,  catIdx: 9, imgPoolIdx: 0, imgs: 2, imgStart: 2 },
-  { name: 'Buzo oversized',           price: 18000, minOrder:  6, inStock: false, discount: null,bulkMinQty: 12,   bulkPrice: 14500, catIdx: 9, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
-  { name: 'Short jean',               price: 12000, minOrder:  6, inStock: true,  discount: 10, bulkMinQty: 12,   bulkPrice:  9500, catIdx: 9, imgPoolIdx: 0, imgs: 1, imgStart: 1 },
+  { name: 'Jogger cargo teen',        descripcion: 'Jogger con bolsillos cargo laterales y elástico en tobillo. Tela frisa liviana, cómodo y con onda.',                price: 16000, minOrder:  3, inStock: true,  discount: 15,   bulkMinQty:  6,   bulkPrice: 13000, catIdx: 9, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
+  { name: 'Crop top básico',          descripcion: 'Crop top de algodón con elástico en el ruedo. Corte recto y largo corto, ideal para superposición o playa.',        price:  7500, minOrder: 12, inStock: true,  discount: null, bulkMinQty: 24,   bulkPrice:  6000, catIdx: 9, imgPoolIdx: 0, imgs: 1, imgStart: 1 },
+  { name: 'Jean roturas mujer',       descripcion: 'Jean con roturas y efecto desgastado, corte skinny. Denim elástico de alta comodidad para el día a día.',           price: 21000, minOrder:  3, inStock: true,  discount: 20,   bulkMinQty: null, bulkPrice:  null, catIdx: 9, imgPoolIdx: 0, imgs: 2, imgStart: 2 },
+  { name: 'Buzo oversized',           descripcion: 'Buzo de talle grande con hombros caídos y cuello redondo. Interior peinado suave, ideal para outfits casuales.',    price: 18000, minOrder:  6, inStock: false, discount: null, bulkMinQty: 12,   bulkPrice: 14500, catIdx: 9, imgPoolIdx: 0, imgs: 2, imgStart: 0 },
+  { name: 'Short jean',               descripcion: 'Short de jean con basta deshilachada y tiro medio. Versátil para verano, combina con remeras y tops.',              price: 12000, minOrder:  6, inStock: true,  discount: 10,   bulkMinQty: 12,   bulkPrice:  9500, catIdx: 9, imgPoolIdx: 0, imgs: 1, imgStart: 1 },
 ];
 
 // 5 image pools shared across 10 categories — same 12 Unsplash photos as before
@@ -306,17 +306,18 @@ async function runSeed() {
         pool[(p.imgStart + j) % pool.length]
       ).filter(Boolean);
       await addDoc(collection(db, 'products'), {
-        name:       p.name,
-        categoryId: catIds[p.catIdx],
-        price:      p.price,
-        minOrder:   p.minOrder,
-        inStock:    p.inStock,
-        discount:   p.discount   ?? null,
-        bulkMinQty: p.bulkMinQty ?? null,
-        bulkPrice:  p.bulkPrice  ?? null,
+        name:        p.name,
+        descripcion: p.descripcion ?? null,
+        categoryId:  catIds[p.catIdx],
+        price:       p.price,
+        minOrder:    p.minOrder,
+        inStock:     p.inStock,
+        discount:    p.discount   ?? null,
+        bulkMinQty:  p.bulkMinQty ?? null,
+        bulkPrice:   p.bulkPrice  ?? null,
         images,
-        createdAt:  serverTimestamp(),
-        updatedAt:  serverTimestamp(),
+        createdAt:   serverTimestamp(),
+        updatedAt:   serverTimestamp(),
       });
     }
 
@@ -1324,6 +1325,11 @@ async function openProductModal(id) {
         <input class="form-input" id="pName" value="${prod?.name ?? ''}" placeholder="Ej: Conjunto dama verano">
       </div>
 
+      <div class="form-group">
+        <label class="form-label">Descripción <span class="form-hint">— opcional</span></label>
+        <textarea class="form-input" id="pDescripcion" rows="3" placeholder="Ej: Vestido largo de tela liviana, ideal para verano. Disponible en varios colores.">${prod?.descripcion ?? ''}</textarea>
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Categoría</label>
@@ -1479,6 +1485,7 @@ async function saveProduct(id) {
     const bulkPrice = parseFloat(document.getElementById('pBulkPrice')?.value) || null;
     const data = {
       name,
+      descripcion: document.getElementById('pDescripcion')?.value.trim() || null,
       categoryId:  document.getElementById('pCategory')?.value || null,
       price:       parseFloat(document.getElementById('pPrice')?.value) || null,
       minOrder:    parseInt(document.getElementById('pMinOrder')?.value) || null,
