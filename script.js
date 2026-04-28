@@ -665,7 +665,6 @@ window.carouselGo = function(event, cid, dir) {
     }, 750);
   });
   document.querySelectorAll(`.carousel-dot[data-cid="${cid}"]`).forEach((dot, i) => dot.classList.toggle('active', i === next));
-  restartProgressBar(cid);
 };
 
 function startCarouselAuto(cid) {
