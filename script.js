@@ -177,6 +177,11 @@ async function loadCatalog() {
 
     setupRevealObserver();
     renderCart(); // refresh cart thumbnails now that _productMap is ready
+    const _dbg = document.getElementById('dbg-cart');
+    if (_dbg) {
+      const matched = cart.filter(i => window._productMap?.[i.id]).length;
+      _dbg.textContent = `map:${Object.keys(window._productMap).length} prods | cart:${cart.length} items | matched:${matched}/${cart.length}`;
+    }
 
   } catch (err) {
     console.error('Firebase error:', err);
