@@ -963,21 +963,35 @@ function closeCart() {
 
 // ── Product Popup ───────────────────────────────────────────
 window.openProductPopup = function(id) {
-  const prod = window._productMap?.[id];
-  if (!prod) return;
-  const cat      = window._categoryMap?.[prod.categoryId];
-  const discPct  = prod.discount > 0 ? prod.discount : null;
-  const effPrice = (prod.price != null && discPct) ? Math.round(prod.price * (1 - discPct / 100)) : prod.price;
-  const hasBulk  = prod.bulkMinQty && prod.bulkPrice;
-  const inStock  = prod.inStock !== false;
+  const prod     = window._productMap?.[id];
+  const cartItem = cart.find(i => i.id === id);
+  if (!prod && !cartItem) return;
 
   const imgWrap = document.getElementById('prod-popup-img');
   const infoEl  = document.getElementById('prod-popup-info');
   if (!imgWrap || !infoEl) return;
 
-  const imgUrl = prod.images?.[0] ? driveImgUrl(prod.images[0], 'w800') : null;
+  // Resolve fields — prefer live product data, fall back to cart item
+  const name     = prod?.name        ?? cartItem?.name     ?? '—';
+  const price    = prod?.price       ?? cartItem?.price     ?? null;
+  const discount = prod?.discount    ?? cartItem?.discount  ?? null;
+  const bulkQty  = prod?.bulkMinQty  ?? cartItem?.bulkMinQty ?? null;
+  const bulkPrc  = prod?.bulkPrice   ?? cartItem?.bulkPrice  ?? null;
+  const minOrder = prod?.minOrder    ?? cartItem?.minOrder   ?? null;
+  const inStock  = prod ? prod.inStock !== false : true;
+  const descr    = prod?.descripcion ?? null;
+
+  const cat      = prod ? window._categoryMap?.[prod.categoryId] : null;
+  const catLabel = cat ? `${cat.emoji ?? ''} ${cat.name}` : (cartItem?.categoryName ?? null);
+
+  const discPct  = discount > 0 ? discount : null;
+  const effPrice = (price != null && discPct) ? Math.round(price * (1 - discPct / 100)) : price;
+  const hasBulk  = bulkQty && bulkPrc;
+
+  // Image
+  const imgUrl = prod?.images?.[0] ? driveImgUrl(prod.images[0], 'w800') : (cartItem?.image ?? null);
   imgWrap.innerHTML = imgUrl
-    ? `<img src="${imgUrl}" alt="${prod.name ?? ''}" style="width:100%;height:100%;object-fit:cover;display:block">`
+    ? `<img src="${imgUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover;display:block">`
     : `<div style="background:${cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)'}">${cat?.emoji ?? '👗'}</div>`;
 
   const badges = [
@@ -987,22 +1001,23 @@ window.openProductPopup = function(id) {
   ].filter(Boolean).join('');
 
   const priceHtml = effPrice != null
-    ? `<span class="pp-price">${fmtARS(effPrice)}</span>${discPct ? `<span class="pp-price-orig">${fmtARS(prod.price)}</span>` : ''}`
+    ? `<span class="pp-price">${fmtARS(effPrice)}</span>${discPct ? `<span class="pp-price-orig">${fmtARS(price)}</span>` : ''}`
     : `<span class="pp-price" style="font-size:1.1rem;color:var(--text-muted)">A consultar</span>`;
 
   const metaLines = [];
-  if (prod.minOrder) metaLines.push(`<span>Pedido mínimo: ${prod.minOrder} unidades</span>`);
-  if (hasBulk)       metaLines.push(`<span>Por mayor: ${fmtARS(prod.bulkPrice)}/u. a partir de ${prod.bulkMinQty} u.</span>`);
-  if (cat?.name)     metaLines.push(`<span>Categoría: ${cat.emoji ?? ''} ${cat.name}</span>`);
+  if (minOrder)  metaLines.push(`<span>Pedido mínimo: ${minOrder} unidades</span>`);
+  if (hasBulk)   metaLines.push(`<span>Por mayor: ${fmtARS(bulkPrc)}/u. a partir de ${bulkQty} u.</span>`);
+  if (catLabel)  metaLines.push(`<span>Categoría: ${catLabel}</span>`);
 
+  const addable = prod && inStock;
   infoEl.innerHTML = `
     <div class="pp-badges">${badges}</div>
-    <h2 class="pp-name">${prod.name ?? '—'}</h2>
+    <h2 class="pp-name">${name}</h2>
     <div class="pp-price-row">${priceHtml}</div>
-    ${prod.descripcion ? `<p class="pp-desc">${prod.descripcion}</p>` : ''}
+    ${descr ? `<p class="pp-desc">${descr}</p>` : ''}
     ${metaLines.length ? `<div class="pp-meta">${metaLines.join('')}</div>` : ''}
-    <button class="pp-cta" ${!inStock ? 'disabled' : ''}
-      onclick="window.closeProdPopup();window.addToCart('${prod.id}')">🛒 Añadir al carrito</button>
+    <button class="pp-cta" ${!addable ? 'disabled' : ''}
+      onclick="window.closeProdPopup();window.addToCart('${id}')">🛒 Añadir al carrito</button>
   `;
 
   document.getElementById('prod-popup-ov').classList.add('open');
