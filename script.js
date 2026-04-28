@@ -1026,6 +1026,8 @@ function renderCart() {
   }
 
   container.innerHTML = cart.map(item => {
+    const liveProd  = window._productMap?.[item.id];
+    const imgUrl    = driveImgUrl(liveProd?.images?.[0]) ?? item.image ?? null;
     const eff    = effectivePrice(item);
     const min    = item.minOrder ?? 1;
     const isBulk = item.bulkMinQty && item.bulkPrice && item.qty >= item.bulkMinQty;
@@ -1043,7 +1045,7 @@ function renderCart() {
     return `
     <div class="cart-item" onclick="if(!event.target.closest('button'))window.openProductPopup?.('${item.id}')">
       <div class="cart-item-img">
-        ${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy">` : `<span>👗</span>`}
+        ${imgUrl ? `<img src="${imgUrl}" alt="${item.name}" loading="lazy">` : `<span>👗</span>`}
       </div>
       <div class="cart-item-info">
         <p class="cart-item-name">${item.name}</p>
