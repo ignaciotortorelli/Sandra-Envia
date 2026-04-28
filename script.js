@@ -176,6 +176,7 @@ async function loadCatalog() {
     renderRefs(activeRefs);
 
     setupRevealObserver();
+    renderCart(); // refresh cart thumbnails now that _productMap is ready
 
   } catch (err) {
     console.error('Firebase error:', err);
@@ -1043,7 +1044,7 @@ function renderCart() {
       ? `<p class="cart-bulk-hint">×${item.bulkMinQty} u. → ${fmtARS(item.bulkPrice)} c/u</p>`
       : '';
     return `
-    <div class="cart-item" onclick="if(!event.target.closest('button'))window.openProductPopup?.('${item.id}')">
+    <div class="cart-item" data-prod-id="${item.id}">
       <div class="cart-item-img">
         ${imgUrl ? `<img src="${imgUrl}" alt="${item.name}" loading="lazy">` : `<span>👗</span>`}
       </div>
@@ -1186,6 +1187,11 @@ function setupCart() {
   document.getElementById('cartClose')?.addEventListener('click', closeCart);
   document.getElementById('cartOverlay')?.addEventListener('click', closeCart);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCart(); });
+  document.getElementById('cartItems')?.addEventListener('click', e => {
+    if (e.target.closest('button, .cart-item-controls')) return;
+    const row = e.target.closest('[data-prod-id]');
+    if (row) window.openProductPopup?.(row.dataset.prodId);
+  });
 }
 
 // ── Dark mode toggle ───────────────────────────────────────
