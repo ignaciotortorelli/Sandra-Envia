@@ -2320,7 +2320,14 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 .aviso-card:hover { box-shadow: var(--sh-md); }
 .aviso-card-icon  { font-size: 1rem; flex-shrink: 0; }
 .aviso-card-text  { flex: 1; min-width: 0; font-size: .72rem; line-height: 1.4;
-                    overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+                    overflow: hidden; white-space: nowrap; }
+.aviso-scroll-inner { display: inline-block; white-space: nowrap;
+                      animation: avisoMarquee 9s linear infinite; }
+.aviso-scroll-sep   { opacity: 0; }
+@keyframes avisoMarquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
 .aviso-card-text strong { font-weight: 700; color: var(--black); margin-right: .35rem; }
 .aviso-card-text span   { color: var(--text-muted); }
 .aviso-card-counter     { font-size: .62rem; color: var(--text-muted); flex-shrink: 0; }

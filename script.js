@@ -1268,15 +1268,18 @@ function renderNotices(notices) {
   const ICON = { info: 'ℹ️', promo: '🎉', warning: '⚠️' };
   let current = 0;
 
-  strip.innerHTML = notices.map((n, i) => `
+  strip.innerHTML = notices.map((n, i) => {
+    const txt = `<strong>${n.title}</strong>${n.body ? `<span> ${n.body}</span>` : ''}`;
+    return `
     <div class="aviso-card aviso-${n.type ?? 'info'}${i === 0 ? ' aviso-active' : ''}"
          data-idx="${i}" role="button" tabindex="${i === 0 ? '0' : '-1'}">
       <span class="aviso-card-icon">${ICON[n.type] ?? 'ℹ️'}</span>
       <div class="aviso-card-text">
-        <strong>${n.title}</strong>${n.body ? `<span>${n.body}</span>` : ''}
+        <span class="aviso-scroll-inner">${txt}<span class="aviso-scroll-sep">　　　</span>${txt}</span>
       </div>
       ${notices.length > 1 ? `<span class="aviso-card-counter">${i + 1} / ${notices.length}</span>` : ''}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   const cards = [...strip.querySelectorAll('.aviso-card')];
 
