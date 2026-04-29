@@ -992,19 +992,26 @@ window.openProductPopup = function(id) {
   const allImgs = (prod?.images ?? []).map(u => driveImgUrl(u, 'w800')).filter(Boolean);
   if (!allImgs.length && cartItem?.image) allImgs.push(cartItem.image);
 
-  // Image panel — full height, no thumbnails
+  // Build thumbnails for both strips (info panel + focus overlay)
+  const buildThumbs = (extraClass) => allImgs.length > 1
+    ? `<div class="pp-thumbs ${extraClass}">${allImgs.map((u, i) =>
+        `<button class="pp-thumb${i === 0 ? ' active' : ''}" data-url="${u}"
+          onclick="window.ppSelectImg(this,'${u.replace(/'/g, "\\'")}')">
+          <img src="${driveImgUrl(u, 'w200')}" alt="">
+        </button>`).join('')}</div>`
+    : '';
+
+  // Image panel — full height + back button + focus-mode thumb overlay
   if (allImgs.length) {
-    imgWrap.innerHTML = `<div class="pp-img-main"><img id="pp-main-img" src="${allImgs[0]}" alt="${name}"></div>`;
+    imgWrap.innerHTML = `
+      <div class="pp-img-main"><img id="pp-main-img" src="${allImgs[0]}" alt="${name}" onclick="window.ppFocusImg()"></div>
+      <button class="pp-focus-back" onclick="window.ppExitFocus()">← Volver</button>
+      ${buildThumbs('pp-thumbs--focus')}`;
   } else {
     imgWrap.innerHTML = `<div class="pp-img-fallback" style="background:${cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)'}">${cat?.emoji ?? '👗'}</div>`;
   }
 
-  const thumbsHtml = allImgs.length > 1
-    ? `<div class="pp-thumbs">${allImgs.map((u, i) =>
-        `<button class="pp-thumb${i === 0 ? ' active' : ''}" onclick="window.ppSelectImg(this,'${u.replace(/'/g, "\\'")}')">
-          <img src="${driveImgUrl(u, 'w200')}" alt="">
-        </button>`).join('')}</div>`
-    : '';
+  const thumbsHtml = buildThumbs('pp-thumbs--info');
 
   const badges = [
     inStock ? '<span class="pp-badge-stock">✓ En stock</span>' : '<span class="pp-badge-out">Sin stock</span>',
@@ -1039,15 +1046,19 @@ window.openProductPopup = function(id) {
 
 window.closeProdPopup = function() {
   document.getElementById('prod-popup-ov')?.classList.remove('open');
+  document.querySelector('.ppa-dialog')?.classList.remove('img-focus');
   document.body.style.overflow = '';
 };
 
 window.ppSelectImg = function(btn, url) {
   const mainImg = document.getElementById('pp-main-img');
   if (mainImg) mainImg.src = url;
-  document.querySelectorAll('.pp-thumb').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
+  // sync active state across both thumb strips by matching data-url
+  document.querySelectorAll('.pp-thumb').forEach(t => t.classList.toggle('active', t.dataset.url === url));
 };
+
+window.ppFocusImg  = () => document.querySelector('.ppa-dialog')?.classList.add('img-focus');
+window.ppExitFocus = () => document.querySelector('.ppa-dialog')?.classList.remove('img-focus');
 
 function renderCart() {
   const container = document.getElementById('cartItems');
