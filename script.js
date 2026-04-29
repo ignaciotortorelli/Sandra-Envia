@@ -1133,7 +1133,7 @@ function renderCart() {
   footer.innerHTML = `
     <div class="cart-curva-note">
       <span>ℹ️</span>
-      <p><strong>Talles y colores surtidos (por curva).</strong> En compras mayoristas los artículos vienen en una mezcla de talles y/o colores según stock. Si necesitás una combinación específica, consultanos antes de confirmar.</p>
+      <p><strong>Talles y colores surtidos (por curva).</strong> En compras mayoristas los artículos vienen en una mezcla de talles y/o colores según stock. Si necesitás una combinación específica, consultanos una vez enviado tu pedido.</p>
     </div>
 
     ${activeCarriers.length ? `
