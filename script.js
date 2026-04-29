@@ -1392,6 +1392,8 @@ function initPolaroidScroll(wrap, strip) {
     const titleEl = document.getElementById('catModalTitle');
     const gridEl  = document.getElementById('catModalGrid');
     if (!overlay || !gridEl) return;
+    const controls = document.getElementById('catModalControls');
+    if (controls) controls.innerHTML = '';
     const img = card.querySelector('img');
     const cap = card.getAttribute('data-caption') || '';
     titleEl.textContent = cap;
