@@ -118,11 +118,11 @@ function applySettings(s) {
     const el = document.getElementById(spanId);
     if (!el || !url) return;
     const src = driveImgUrl(url) || url;
-    el.textContent = '';
+    const existing = el.querySelector('.social-custom-logo');
+    if (existing) existing.remove();
     const img = document.createElement('img');
     img.src = src; img.alt = alt; img.className = 'social-custom-logo';
     el.appendChild(img);
-    el.classList.add('has-logo');
   };
   setSocialLogo('igLogoArea', s.instagramLogoUrl, 'Instagram');
   setSocialLogo('ttLogoArea', s.tiktokLogoUrl,    'TikTok');
