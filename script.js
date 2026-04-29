@@ -988,11 +988,21 @@ window.openProductPopup = function(id) {
   const effPrice = (price != null && discPct) ? Math.round(price * (1 - discPct / 100)) : price;
   const hasBulk  = bulkQty && bulkPrc;
 
-  // Image
-  const imgUrl = prod?.images?.[0] ? driveImgUrl(prod.images[0], 'w800') : (cartItem?.image ?? null);
-  imgWrap.innerHTML = imgUrl
-    ? `<img src="${imgUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover;display:block">`
-    : `<div style="background:${cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)'}">${cat?.emoji ?? '👗'}</div>`;
+  // Image gallery
+  const allImgs = (prod?.images ?? []).map(u => driveImgUrl(u, 'w800')).filter(Boolean);
+  if (!allImgs.length && cartItem?.image) allImgs.push(cartItem.image);
+
+  if (allImgs.length) {
+    const thumbsHtml = allImgs.length > 1
+      ? `<div class="pp-thumbs">${allImgs.map((u, i) =>
+          `<button class="pp-thumb${i === 0 ? ' active' : ''}" onclick="window.ppSelectImg(this,'${u.replace(/'/g, "\\'")}')">
+            <img src="${driveImgUrl(u, 'w200')}" alt="">
+          </button>`).join('')}</div>`
+      : '';
+    imgWrap.innerHTML = `<div class="pp-img-main"><img id="pp-main-img" src="${allImgs[0]}" alt="${name}"></div>${thumbsHtml}`;
+  } else {
+    imgWrap.innerHTML = `<div class="pp-img-fallback" style="background:${cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)'}">${cat?.emoji ?? '👗'}</div>`;
+  }
 
   const badges = [
     inStock ? '<span class="pp-badge-stock">✓ En stock</span>' : '<span class="pp-badge-out">Sin stock</span>',
@@ -1027,6 +1037,13 @@ window.openProductPopup = function(id) {
 window.closeProdPopup = function() {
   document.getElementById('prod-popup-ov')?.classList.remove('open');
   document.body.style.overflow = '';
+};
+
+window.ppSelectImg = function(btn, url) {
+  const mainImg = document.getElementById('pp-main-img');
+  if (mainImg) mainImg.src = url;
+  document.querySelectorAll('.pp-thumb').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
 };
 
 function renderCart() {

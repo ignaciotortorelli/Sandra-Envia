@@ -534,9 +534,15 @@
 .pp-cta:hover:not(:disabled) { background:var(--pink-dark); transform:translateY(-1px); }
 .pp-cta:disabled { opacity:.5; cursor:default; transform:none; }
 .ppa-dialog { position:relative; background:var(--white); border-radius:var(--r-xl); width:100%; max-width:860px; display:flex; overflow:hidden; box-shadow:var(--sh-lg); min-height:460px; }
-.ppa-img { flex:0 0 46%; overflow:hidden; display:flex; }
-.ppa-img img { width:100%; height:100%; object-fit:cover; display:block; }
-.ppa-img > div { width:100%; display:flex; align-items:center; justify-content:center; font-size:5rem; }
+.ppa-img { flex:0 0 46%; overflow:hidden; display:flex; flex-direction:column; }
+.pp-img-main { flex:1; overflow:hidden; }
+.pp-img-main img { width:100%; height:100%; object-fit:cover; display:block; }
+.pp-img-fallback { width:100%; flex:1; display:flex; align-items:center; justify-content:center; font-size:5rem; }
+.pp-thumbs { display:flex; gap:.35rem; padding:.5rem; background:rgba(0,0,0,.04); flex-wrap:wrap; justify-content:center; }
+.pp-thumb { width:52px; height:52px; border-radius:var(--r-sm); overflow:hidden; cursor:pointer; opacity:.55; border:2px solid transparent; transition:opacity .2s, border-color .2s; flex-shrink:0; padding:0; background:none; }
+.pp-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.pp-thumb.active { opacity:1; border-color:var(--pink); }
+.pp-thumb:hover { opacity:.85; }
 .ppa-info { flex:1; padding:2.5rem 2rem 2rem; overflow-y:auto; display:flex; flex-direction:column; gap:.85rem; }
 .cart-item { cursor:pointer; }
 @media (max-width:620px) { .ppa-dialog { flex-direction:column; } .ppa-img { flex:0 0 220px; } .ppa-info { padding:1.25rem; } }
@@ -546,6 +552,7 @@
 [data-theme="dark"] .pp-x { color:#F0EBFF; background:rgba(255,255,255,.08); }
 [data-theme="dark"] .pp-x:hover { background:rgba(255,255,255,.15); }
 [data-theme="dark"] .pp-badge-bulk { background:rgba(59,130,246,.2); color:#93c5fd; }
+[data-theme="dark"] .pp-thumbs { background:rgba(255,255,255,.05); }
 </style>
 
 
