@@ -992,17 +992,19 @@ window.openProductPopup = function(id) {
   const allImgs = (prod?.images ?? []).map(u => driveImgUrl(u, 'w800')).filter(Boolean);
   if (!allImgs.length && cartItem?.image) allImgs.push(cartItem.image);
 
+  // Image panel — full height, no thumbnails
   if (allImgs.length) {
-    const thumbsHtml = allImgs.length > 1
-      ? `<div class="pp-thumbs">${allImgs.map((u, i) =>
-          `<button class="pp-thumb${i === 0 ? ' active' : ''}" onclick="window.ppSelectImg(this,'${u.replace(/'/g, "\\'")}')">
-            <img src="${driveImgUrl(u, 'w200')}" alt="">
-          </button>`).join('')}</div>`
-      : '';
-    imgWrap.innerHTML = `<div class="pp-img-main"><img id="pp-main-img" src="${allImgs[0]}" alt="${name}"></div>${thumbsHtml}`;
+    imgWrap.innerHTML = `<div class="pp-img-main"><img id="pp-main-img" src="${allImgs[0]}" alt="${name}"></div>`;
   } else {
     imgWrap.innerHTML = `<div class="pp-img-fallback" style="background:${cat?.gradient ?? 'linear-gradient(135deg,#FF4D6D,#C9184A)'}">${cat?.emoji ?? '👗'}</div>`;
   }
+
+  const thumbsHtml = allImgs.length > 1
+    ? `<div class="pp-thumbs">${allImgs.map((u, i) =>
+        `<button class="pp-thumb${i === 0 ? ' active' : ''}" onclick="window.ppSelectImg(this,'${u.replace(/'/g, "\\'")}')">
+          <img src="${driveImgUrl(u, 'w200')}" alt="">
+        </button>`).join('')}</div>`
+    : '';
 
   const badges = [
     inStock ? '<span class="pp-badge-stock">✓ En stock</span>' : '<span class="pp-badge-out">Sin stock</span>',
@@ -1023,6 +1025,7 @@ window.openProductPopup = function(id) {
   infoEl.innerHTML = `
     <div class="pp-badges">${badges}</div>
     <h2 class="pp-name">${name}</h2>
+    ${thumbsHtml}
     <div class="pp-price-row">${priceHtml}</div>
     ${descr ? `<p class="pp-desc">${descr}</p>` : ''}
     ${metaLines.length ? `<div class="pp-meta">${metaLines.join('')}</div>` : ''}
