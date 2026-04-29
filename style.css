@@ -1069,7 +1069,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .social-ig { background: linear-gradient(135deg, #F58529, #DD2A7B, #8134AF); }
 .social-fb { background: linear-gradient(135deg, #1877F2, #0C65D6); }
 .social-tt { background: linear-gradient(135deg, #010101 50%, #69C9D0); }
-.social-icon { font-size: 2.4rem; display: flex; align-items: center; justify-content: center; }
+.social-icon { font-size: 2.4rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .4rem; }
 .social-card .social-icon { opacity: 1; }
 .social-icon svg { display: block; }
 .social-icon.has-logo { font-size: 0; line-height: 0; opacity: 1 !important; }
