@@ -5,7 +5,7 @@ import { initializeApp }                                    from 'https://www.gs
 import { getFirestore, collection, getDocs, addDoc,
          updateDoc, deleteDoc, doc, serverTimestamp,
          setDoc, getDoc }                                   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { firebaseConfig, googleClientId }                   from '../firebase.config.js';
+import { firebaseConfig, googleClientId, allowedAdmins, driveFolderId } from '../firebase.config.js';
 import { initGoogleAuth, requestToken, uploadFileToDrive,
          deleteFileFromDrive, driveFileIdFromUrl,
          getDriveUserInfo, signOutDrive }                   from './google-drive.js';
@@ -2224,6 +2224,63 @@ function setupModalClose() {
 //  INIT
 // ══════════════════════════════════════════
 // ── Drive connection status ────────────────────────────────
+// ── Auth gate ─────────────────────────────────────────────
+function showAuthGate(errorMsg = null) {
+  const gate  = document.getElementById('authGate');
+  const error = document.getElementById('authError');
+  if (gate)  gate.removeAttribute('hidden');
+  if (error) {
+    if (errorMsg) { error.textContent = errorMsg; error.removeAttribute('hidden'); }
+    else          { error.setAttribute('hidden', ''); }
+  }
+}
+
+function hideAuthGate() {
+  document.getElementById('authGate')?.setAttribute('hidden', '');
+}
+
+async function checkAuth() {
+  const allowed = (allowedAdmins ?? []).map(e => e.toLowerCase());
+
+  const cached = await getDriveUserInfo().catch(() => null);
+  if (cached?.email && allowed.includes(cached.email.toLowerCase())) {
+    hideAuthGate();
+    setDriveStatus(cached.email);
+    return cached;
+  }
+
+  if (cached?.email) signOutDrive();
+  showAuthGate(cached?.email ? `La cuenta ${cached.email} no tiene acceso al panel.` : null);
+
+  return new Promise(resolve => {
+    const btn = document.getElementById('authLoginBtn');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      if (btn.disabled) return;
+      btn.disabled = true;
+      const orig = btn.innerHTML;
+      btn.textContent = 'Verificando…';
+      try {
+        await requestToken();
+        const user = await getDriveUserInfo();
+        if (user?.email && allowed.includes(user.email.toLowerCase())) {
+          hideAuthGate();
+          setDriveStatus(user.email);
+          resolve(user);
+        } else {
+          signOutDrive();
+          showAuthGate(`La cuenta ${user?.email ?? 'desconocida'} no tiene acceso al panel.`);
+        }
+      } catch (_) {
+        showAuthGate('Error al iniciar sesión. Intentá de nuevo.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+      }
+    });
+  });
+}
+
 function setDriveStatus(email) {
   const el   = document.getElementById('driveStatus');
   const btn  = document.getElementById('driveConnectBtn');
@@ -2265,7 +2322,6 @@ async function init() {
   setupModalClose();
   setupThemeToggle();
 
-  // Init Google Auth once GIS script is loaded
   const waitForGIS = () => new Promise(resolve => {
     if (window.google?.accounts) { resolve(); return; }
     const interval = setInterval(() => {
@@ -2273,12 +2329,20 @@ async function init() {
     }, 100);
   });
   await waitForGIS();
-  if (googleClientId && googleClientId !== 'REEMPLAZAR_CON_TU_CLIENT_ID') {
-    initGoogleAuth(googleClientId);
-    // Auto-connect with cached token; if none, show connect button
-    connectDrive().catch(() => setDriveStatus(null));
-    document.getElementById('driveConnectBtn')?.addEventListener('click', connectDrive);
+
+  if (!googleClientId || googleClientId === 'REEMPLAZAR_CON_TU_CLIENT_ID') {
+    await loadData();
+    router();
+    return;
   }
+
+  initGoogleAuth(googleClientId, driveFolderId || null);
+  await checkAuth();
+
+  document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    signOutDrive();
+    location.reload();
+  });
 
   await loadData();
   router();

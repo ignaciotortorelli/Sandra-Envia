@@ -15,3 +15,14 @@ export const firebaseConfig = {
 // Client ID de Google Cloud Console (OAuth 2.0)
 // Conseguilo en: console.cloud.google.com → APIs & Services → Credentials
 export const googleClientId = "15633533345-abapar4f75mm3e0qh7bn0rh3787hu9m8.apps.googleusercontent.com";
+
+// Cuentas de Google autorizadas para acceder al panel de admin
+// Para agregar una nueva: añadí el email abajo y guardá el archivo
+export const allowedAdmins = [
+  'ignaciotortorelli55@gmail.com',
+  // 'segunda-admin@gmail.com',
+];
+
+// ID de la carpeta de Google Drive donde se guardan las imágenes
+// Conseguilo abriendo la carpeta en Drive y copiando el ID de la URL
+export const driveFolderId = '13fY7GR4qNWTvp08pl7HrVGVFfGAEDQ0C';

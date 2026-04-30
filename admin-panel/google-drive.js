@@ -37,7 +37,8 @@ function clearToken() {
 }
 
 // ── Init OAuth client ──────────────────────────────────────
-export function initGoogleAuth(clientId) {
+export function initGoogleAuth(clientId, folderIdOverride = null) {
+  if (folderIdOverride) driveFolderId = folderIdOverride;
   tokenClient = window.google.accounts.oauth2.initTokenClient({
     client_id: clientId,
     scope: SCOPE,
