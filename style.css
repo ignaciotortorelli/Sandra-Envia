@@ -547,7 +547,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 .card-cat-tag {
   font-size: .72rem;
-  color: var(--pink-dark);
+  color: var(--black);
   font-weight: 500;
   margin-bottom: .15rem;
 }
@@ -1702,7 +1702,7 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 }
 .cart-item-img img { width: 100%; height: 100%; object-fit: cover; }
 .cart-item-name  { font-size: .75rem; font-weight: 600; line-height: 1.2; }
-.cart-item-cat   { font-size: .64rem; color: var(--pink-dark); margin-top: .05rem; }
+.cart-item-cat   { font-size: .64rem; color: var(--black); margin-top: .05rem; }
 .cart-item-price { font-size: .72rem; font-weight: 600; color: var(--text); margin-top: .1rem; display: flex; align-items: center; gap: .25rem; flex-wrap: wrap; }
 .cart-item-price--consult { color: var(--text-muted); font-weight: 400; }
 .cart-price-note {
@@ -2209,7 +2209,8 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 [data-theme="dark"] .cat-tab-pill:not(.active) { background: #1A1A2E; border-color: #2d2d4e; }
 [data-theme="dark"] .cat-tab-pill:hover:not(.active) { border-color: var(--accent); }
 [data-theme="dark"] .cat-tab-dot:not(.active) { background: #2d2d4e; }
-[data-theme="dark"] .card-name { color: #F0EBFF; }
+[data-theme="dark"] .card-name    { color: #F0EBFF; }
+[data-theme="dark"] .card-cat-tag { color: #F0EBFF; }
 
 /* Cómo comprar */
 [data-theme="dark"] .how-ico-wrap { background: #2D2D44; border-color: #C9184A; }
@@ -2244,6 +2245,7 @@ header.scrolled .cart-icon-btn { border-color: var(--black); }
 [data-theme="dark"] .cart-drawer-close:hover { background: rgba(255,255,255,.07); }
 [data-theme="dark"] .cart-item { border-bottom-color: rgba(255,255,255,.05); }
 [data-theme="dark"] .cart-item-name { color: #F0EBFF; }
+[data-theme="dark"] .cart-item-cat  { color: rgba(240,235,255,.6); }
 [data-theme="dark"] .cart-drawer-footer { border-top-color: rgba(255,255,255,.07); }
 [data-theme="dark"] .cart-total-price { border-top-color: rgba(255,255,255,.07); color: #F0EBFF; }
 [data-theme="dark"] .qty-btn { border-color: rgba(255,255,255,.15); color: #F0EBFF; }
